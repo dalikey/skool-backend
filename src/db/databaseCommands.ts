@@ -1,7 +1,13 @@
 import mongodb, { MongoClient } from 'mongodb';
 import loginBody from '../models/loginBody';
+import conf from 'dotenv';
+conf.config();
+
 //MongoDb url
-const mongoDBUrl:string = `mongodb+srv://skool:wqnPEYTS5Yjqcs2y@skool-workshop.6qrpk.mongodb.net/test` || process.env.MONGOURL;
+const mongoDBUrl = process.env.DB_URL;
+if(!mongoDBUrl){
+    throw new Error('No url present');
+}
 //Database
 const skoolWorkshop: string = "skooldevelop";
 //Collection
