@@ -1,5 +1,5 @@
 import express from 'express';
-import loginRouter from './src/routes/login.routes';
+import loginRouter from './routes/login.routes';
 import bodyParser from 'body-parser';
 import con from 'dotenv';
 con.config();

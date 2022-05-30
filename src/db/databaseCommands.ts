@@ -1,7 +1,7 @@
 import mongodb, { MongoClient } from 'mongodb';
 import loginBody from '../models/loginBody';
 //MongoDb url
-const mongoDBUrl = "mongodb+srv://skool:wqnPEYTS5Yjqcs2y@skool-workshop.6qrpk.mongodb.net/test";
+const mongoDBUrl:string = `mongodb+srv://skool:wqnPEYTS5Yjqcs2y@skool-workshop.6qrpk.mongodb.net/test` || process.env.MONGOURL;
 //Database
 const skoolWorkshop: string = "skooldevelop";
 //Collection
@@ -24,7 +24,6 @@ export const queryCommands = {
     async loginUser(loginData: loginBody) {
         try {
             let login = loginData;
-            console.log(login);
             connection = await client.connect();
             const collection = connection.db(skoolWorkshop).collection(user);
             const queryResult = collection.findOne({login});

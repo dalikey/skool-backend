@@ -2,10 +2,10 @@
   "name": "project-skool",
   "version": "0.0.1",
   "description": "API van project Skool",
-  "main": "index.ts",
+  "main": "src/index.ts",
   "scripts": {
-    "nodemonTest": "nodemon index.ts",
-    "test": "ts-node index.ts"
+    "nodemonTest": "nodemon src/index.ts",
+    "singleRun": "ts-node src/index.ts"
   },
   "repository": {
     "type": "git",
