@@ -19,7 +19,7 @@ export async function verifyInput(req: Request, res: Response, next: any) {
         assert(registration.lastName)
         next();
     } catch (err) {
-        return res.send({"error": "input_invalid", "message": "The data you sent was not correctly formatted!"});
+        return res.status(400).send({"error": "input_invalid", "message": "The data you sent was not correctly formatted!"});
     }
 }
 
@@ -32,12 +32,15 @@ export async function hashPashword(req: Request, res: Response, next: any) {
 
 export async function registerUser(req: Request, res: Response, next: any) {
     const registration: registrationBody = req.body;
-    await queryCommands.registerUser({
+    const confirmation = await queryCommands.registerUser({
         emailAddress: registration.emailAddress,
         password: res.locals.password,
         firstName: registration.firstName,
         lastName: registration.lastName
     });
+    if (confirmation.error !== 0) {
+        res.status(400).send({error: "input_invalid", message: "The data you sent was not correctly formatted!"});
+    }
     res.status(204).send();
 }
 
