@@ -23,7 +23,7 @@ export async function verifyInput(req: Request, res: Response, next: any) {
     }
 }
 
-export async function hashPashword(req: Request, res: Response, next: any) {
+export async function hashPassword(req: Request, res: Response, next: any) {
     const registration: registrationBody = req.body;
     res.locals.password = await bcrypt.hash(registration.password, 6);
     next();
@@ -41,4 +41,4 @@ export async function registerUser(req: Request, res: Response, next: any) {
     res.status(204).send();
 }
 
-export default {verifyInput: verifyInput, hashPashword: hashPashword, registerUser: registerUser}
+export default {verifyInput: verifyInput, hashPassword: hashPassword, registerUser: registerUser}
