@@ -1,25 +1,30 @@
-import { Request, Response } from "express";
-
-require('dotenv').config();
-const express = require('express');
-const Logger = require('js-logger');
-import getDatabase from './modules/database';
-
-
-const app = express();
-const port = process.env.PORT || 3000;
+import express from 'express';
+import loginRouter from './routes/login.routes';
+import bodyParser from 'body-parser';
+import con from 'dotenv';
+import Logger from 'js-logger';
+import registrationRouter from './routes/registration.routes';
 
 Logger.useDefaults();
+con.config();
+const app = express();
+const port = process.env.PORT;
 
-const db = getDatabase();
 
-app.get('/', async (req: Request, res: Response) => {
-    const collection = db.collection('user');
-    const user = await collection.findOne({});
-    return res.send({"hello": "world"})
+app.use(bodyParser.json());
+app.use(loginRouter);
+app.use(registrationRouter);
+
+
+//Catching errors
+app.use((err:any, req:any, res:any, next:any)=>{
+    res.status(err.status).json({err});
+})
+app.all("*", (req:any, res:any, next:any)=>{
+    Logger.info(`${req.method} ${req.url}`);
+    next();
 })
 
-
-app.listen(port, () => {
-    Logger.info(`Running Skool Backend on port ${port}`)
+app.listen(port, ()=>{
+    console.log(`Example appS listening on port Typescript tested ${port}`);
 })
