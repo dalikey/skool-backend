@@ -29,6 +29,7 @@ const loginController = {
         queryCommands.loginUser(loginData).then(result => {
             queryCommands.closeDB();
             if (result) {
+                //TODO Check if account is active/activated.
                 //Bycrypt will check the password.
                 checkPassword(result, loginData.password).then(value => {
                     if (value) {
