@@ -4,8 +4,9 @@
   "description": "API van project Skool",
   "main": "src/index.ts",
   "scripts": {
-    "dev": "nodemon src/index.ts",
-    "start": "ts-node src/index.ts"
+    "nodemonTest": "nodemon src/index.ts",
+    "singleRun": "ts-node src/index.ts",
+    "test": "mocha -r ts-node/register src/**/*.test.ts --exit"
   },
   "repository": {
     "type": "git",
@@ -26,19 +27,21 @@
   "dependencies": {
     "bcrypt": "^5.0.1",
     "cors": "^2.8.5",
+    "@types/bcrypt": "^5.0.0",
+    "@types/express": "^4.17.13",
+    "@types/jsonwebtoken": "^8.5.8",
+    "@types/cors": "^2.8.12",    
+    "@types/chai": "^4.3.1",
+    "@types/mocha": "^9.1.1",
     "dotenv": "^16.0.1",
     "express": "^4.18.1",
     "js-logger": "^1.6.1",
     "jsonwebtoken": "^8.5.1",
     "mongodb": "^4.6.0",
-    "typescript": "^4.7.2",
-    "ts-node": "^10.8.0",
-    "@types/bcrypt": "^5.0.0",
-    "@types/express": "^4.17.13",
-    "@types/jsonwebtoken": "^8.5.8",
-    "@types/mongodb": "^4.0.7",
-    "@types/node": "^17.0.36",
-    "@types/cors": "^2.8.12"
+    "chai": "^4.3.6",
+    "chai-http": "^4.3.0",
+    "mocha": "^10.0.0",
+    "ts-node": "^10.8.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.16"

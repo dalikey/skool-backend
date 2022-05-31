@@ -34,3 +34,4 @@ app.listen(port, ()=>{
 
 app.use(loginRouter);
 app.use(registrationRouter);
+export default app;
