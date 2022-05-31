@@ -22,6 +22,7 @@ app.use((err:any, req:any, res:any, next:any)=>{
 })
 app.all("*", (req:any, res:any, next:any)=>{
     Logger.info(`${req.method} ${req.url}`);
+    res.header("Access-Control-Allow-Origin", process.env.FRONTEND_URI || "*");
     next();
 })
 
