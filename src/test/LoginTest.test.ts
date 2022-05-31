@@ -70,7 +70,7 @@ describe('A user can log in, with his registered account.', ()=>{
     describe('Successful login, gives account with token', ()=>{
         it('Successful login', (done)=>{
             chai.request(server).post('/api/auth/login').send({
-                emailAddress: "dummy@outlook.com",
+                emailAddress: "test@example.com",
                 password: "Secret22"
             }).end((err, res)=>{
                 let {status, result} = res.body;
