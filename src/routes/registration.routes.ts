@@ -4,7 +4,7 @@ const registrationRouter  = express.Router();
 
 registrationRouter.post('/api/auth/register',
 registrationController.verifyInput,
-registrationController.hashPashword,
+registrationController.hashPassword,
 registrationController.registerUser
 );
 
