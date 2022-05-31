@@ -39,11 +39,12 @@ export const queryCommands = {
     //Retrieve user based on login body
     async loginUser(loginData: loginBody) {
         try {
-            let login = loginData;
+            let emailAddress = loginData.emailAddress;
             const collection = await this.getUserCollection();
-            return collection.findOne({login});
-        } catch (error) {
-            return {status: 500, message: error};
+            const queryResult = collection.findOne({emailAddress});
+            return queryResult;
+        } catch (error:any) {
+            throw new Error("Database error");
         }
     }
     ,
