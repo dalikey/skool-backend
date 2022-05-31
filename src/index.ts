@@ -2,6 +2,9 @@ import express from 'express';
 import loginRouter from './routes/login.routes';
 import bodyParser from 'body-parser';
 import con from 'dotenv';
+import Logger from 'js-logger';
+
+Logger.useDefaults();
 con.config();
 const app = express();
 const port = process.env.PORT;
@@ -16,7 +19,7 @@ app.use((err:any, req:any, res:any, next:any)=>{
     res.status(err.status).json({err});
 })
 app.all("*", (req:any, res:any, next:any)=>{
-    console.log("Hello worlds");
+    Logger.info("Hello worlds");
     next();
 })
 
