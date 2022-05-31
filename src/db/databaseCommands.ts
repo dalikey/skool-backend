@@ -1,6 +1,8 @@
-import mongodb, { MongoClient } from 'mongodb';
+import { MongoClient } from 'mongodb';
 import loginBody from '../models/loginBody';
+import  { registrationInsert } from '../models/registrationBody';
 import conf from 'dotenv';
+import Logger from 'js-logger';
 conf.config();
 
 //MongoDb url
@@ -19,6 +21,8 @@ let connection:any = null;
 
 export const queryCommands = {
 
+
+
     //Closes connection
     closeDB:()=>{
         connection.close();
@@ -26,16 +30,34 @@ export const queryCommands = {
         connection = null;
     }
     ,
+   async getUserCollection() {
+        if (!connection) {
+            connection = await client.connect();
+        }
+        const coll = connection.db(skoolWorkshop).collection(user);
+        return coll;
+    },
     //Retrieve user based on login body
     async loginUser(loginData: loginBody) {
         try {
             let login = loginData;
-            connection = await client.connect();
-            const collection = connection.db(skoolWorkshop).collection(user);
+            const collection = await this.getUserCollection();
             const queryResult = collection.findOne({login});
             return queryResult;
         } catch (error) {
             return {status: 500, message: error};
         }
+    }
+    ,
+    async registerUser(registrationData: registrationInsert) {
+        const collection = await this.getUserCollection();
+        try {
+            const query = await collection.insertOne(registrationData);
+            Logger.info(query);
+            return true;
+        } catch (err) {
+            return {error: "duplicate_user", message: err}
+        }
+        
     }
 }

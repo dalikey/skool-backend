@@ -3,6 +3,7 @@ import loginRouter from './routes/login.routes';
 import bodyParser from 'body-parser';
 import con from 'dotenv';
 import Logger from 'js-logger';
+import registrationRouter from './routes/registration.routes';
 
 Logger.useDefaults();
 con.config();
@@ -12,6 +13,7 @@ const port = process.env.PORT;
 
 app.use(bodyParser.json());
 app.use(loginRouter);
+app.use(registrationRouter);
 
 
 //Catching errors
@@ -19,7 +21,7 @@ app.use((err:any, req:any, res:any, next:any)=>{
     res.status(err.status).json({err});
 })
 app.all("*", (req:any, res:any, next:any)=>{
-    Logger.info("Hello worlds");
+    Logger.info(`${req.method} ${req.url}`);
     next();
 })
 

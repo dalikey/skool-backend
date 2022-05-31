@@ -4,8 +4,8 @@
   "description": "API van project Skool",
   "main": "src/index.ts",
   "scripts": {
-    "nodemonTest": "nodemon src/index.ts",
-    "singleRun": "ts-node src/index.ts"
+    "dev": "nodemon src/index.ts",
+    "start": "ts-node src/index.ts"
   },
   "repository": {
     "type": "git",
@@ -27,6 +27,7 @@
     "@types/bcrypt": "^5.0.0",
     "@types/express": "^4.17.13",
     "@types/jsonwebtoken": "^8.5.8",
+    "@types/mongodb": "^4.0.7",
     "@types/node": "^17.0.36",
     "bcrypt": "^5.0.1",
     "dotenv": "^16.0.1",
