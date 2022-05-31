@@ -23,3 +23,5 @@ app.all("*", (req:any, res:any, next:any)=>{
 app.listen(port, ()=>{
     console.log(`Example appS listening on port Typescript tested ${port}`);
 })
+
+export default app;

@@ -18,7 +18,7 @@ const loginController = {
             let message: string = error.message
             const err = {
                 status: 401,
-                error_message: message
+                error: message
             }
             res.status(401).json({ err })
         }
@@ -28,7 +28,6 @@ const loginController = {
     async userLogin(req: any, res: any) {
         const loginData = req.body;
         let getUser = await queryCommands.loginUser(loginData);
-        queryCommands.closeDB();
         if (getUser) {
             const correctPassword = await checkPassword(loginData.password, getUser.password);
             if (correctPassword) {
@@ -44,19 +43,19 @@ const loginController = {
                 } else {
                     res.status(400).json({
                         status: 400,
-                        message: "User has not been activated."
+                        error: "User has not been activated."
                     })
                 }
             } else {
                 res.status(401).json({
                     status: 401,
-                    message: "Login failed."
+                    error: "Login failed."
                 })
             }
         } else {
             res.status(404).json({
                 status: 404,
-                message: "Login failed."
+                error: "Login failed."
             })
         }
     }
