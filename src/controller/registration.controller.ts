@@ -15,6 +15,8 @@ export async function verifyInput(req: Request, res: Response, next: any) {
         assert(registration.password.match(capitalRegex));
         assert(registration.password.match(digitRegex));
         assert(registration.emailAddress.match(emailRegex));
+        assert(registration.firstName)
+        assert(registration.lastName)
         next();
     } catch (err) {
         return res.send({"error": "input_invalid", "message": "The data you sent was not correctly formatted!"});
@@ -30,7 +32,12 @@ export async function hashPashword(req: Request, res: Response, next: any) {
 
 export async function registerUser(req: Request, res: Response, next: any) {
     const registration: registrationBody = req.body;
-    await queryCommands.registerUser({emailAddress: registration.emailAddress, password: res.locals.password});
+    await queryCommands.registerUser({
+        emailAddress: registration.emailAddress,
+        password: res.locals.password,
+        firstName: registration.firstName,
+        lastName: registration.lastName
+    });
     res.status(204).send();
 }
 
