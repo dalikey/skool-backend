@@ -11,7 +11,7 @@ if(!mongoDBUrl){
     throw new Error('No url present');
 }
 //Database
-const skoolWorkshop: string = "skooldevelop";
+const skoolWorkshop = process.env.MONGODB;
 //Collection
 const user: string = "user"
 //Client
@@ -34,16 +34,14 @@ export const queryCommands = {
         if (!connection) {
             connection = await client.connect();
         }
-        const coll = connection.db(skoolWorkshop).collection(user);
-        return coll;
+        return connection.db(skoolWorkshop).collection(user);
     },
     //Retrieve user based on login body
     async loginUser(loginData: loginBody) {
         try {
             let login = loginData;
             const collection = await this.getUserCollection();
-            const queryResult = collection.findOne({login});
-            return queryResult;
+            return collection.findOne({login});
         } catch (error) {
             return {status: 500, message: error};
         }
