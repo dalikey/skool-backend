@@ -29,13 +29,13 @@ export const queryCommands = {
     //Retrieve user based on login body
     async loginUser(loginData: loginBody) {
         try {
-            let login = loginData;
+            let emailAddress = loginData.emailAddress;
             connection = await client.connect();
             const collection = connection.db(skoolWorkshop).collection(user);
-            const queryResult = collection.findOne({login});
+            const queryResult = collection.findOne({emailAddress});
             return queryResult;
-        } catch (error) {
-            return {status: 500, message: error};
+        } catch (error:any) {
+            throw new Error("Database error");
         }
     }
 }
