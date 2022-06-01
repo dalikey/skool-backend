@@ -1,9 +1,9 @@
-ame: Deploy Prod
+name: Deploy Dev
 
-on:
-  push:
-    branches:
-      - main
+on: 
+  push: 
+    branches: 
+      - development
 jobs:
     integrationtests:
         runs-on: ubuntu-latest
@@ -28,15 +28,13 @@ jobs:
               run: |
                   npm test
     build:
-      needs:
-      - integrationtests
       runs-on: ubuntu-latest
-      steps:
+      steps: 
       - uses: actions/checkout@v2
       - uses: akhileshns/heroku-deploy@v3.12.12
         with:
           heroku_api_key: ${{secrets.HEROKU_API_KEY}}
           heroku_email: "geoffreywesthoff@gmail.com"
-          heroku_app_name: "skool-stable"
-          branch: "main"
+          heroku_app_name: "skool-development"
+          branch: "development"
           procfile: "web: npm start"
