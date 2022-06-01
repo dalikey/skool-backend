@@ -4,8 +4,8 @@
   "description": "API van project Skool",
   "main": "src/index.ts",
   "scripts": {
-    "nodemonTest": "nodemon src/index.ts",
-    "singleRun": "ts-node src/index.ts",
+    "dev": "nodemon src/index.ts",
+    "start": "ts-node src/index.ts",
     "test": "mocha -r ts-node/register src/**/*.test.ts --exit"
   },
   "repository": {
