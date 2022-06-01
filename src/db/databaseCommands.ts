@@ -44,7 +44,7 @@ export const queryCommands = {
             const queryResult = collection.findOne({emailAddress});
             return queryResult;
         } catch (error:any) {
-            throw new Error("Database error");
+            return {status:500, error: error.message};
         }
     }
     ,
@@ -53,7 +53,7 @@ export const queryCommands = {
         try {
             const query = await collection.insertOne(registrationData);
             Logger.info(query);
-            return true;
+            return {error: 0};
         } catch (err) {
             return {error: "duplicate_user", message: err}
         }
