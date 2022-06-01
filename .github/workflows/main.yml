@@ -1,11 +1,14 @@
 ame: Deploy Prod
 
 on:
-  push:
+  pull_request:
+    types:
+    - closed
     branches:
       - main
 jobs:
     integrationtests:
+        if: github.event.pull_request.merged == true
         runs-on: ubuntu-latest
         env:
           DB_URL: mongodb://localhost:27017/skool
