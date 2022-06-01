@@ -59,4 +59,25 @@ export const queryCommands = {
         }
         
     }
+    ,
+    async activateUser(){
+        const collection = await this.getUserCollection();
+        try{
+            const user = await collection.updateOne({emailAddress: "dummy@outlook.com"}, {$set: {isActive: "true"}});
+            Logger.info(user);
+        } catch(error:any) {
+        return {status:500, error: error.message};
+        }
+    } 
+    ,
+    async deleteUser(){
+        try{
+            const collection = await this.getUserCollection();
+            const userDeletion = await collection.deleteOne({emailAddress: "dummy@outlook.com"});
+            Logger.info(userDeletion);
+        } catch(error:any) {
+            return {status:500, error: error.message};
+        }
+    }
+
 }
