@@ -38,10 +38,11 @@ export const queryCommands = {
     },
     //Retrieve user based on login body
     async loginUser(loginData: loginBody) {
+        const projection = {_id: 1, firstName: 1, lastName: 1, emailAddress: 1, password: 1, role: 1, isActive:1};
         try {
             let emailAddress = loginData.emailAddress;
             const collection = await this.getUserCollection();
-            const queryResult = collection.findOne({emailAddress});
+            const queryResult = collection.findOne({emailAddress}, {projection});
             return queryResult;
         } catch (error:any) {
             return {status:500, error: error.message};

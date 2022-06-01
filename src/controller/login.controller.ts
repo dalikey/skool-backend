@@ -34,6 +34,7 @@ const loginController = {
                 if (getUser.isActive) {
                     jwt.sign({ id: getUser._id, roles: getUser.roles }, 'SecretKey', { expiresIn: "1d" }, (err, token) => {
                         if (err) { throw err; };
+                        delete getUser.password;
                         getUser.token = token;
                         res.status(200).json({
                             status: 200,

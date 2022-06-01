@@ -91,17 +91,7 @@ describe('A user can log in, with his registered account.', ()=>{
                     lastName: "Tester",
                     emailAddress: "test@example.com",
                     isActive: true,
-                    password: "$2b$09$Yz8.GAGr6qgKDbr1cT/li.26.JvNta5QGfDPMYDgRoC0UAuzvKYda",
                     role: "teacher",
-                    contractType: "freelancer",
-                    dateOfBirth: "1977-01-01",
-                    placeOfBirth: "The Hague",
-                    location:{
-                        street_Hnr: "teststreet 111",
-                        city: "The Hague",
-                        postalcode: "1111BN",
-                        country:"The Netherlands"
-                    },
                     token: result.token
                 })
                 done();
