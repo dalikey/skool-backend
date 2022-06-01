@@ -32,7 +32,9 @@ const loginController = {
             const correctPassword = await checkPassword(loginData.password, getUser.password);
             if (correctPassword) {
                 if (getUser.isActive) {
-                    jwt.sign({ id: getUser._id, roles: getUser.roles }, 'SecretKey', { expiresIn: "1d" }, (err, token) => {
+                    jwt.sign({ id: getUser._id, roles: getUser.role, firstName: getUser.firstName, lastName: getUser.lastName },
+                        'SecretKey', { expiresIn: "1d" },
+                        (err, token) => {
                         if (err) { throw err; };
                         delete getUser.password;
                         getUser.token = token;
