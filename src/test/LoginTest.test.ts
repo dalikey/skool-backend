@@ -22,9 +22,9 @@ describe('A user can log in, with his registered account.', ()=>{
             chai.request(server).post('/api/auth/login').send({
                 emailAddress: "dummyField@outlook.com",
             }).end((err, res)=>{
-                let {status, error} = res.body.err;
-                status.should.be.equal(401);
-                error.should.be.equal('Password must be filled in.');
+                let {error, message} = res.body;
+                error.should.be.equal("Wrong input");
+                message.should.be.equal('Password must be filled in.');
                 done();
             })
         })
@@ -33,9 +33,9 @@ describe('A user can log in, with his registered account.', ()=>{
             chai.request(server).post('/api/auth/login').send({
                 password: "dummy"
             }).end((err, res)=>{
-                let {status, error} = res.body.err;
-                status.should.be.equal(401);
-                error.should.be.equal('email must be filled in.');
+                let {error, message} = res.body;
+                error.should.be.equal("Wrong input");
+                message.should.be.equal('email must be filled in.');
                 done();
             })
         })
@@ -45,9 +45,9 @@ describe('A user can log in, with his registered account.', ()=>{
                 emailAddress: "dummyField@outlook.com",
                 password: "Secerio"
             }).end((err, res)=>{
-                let {status, error} = res.body;
-                status.should.be.equal(404);
-                error.should.be.equal('Login failed.');
+                let {error, message} = res.body;
+                error.should.be.equal("Login failure");
+                message.should.be.equal('Login failed.');
                 done();
             })
         })
@@ -57,9 +57,9 @@ describe('A user can log in, with his registered account.', ()=>{
                 emailAddress: "test@invalid.com",
                 password: "Secerio"
             }).end((err, res)=>{
-                let {status, error} = res.body;
-                status.should.be.equal(401);
-                error.should.be.equal('Login failed.');
+                let {error, message} = res.body;
+                error.should.be.equal("Login failure");
+                message.should.be.equal('Login failed.');
                 done();
             })
         })
@@ -69,9 +69,9 @@ describe('A user can log in, with his registered account.', ()=>{
                 emailAddress: "test@invalid.com",
                 password: "Elegant"
             }).end((err, res)=>{
-                let {status, error} = res.body;
-                status.should.be.equal(400);
-                error.should.be.equal('User has not been activated.');
+                let {error, message} = res.body;
+                error.should.be.equal("Login failure");
+                message.should.be.equal('User has not been activated.');
                 done();
             })
         })
@@ -83,13 +83,10 @@ describe('A user can log in, with his registered account.', ()=>{
                 emailAddress: "test@example.com",
                 password: "Elegant"
             }).end((err, res)=>{
-                let {status, result} = res.body;
-                status.should.be.equal(200);
+                let {result} = res.body;
                 assert.deepEqual(result, {
-                    _id: result._id,
                     firstName: "Test",
                     lastName: "Tester",
-                    emailAddress: "test@example.com",
                     isActive: true,
                     role: "teacher",
                     token: result.token
