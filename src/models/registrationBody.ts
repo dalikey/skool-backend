@@ -11,4 +11,5 @@ export interface registrationInsert{
     password: string,
     firstName: string,
     lastName: string
+    role: string
 }
