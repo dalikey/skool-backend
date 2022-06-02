@@ -11,6 +11,7 @@ jobs:
           DB_URL: mongodb://localhost:27017/skool
           FRONTEND_URI : '*'
           MONGODB: 'skool'
+          APP_SECRET: secret-${{ github.run_id }}-${{ github.run_attempt }}
         steps:
             - uses: actions/checkout@v2
             - name: Start MongoDB
@@ -28,6 +29,8 @@ jobs:
               run: |
                   npm test
     build:
+      needs:
+        - integrationtests
       runs-on: ubuntu-latest
       steps: 
       - uses: actions/checkout@v2
