@@ -31,7 +31,7 @@ const loginController = {
                     jwt.sign({ id: getUser._id, role: getUser.role},
                         process.env.APP_SECRET || "", { expiresIn: "1d" },
                         (err, token) => {
-                        if (err) { throw err; };
+                        if (err) { throw err; }
                         delete getUser.password;
                         delete getUser.emailAddress;
                         delete getUser._id;

@@ -34,6 +34,9 @@ export async function getUsers(req: Request, res: Response) {
             } else if (req.query[key] === 'null') {
                 // @ts-ignore
                 mongoQuery[key] = {'$exists': false};
+            } else {
+                // @ts-ignore
+                mongoQuery[key] = req.query[key];
             }
         }
     }
