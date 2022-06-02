@@ -21,13 +21,28 @@ export async function getUsers(req: Request, res: Response) {
         return res.status(403).send({error: "forbidden", message: "You do not have permission for this endpoint"})
     }
 
-    for (let i = 0; i< Object(req.query).length; i++) {
-        Logger.info(req.query[i])
+    const mongoQuery = {};
+
+    for (let key in req.query) {
+        if (["isActive", "firstName", "lastName"].includes(key)) {
+            if (req.query[key] === 'true') {
+                // @ts-ignore
+                mongoQuery[key] = true
+            } else if (req.query[key] === 'false') {
+                // @ts-ignore
+                mongoQuery[key] = false;
+            } else if (req.query[key] === 'null') {
+                // @ts-ignore
+                mongoQuery[key] = {'$exists': false};
+            }
+        }
     }
 
-    Logger.info(req.query)
 
-    const users = await queryCommands.getAllUsers(req.query)
+
+    Logger.info(mongoQuery)
+
+    const users = await queryCommands.getAllUsers(mongoQuery)
     Logger.info(users);
 
     return res.send({result: users});
