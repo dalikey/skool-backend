@@ -28,8 +28,8 @@ const loginController = {
             const correctPassword = await checkPassword(loginData.password, getUser.password);
             if (correctPassword) {
                 if (getUser.isActive) {
-                    jwt.sign({ id: getUser._id, roles: getUser.role},
-                        'SecretKey', { expiresIn: "1d" },
+                    jwt.sign({ id: getUser._id, role: getUser.role},
+                        process.env.APP_SECRET || "", { expiresIn: "1d" },
                         (err, token) => {
                         if (err) { throw err; };
                         delete getUser.password;
@@ -45,7 +45,7 @@ const loginController = {
                 res.status(401).json({ error: "Login failure",message: "Login failed." });
             }
         } else {
-            res.status(404).json({ error: "Login failure", message: "Login failed." });
+            res.status(401).json({ error: "Login failure", message: "Login failed." });
         }
     }
 }
