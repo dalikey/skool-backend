@@ -50,7 +50,7 @@ export const queryCommands = {
     ,
     async retrieveEmail(emailAddress: string){
         try {
-            const projection = {_id: 1, emailAddress:1, lastName: 1};
+            const projection = {_id: 1, emailAddress:1, firstName: 1, lastName: 1};
             const collection = await this.getUserCollection();
             return collection.findOne({emailAddress}, {projection});
         }catch (e) {

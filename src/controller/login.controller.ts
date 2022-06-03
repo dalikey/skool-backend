@@ -82,7 +82,7 @@ const loginController = {
                 subject: `Hier is uw wachtwoord reset link.`,
                 text: `Hallo ${user.firstName} ${user.lastName},\n\nHier is uw wachtwoordherstel link.\nKlik de link hieronder om een nieuw wachtwoord in te voeren.\nLink: ${link}\n\nMet vriendelijke groet,\nSkool Workshops`
             });
-            res.status(200).json({success: true, res: info});
+            res.status(200).json({success: true});
         } else{
             res.status(401).json({error: "retrieval_failure", message: "user does not exist"});
         }
