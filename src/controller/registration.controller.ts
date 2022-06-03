@@ -56,7 +56,7 @@ export async function registerUser(req: Request, res: Response, next: any) {
     if (confirmation.error !== 0) {
         res.status(400).send({error: "input_invalid", message: "The data you sent was not correctly formatted!"});
     }
-    const info = await transporter.sendMail({from: process.env.SMPT_USERNAME, to: "clinten.pique@duck-in.space", subject: `Gebruiker ${registration.firstName} ${registration.lastName} geregistreerd.`, text: `Accepteer/Weiger ${registration.firstName} ${registration.lastName} door ${process.env.FRONTEND_URI}/admin te bezoeken! `})
+    const info = await transporter.sendMail({from: process.env.SMTP_USERNAME, to: "clinten.pique@duck-in.space", subject: `Gebruiker ${registration.firstName} ${registration.lastName} geregistreerd.`, text: `Accepteer/Weiger ${registration.firstName} ${registration.lastName} door ${process.env.FRONTEND_URI}/admin te bezoeken! `})
     res.status(204).send();
 }
 
