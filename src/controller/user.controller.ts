@@ -1,11 +1,8 @@
-import bcrypt from 'bcrypt';
-import assert from 'assert';
-import { Request, Response } from 'express';
-import { queryCommands } from '../db/databaseCommands';
-import { registrationBody } from '../models/registrationBody';
-import jwt, {JsonWebTokenError} from "jsonwebtoken";
+import {Request, Response} from 'express';
+import {queryCommands} from '../db/databaseCommands';
+import jwt from "jsonwebtoken";
 import Logger from "js-logger";
-import { ObjectId } from "mongodb";
+import {ObjectId} from "mongodb";
 import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
@@ -46,7 +43,7 @@ export async function getUsers(req: Request, res: Response) {
                 mongoQuery[key] = {'$exists': false};
             } else {
                 // @ts-ignore
-                mongoQuery[key] = req.query[key];
+                mongoQuery[key] = `/${req.query[key]}/`;
             }
         }
     }
@@ -67,8 +64,7 @@ export async function authorizeUser(req: Request, res: Response, next: any) {
         return res.status(401).send({error: "unauthorized", message: "You need to provide authorization for this endpoint!"})
     }
     try {
-        const decodedToken = jwt.verify(authToken,  process.env.APP_SECRET || "");
-        res.locals.decodedToken = decodedToken;
+        res.locals.decodedToken = jwt.verify(authToken, process.env.APP_SECRET || "");
         next()
     } catch (err) {
         return res.send({error: "unauthorized", message: "You need to provide authorization for this endpoint!"})
@@ -124,4 +120,4 @@ export async function deactivateUser(req: Request, res: Response) {
 
 
 
-export default {getUser, editUser: () => {}, activateUser, authorizeUser, deactivateUser, getUsers}
+export default {getUser, activateUser, authorizeUser, deactivateUser, getUsers}
