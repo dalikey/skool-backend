@@ -61,7 +61,8 @@ export async function authorizeUser(req: Request, res: Response, next: any) {
         res.locals.decodedToken = decodedToken;
         next()
     } catch (err) {
-        return res.send({error: "unauthorized", message: "You need to provide authorization for this endpoint!"})
+        Logger.error(err);
+        return res.status(401).send({error: "unauthorized", message: "You need to provide authorization for this endpoint!"})
     }
 
 }
