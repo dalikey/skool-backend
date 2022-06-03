@@ -4,7 +4,8 @@ import { queryCommands } from '../db/databaseCommands';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { ObjectId } from 'mongodb';
-
+import dotenv from 'dotenv';
+dotenv.config();
 const loginController = {
     //Inputvalidation
     validateInput: (req: any, res: any, next: any) => {
@@ -17,7 +18,7 @@ const loginController = {
             next();
         } catch (error: any) {
             let ErrorMessage: string = error.message
-            res.status(401).json({ error:  "Wrong input", message: ErrorMessage });
+            res.status(401).json({ error:  "wrong_input", message: ErrorMessage });
         }
     }
     ,
@@ -30,7 +31,7 @@ const loginController = {
             if (correctPassword) {
                 if (getUser.isActive) {
                     jwt.sign({ id: getUser._id, roles: getUser.role},
-                        'SecretKey', { expiresIn: "1d" },
+                        process.env.APP_SECRET || "", { expiresIn: "1d" },
                         (err, token) => {
                         if (err) { throw err; };
                         delete getUser.password;
@@ -40,13 +41,13 @@ const loginController = {
                         res.status(200).json({result: getUser});
                     });
                 } else {
-                    res.status(400).json({  error: "Login failure",message: "User has not been activated."});
+                    res.status(400).json({  error: "login_failure",message: "User has not been activated."});
                 }
             } else {
-                res.status(401).json({ error: "Login failure",message: "Login failed." });
+                res.status(401).json({ error: "login_failure",message: "Login failed." });
             }
         } else {
-            res.status(404).json({ error: "Login failure", message: "Login failed." });
+            res.status(404).json({ error: "login_failure", message: "Login failed." });
         }
     }
 }

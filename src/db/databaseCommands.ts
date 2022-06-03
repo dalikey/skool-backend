@@ -45,7 +45,7 @@ export const queryCommands = {
             const queryResult = collection.findOne({emailAddress}, {projection});
             return queryResult;
         } catch (error:any) {
-            return {status:500, error: error.message};
+            return {error: "login_failure", message: error.message};
         }
     }
     ,
