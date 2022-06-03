@@ -13,10 +13,11 @@ const loginController = {
         try {
             assert(typeof userLogin.emailAddress == 'string', 'email must be filled in.');
             assert(typeof userLogin.password == 'string', 'Password must be filled in.');
+            req.body.emailAddress = userLogin.emailAddress.toLowerCase();
             next();
         } catch (error: any) {
             let ErrorMessage: string = error.message
-            res.status(401).json({ error:  "Wrong input", message: ErrorMessage });
+            res.status(401).json({ error:  "wrong_input", message: ErrorMessage });
         }
     }
     ,
@@ -28,10 +29,10 @@ const loginController = {
             const correctPassword = await checkPassword(loginData.password, getUser.password);
             if (correctPassword) {
                 if (getUser.isActive) {
-                    jwt.sign({ id: getUser._id, role: getUser.role},
-                        process.env.APP_SECRET || "", { expiresIn: "1d" },
+                    jwt.sign({ id: getUser._id, roles: getUser.role},
+                        'SecretKey', { expiresIn: "1d" },
                         (err, token) => {
-                        if (err) { throw err; }
+                        if (err) { throw err; };
                         delete getUser.password;
                         delete getUser.emailAddress;
                         delete getUser._id;
@@ -39,13 +40,13 @@ const loginController = {
                         res.status(200).json({result: getUser});
                     });
                 } else {
-                    res.status(400).json({  error: "Login failure",message: "User has not been activated."});
+                    res.status(400).json({  error: "login_failure",message: "User has not been activated."});
                 }
             } else {
-                res.status(401).json({ error: "Login failure",message: "Login failed." });
+                res.status(401).json({ error: "login_failure",message: "Login failed." });
             }
         } else {
-            res.status(401).json({ error: "Login failure", message: "Login failed." });
+            res.status(404).json({ error: "login_failure", message: "Login failed." });
         }
     }
 }

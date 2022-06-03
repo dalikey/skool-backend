@@ -87,7 +87,7 @@ export const queryCommands = {
             Logger.info(queryResult);
             return queryResult;
         } catch (error:any) {
-            return {status:500, error: error.message};
+            return {error: "login_failure", message: error.message};
         }
     }
     ,
