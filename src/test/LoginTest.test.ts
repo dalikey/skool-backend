@@ -23,7 +23,7 @@ describe('A user can log in, with his registered account.', ()=>{
                 emailAddress: "dummyField@outlook.com",
             }).end((err, res)=>{
                 let {error, message} = res.body;
-                error.should.be.equal("Wrong input");
+                error.should.be.equal("wrong_input");
                 message.should.be.equal('Password must be filled in.');
                 done();
             })
@@ -34,7 +34,7 @@ describe('A user can log in, with his registered account.', ()=>{
                 password: "dummy"
             }).end((err, res)=>{
                 let {error, message} = res.body;
-                error.should.be.equal("Wrong input");
+                error.should.be.equal("wrong_input");
                 message.should.be.equal('email must be filled in.');
                 done();
             })
@@ -46,7 +46,7 @@ describe('A user can log in, with his registered account.', ()=>{
                 password: "Secerio"
             }).end((err, res)=>{
                 let {error, message} = res.body;
-                error.should.be.equal("Login failure");
+                error.should.be.equal("login_failure");
                 message.should.be.equal('Login failed.');
                 done();
             })
@@ -58,7 +58,7 @@ describe('A user can log in, with his registered account.', ()=>{
                 password: "Secerio"
             }).end((err, res)=>{
                 let {error, message} = res.body;
-                error.should.be.equal("Login failure");
+                error.should.be.equal("login_failure");
                 message.should.be.equal('Login failed.');
                 done();
             })
@@ -70,7 +70,7 @@ describe('A user can log in, with his registered account.', ()=>{
                 password: "Elegant"
             }).end((err, res)=>{
                 let {error, message} = res.body;
-                error.should.be.equal("Login failure");
+                error.should.be.equal("login_failure");
                 message.should.be.equal('User has not been activated.');
                 done();
             })
