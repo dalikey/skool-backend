@@ -2,7 +2,8 @@ import chaiHttp from "chai-http";
 import chai from "chai";
 import mochas, { it } from 'mocha';
 import server from '../index';
-import {MongoClient} from "mongodb";
+import {MongoClient, ObjectId} from "mongodb";
+import jwt from "jsonwebtoken";
 
 chai.should();
 chai.use(chaiHttp);
@@ -19,12 +20,10 @@ const user: string = "user"
 const client = new MongoClient(mongoDBUrl);
 //Connection
 
-const testUser = {"emailAddress": "test@example.com", "firstName": "Joe", "lastName": "Mama", role: "user", password: "$2b$06$dG/o1w4WMptTFrWlOpF.8ebOEJzZeonEPDP7g.TEZaUd.7n3ViVcW"}
+const testUser = {_id: new ObjectId("6295e96d7f984a246108b36d") , "emailAddress": "test@example.com", "firstName": "Joe", "lastName": "Mama", role: "user", password: "$2b$06$dG/o1w4WMptTFrWlOpF.8ebOEJzZeonEPDP7g.TEZaUd.7n3ViVcW"}
 
-const adminUser = {"emailAddress": "admin@example.com", "firstName": "Admin", "lastName": "Mama", isActive: true, role: "owner", password: "$2b$06$dG/o1w4WMptTFrWlOpF.8ebOEJzZeonEPDP7g.TEZaUd.7n3ViVcW"}
+const adminUser = {_id: new ObjectId("6295e96d7f984a246108b36f"), "emailAddress": "admin@example.com", "firstName": "Admin", "lastName": "Mama", isActive: true, role: "owner", password: "$2b$06$dG/o1w4WMptTFrWlOpF.8ebOEJzZeonEPDP7g.TEZaUd.7n3ViVcW"}
 
-let authToken: string;
-let authTokenAdmin: string;
 
 describe('An owner can authorize approve or deny a new user registration.', ()=>{
     before(async () => {
@@ -50,8 +49,8 @@ describe('An owner can authorize approve or deny a new user registration.', ()=>
             })
         })
 
-        it('User is not logged in for /api/user/:userId/authorize', (done)=>{
-            chai.request(server).get('/api/user/').send({
+        it('User is not logged in for /api/user/:userId/activate', (done)=>{
+            chai.request(server).post('/api/user/6295e96d7f984a246108b36d/activate').send({
             }).end((err, res)=>{
                 let { error } = res.body;
                 res.status.should.equal(401);
@@ -59,8 +58,17 @@ describe('An owner can authorize approve or deny a new user registration.', ()=>
             })
         })
 
-        it('User is not logged in for /api/user/:userId/authorize', (done)=>{
-            chai.request(server).get('/api/user/').send({
+        it('User is not logged in for /api/user/:userId/deactivate', (done)=>{
+            chai.request(server).post('/api/user/6295e96d7f984a246108b36d/deactivate').send({
+            }).end((err, res)=>{
+                let { error } = res.body;
+                res.status.should.equal(401);
+                done();
+            })
+        })
+
+        it('User is not logged in for /api/user/@me', (done)=>{
+            chai.request(server).get('/api/user/@me').send({
             }).end((err, res)=>{
                 let { error } = res.body;
                 res.status.should.equal(401);
@@ -71,42 +79,133 @@ describe('An owner can authorize approve or deny a new user registration.', ()=>
 
     })
     describe('Forbidden', () => {
-        beforeEach(() => {
-            chai.request(server).post('/api/auth/login').send({emailAddress: "test@example.com", password: "Secret22"}).end((err, res) => {
-                console.log(res.body.result)
-                authToken = res.body.result.token;
-            })
-            chai.request(server).post('/api/auth/login').send({emailAddress: "admin@example.com", password: "Secret22"}).end((err, res) => {
-                console.log(authTokenAdmin);
-                authTokenAdmin = res.body.result.token;
-            })
-        })
-        it('User does not belong to role owner', (done)=>{
-            chai.request(server).get('/api/user').set("Authorization", authToken).send({
+        it('User does not belong to role owner for GET /api/user', (done)=>{
+            const authToken = jwt.sign({id: "6295e96d7f984a246108b36d", role: "user"}, process.env.APP_SECRET || "", {expiresIn: "1d"})
+
+            chai.request(server).get('/api/user').set({authorization: authToken}).send({
             }).end((err, res)=>{
                 let { error } = res.body;
-                res.status.should.equal(400);
-                error.should.equal('input_invalid');
+                res.status.should.equal(403);
+                done();
+            })
+        })
+        it('User does not belong to role owner for GET /api/user/:userId/activate', (done)=>{
+            const authToken = jwt.sign({id: "6295e96d7f984a246108b36d", role: "user"}, process.env.APP_SECRET || "", {expiresIn: "1d"})
+
+            chai.request(server).post('/api/user/6295e96d7f984a246108b36d/activate').set({authorization: authToken}).send({
+            }).end((err, res)=>{
+                let { error } = res.body;
+                res.status.should.equal(403);
+                done();
+            })
+        })
+        it('User does not belong to role owner for GET /api/user/:userId/deactivate', (done)=>{
+            const authToken = jwt.sign({id: "6295e96d7f984a246108b36d", role: "user"}, process.env.APP_SECRET || "", {expiresIn: "1d"})
+
+            chai.request(server).post('/api/user/6295e96d7f984a246108b36d/deactivate').set({authorization: authToken}).send({
+            }).end((err, res)=>{
+                let { error } = res.body;
+                res.status.should.equal(403);
                 done();
             })
         })
     })
-    describe('Successful registration return 204', ()=>{
-        after( async () => {
-            const conn = await client.connect();
-            const collection = conn.db(skoolWorkshop).collection('user');
-            await collection.deleteOne({"emailAddress": "test@example.com"});
-        })
-        it('Successfully registered a new user', (done)=>{
-            chai.request(server).post('/api/auth/register').send({
-                emailAddress: "test@example.com",
-                password: "StrongPassword1234",
-                passwordConfirm: "StrongPassword1234",
-                firstName: "John",
-                lastName: "Doe"
-            }).end((err, res)=>{
-                res.status.should.equal(204);
+    describe('Non-existant user', () => {
+        it('User ID does not match spec on /activate', (done)=>{
+            const authToken = jwt.sign({id: "6295e96d7f984a246108b36f", role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"})
 
+            chai.request(server).post('/api/user/blabla/activate').set({authorization: authToken}).send({
+            }).end((err, res)=>{
+                let { error } = res.body;
+                res.status.should.equal(400);
+                error.should.equal("invalid_parameters")
+                done();
+            })
+        })
+        it('User ID does not match spec on /deactivate', (done)=>{
+            const authToken = jwt.sign({id: "6295e96d7f984a246108b36f", role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"})
+
+            chai.request(server).post('/api/user/blabla/deactivate').set({authorization: authToken}).send({
+            }).end((err, res)=>{
+                let { error } = res.body;
+                res.status.should.equal(400);
+                error.should.equal("invalid_parameters")
+                done();
+            })
+        })
+        it('User does not exist on /activate', (done)=>{
+            const authToken = jwt.sign({id: "6295e96d7f984a246108b36d", role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"})
+
+            chai.request(server).post('/api/user/6295e96d7f984a246108b89d/deactivate').set({authorization: authToken}).send({
+            }).end((err, res)=>{
+                let { error } = res.body;
+                res.status.should.equal(400);
+                done();
+            })
+        })
+    })
+    describe('Non-existant user', () => {
+        it('User can be succesfully activated!', (done)=>{
+            const authToken = jwt.sign({id: "6295e96d7f984a246108b36d", role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"})
+
+            chai.request(server).post('/api/user/6295e96d7f984a246108b36d/activate').set({authorization: authToken}).send({
+            }).end((err, res)=>{
+                let { error } = res.body;
+                res.status.should.equal(200);
+                done();
+            })
+        })
+        it('User can be succesfully deactivated', (done)=>{
+            const authToken = jwt.sign({id: "6295e96d7f984a246108b36f", role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"})
+
+            chai.request(server).post('/api/user/6295e96d7f984a246108b36d/deactivate').set({authorization: authToken}).send({
+            }).end((err, res)=>{
+                let { error } = res.body;
+                res.status.should.equal(200);
+                done();
+            })
+        })
+        it('Users can be retrieved', (done)=>{
+            const authToken = jwt.sign({id: "6295e96d7f984a246108b36d", role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"})
+
+            chai.request(server).get('/api/user').set({authorization: authToken}).send({
+            }).end((err, res)=>{
+                let { error } = res.body;
+                res.status.should.equal(200);
+                res.body.result.length.should.be.greaterThan(1);
+                done();
+            })
+        })
+        it('Two Users can be retrieved', (done)=>{
+            const authToken = jwt.sign({id: "6295e96d7f984a246108b36d", role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"})
+
+            chai.request(server).get('/api/user?lastName=Mama').set({authorization: authToken}).send({
+            }).end((err, res)=>{
+                let { error } = res.body;
+                res.status.should.equal(200);
+                res.body.result.length.should.equal(2);
+                done();
+            })
+        })
+        it('One User can be retrieved', (done)=>{
+            const authToken = jwt.sign({id: "6295e96d7f984a246108b36d", role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"})
+
+            chai.request(server).get('/api/user?firstName=Joe').set({authorization: authToken}).send({
+            }).end((err, res)=>{
+                let { error } = res.body;
+                res.status.should.equal(200);
+                res.body.result.length.should.equal(1);
+                done();
+            })
+        })
+        it('Own User can be retrieved', (done)=>{
+            const authToken = jwt.sign({id: "6295e96d7f984a246108b36d", role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"})
+
+            chai.request(server).get('/api/user/@me').set({authorization: authToken}).send({
+            }).end((err, res)=>{
+                let { error } = res.body;
+                res.status.should.equal(200);
+                res.body.result.firstName.should.equal("Joe");
                 done();
             })
         })
