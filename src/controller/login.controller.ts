@@ -46,7 +46,6 @@ const loginController = {
     ,
     //Inputvalidation login
     validateInput: (req: any, res: any, next: any) => {
-        console.log('Input validation');
         let userLogin = req.body;
         try {
             assert(typeof userLogin.emailAddress == 'string', 'email must be filled in.');
@@ -61,20 +60,16 @@ const loginController = {
     ,
     validatePasswords:(req: any, res:any, next:any)=>{
         let passwords = req.body;
-        console.log(passwords);
         let p = passwords.password;
-        console.log(p);
         let cp = passwords.passwordConfirm;
-        console.log(cp);
         try {
-            assert(p, "Empty pass");
-            assert(cp, "Empty conf pass");
-            assert(authorizationMethods.equalPasswords(p, cp), "not equal");
-            assert(authorizationMethods.validatePassword(p), "Does not validates");
+            assert(p);
+            assert(cp);
+            assert(authorizationMethods.equalPasswords(p, cp));
+            assert(authorizationMethods.validatePassword(p));
             next();
         }catch (err:any){
-            let e:string = err.message;
-            res.status(400).json({error: "password_failure", message: e});
+            res.status(400).json({error: "password_failure", message: "Failed to validate passwords"});
         }
     }
     ,
