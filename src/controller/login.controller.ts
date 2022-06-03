@@ -13,6 +13,7 @@ const loginController = {
         try {
             assert(typeof userLogin.emailAddress == 'string', 'email must be filled in.');
             assert(typeof userLogin.password == 'string', 'Password must be filled in.');
+            req.body.emailAddress = userLogin.emailAddress.toLowerCase();
             next();
         } catch (error: any) {
             let ErrorMessage: string = error.message

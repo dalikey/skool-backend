@@ -42,7 +42,7 @@ describe('A user can log in, with his registered account.', ()=>{
 
         it('User does not exist, gives error', (done)=>{
             chai.request(server).post('/api/auth/login').send({
-                emailAddress: "dummyField@outlook.com",
+                emailAddress: "DummyField@outlook.com",
                 password: "Secerio"
             }).end((err, res)=>{
                 let {error, message} = res.body;
