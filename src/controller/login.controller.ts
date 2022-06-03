@@ -5,9 +5,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 // @ts-ignore
 import mailer from 'nodemailer';
-
-const capitalRegex = /[A-Z]+/;
-const digitRegex = /[1-9]+/;
+import {authorizationMethods} from "./authorization.controller";
 
 const transporter = mailer.createTransport({
     host: process.env.SMTP_SERVER,
@@ -23,17 +21,12 @@ const loginController = {
 
     validateToken:(req:any, res:any, next:any)=>{
         const authToken = req.headers.authorization || "";
-        console.log(authToken);
         if (!authToken) {
             return res.status(401).send({error: "unauthorized", message: "You need to provide authorization for this endpoint!"})
         }
         try {
-            res.locals.decodedToken = jwt.verify(authToken, process.env.APP_SECRET || "");
-            const expireDate = res.locals.decodedToken.exp;
-            console.log(expireDate);
-            const currentDate = new Date().getTime()/ 1000;
-            console.log(currentDate)
-            assert(expireDate > currentDate);
+            res.locals.decodedToken = jwt.verify(authToken, process.env.RANDOM_SECRET || "");
+            assert(res.locals.decodedToken.exp > new Date().getTime()/ 1000);
             next()
         } catch (err) {
             return res.send({error: "unauthorized", message: "You need to provide authorization for this endpoint!"})
@@ -42,13 +35,10 @@ const loginController = {
     ,
     validateEmail:(req: any, res: any, next:any)=>{
         try {
-            let emailAddress = req.body.emailAddress;
-            assert(emailAddress);
-            emailAddress.toLowerCase();
+            assert(req.body.emailAddress);
             next();
         }catch (error: any){
-            const err = {error: "wrong_input", message: "Empty field"};
-            res.status(401).json(err);
+            res.status(401).json({error: "wrong_input", message: "Empty field"});
         }
     }
     ,
@@ -70,10 +60,10 @@ const loginController = {
 
     async sendNewPasswordLink(req: any, res: any){
         //Sends email to correspondent user
-        const user = await queryCommands.retrieveEmail(req.body.emailAddress);
+        const user = await queryCommands.retrieveEmail(req.body.emailAddress.toLowerCase());
         if(user){
             //Generates token
-            const generateToken = jwt.sign({_id:user._id}, process.env.APP_SECRET || "", {expiresIn: "2h"});
+            const generateToken = jwt.sign({pr_uid:user._id}, process.env.RANDOM_SECRET || "", {expiresIn: process.env.RANDOM_EXPIRE});
             //Link of password change page
             const link = `${process.env.FRONTEND_URI}/vergeten_wachtwoord/${generateToken}`;
             const info = await transporter.sendMail({
@@ -90,13 +80,13 @@ const loginController = {
     ,
     async changeForgottenPassword(req: any, res:any){
         let newPassword = req.body.password;
-        const isValid = validatePassword(newPassword);
+        const isValid = authorizationMethods.validatePassword(newPassword);
         let decodedToken = res.locals.decodedToken;
-        newPassword = await hashNewPassword(newPassword);
+        newPassword = await authorizationMethods.hashNewPassword(newPassword);
         try {
             assert(isValid);
             // @ts-ignore
-            const query = await queryCommands.updatePassword(decodedToken._id, newPassword);
+            const query = await queryCommands.updatePassword(decodedToken.pr_uid, newPassword);
             res.status(200).json({message: "Update succeeded"});
         } catch (error){
             res.status(404).json({error: "update failed", message: "Password update has failed"});
@@ -108,11 +98,11 @@ const loginController = {
         const loginData = req.body;
         let getUser = await queryCommands.loginUser(loginData);
         if (getUser) {
-            const correctPassword = await checkPassword(loginData.password, getUser.password);
+            const correctPassword = await authorizationMethods.checkPassword(loginData.password, getUser.password);
             if (correctPassword) {
                 if (getUser.isActive) {
                     jwt.sign({ id: getUser._id, role: getUser.role},
-                        process.env.APP_SECRET || "", { expiresIn: "1d" },
+                        process.env.RANDOM_SECRET || "", { expiresIn: "1d" },
                         (err, token) => {
                         if (err) { throw err; };
                         delete getUser.password;
@@ -133,25 +123,4 @@ const loginController = {
     }
 }
 
-async function checkPassword(password: string, queryResultPassword: string,) {
-    return bcrypt.compare(password, queryResultPassword)
-        .then(isCorrect => {
-            return isCorrect;
-        })
-}
-
-async function hashNewPassword(password: string){
-    return bcrypt.hash(password, 6);
-}
-
-function validatePassword (newPassword:string):boolean  {
-    try {
-        assert(newPassword.match(digitRegex));
-        assert(newPassword.match(capitalRegex));
-        assert((newPassword.length > 8));
-        return true;
-    } catch (err){
-        return false;
-    }
-}
 export default loginController;
