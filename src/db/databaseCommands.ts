@@ -1,4 +1,4 @@
-import { MongoClient } from 'mongodb';
+import {MongoClient, ObjectId} from 'mongodb';
 import loginBody from '../models/loginBody';
 import  { registrationInsert } from '../models/registrationBody';
 import conf from 'dotenv';
@@ -42,10 +42,29 @@ export const queryCommands = {
         try {
             let emailAddress = loginData.emailAddress;
             const collection = await this.getUserCollection();
-            const queryResult = collection.findOne({emailAddress}, {projection});
-            return queryResult;
+            return collection.findOne({emailAddress}, {projection});
         } catch (error:any) {
             return {error: "login_failure", message: error.message};
+        }
+    }
+    ,
+    async retrieveEmail(emailAddress: string){
+        try {
+            const projection = {_id: 1, emailAddress:1, lastName: 1};
+            const collection = await this.getUserCollection();
+            return collection.findOne({emailAddress}, {projection});
+        }catch (e) {
+            return undefined;
+        }
+    },
+    //
+    async updatePassword(userId: string, newPassword: string){
+        const collection = await this.getUserCollection();
+        try {
+            const query = {$set: {password: newPassword}};
+            return await collection.updateOne({_id: new ObjectId(userId) }, query);
+        } catch (e) {
+            return null;
         }
     }
     ,
