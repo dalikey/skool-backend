@@ -79,10 +79,10 @@ const loginController = {
             const info = await transporter.sendMail({
                 from: process.env.SMTP_USERNAME,
                 to: user.emailAddress,
-                subject: `U bent uw wachtwoord vergeten.`,
-                text: `Beste meneer/mevrouw ${user.lastName},U hebt aangegeven dat u uw wachtwoord bent vergeten. \nKlik de link hieronder om een nieuw wachtwoord in te voeren.\nLink: ${link}\n\nVriendelijke groeten,\nSkool portaal`
+                subject: `Hier is uw wachtwoord reset link.`,
+                text: `Hallo ${user.firstName} ${user.lastName},\n\nHier is uw wachtwoordherstel link.\nKlik de link hieronder om een nieuw wachtwoord in te voeren.\nLink: ${link}\n\nMet vriendelijke groet,\nSkool Workshops`
             });
-            res.status(200).json({succes: true, res: info});
+            res.status(200).json({success: true, res: info});
         } else{
             res.status(401).json({error: "retrieval_failure", message: "user does not exist"});
         }
