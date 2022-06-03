@@ -61,7 +61,8 @@ export async function authorizeUser(req: Request, res: Response, next: any) {
         res.locals.decodedToken = decodedToken;
         next()
     } catch (err) {
-        return res.send({error: "unauthorized", message: "You need to provide authorization for this endpoint!"})
+        Logger.error(err);
+        return res.status(401).send({error: "unauthorized", message: "You need to provide authorization for this endpoint!"})
     }
 
 }
@@ -73,13 +74,17 @@ export async function activateUser(req: Request, res: Response) {
     }
 
     const userId = req.params.userId;
-
-    const result = await queryCommands.approveUser(new ObjectId(userId), true);
-    if (result.modifiedCount == 1) {
-        return res.send({success: true})
-    } else {
-        return res.status(500).send({success: false});
+    try {
+        const result = await queryCommands.approveUser(new ObjectId(userId), true);
+        if (result.modifiedCount == 1) {
+            return res.send({success: true})
+        } else {
+            return res.status(400).send({error: "user_not_modified", message: "This user could not be modified, likely because it does not exist!"});
+        }
+    } catch {
+        return res.status(400).send({error: "invalid_parameters", message: "The user ID is not valid!"})
     }
+
 }
 
 export async function deactivateUser(req: Request, res: Response) {
@@ -90,7 +95,16 @@ export async function deactivateUser(req: Request, res: Response) {
 
     const userId = req.params.userId;
 
-    await queryCommands.approveUser(new ObjectId(userId), false);
+    try {
+        const result = await queryCommands.approveUser(new ObjectId(userId), false);
+        if (result.modifiedCount == 1) {
+            return res.send({success: true})
+        } else {
+            return res.status(400).send({success: false});
+        }
+    } catch {
+        return res.status(400).send({error: "invalid_parameters", message: "The user ID is not valid!"})
+    }
 }
 
 
