@@ -29,7 +29,7 @@ const loginController = {
             const correctPassword = await checkPassword(loginData.password, getUser.password);
             if (correctPassword) {
                 if (getUser.isActive) {
-                    jwt.sign({ id: getUser._id, roles: getUser.role},
+                    jwt.sign({ id: getUser._id, role: getUser.role},
                         process.env.APP_SECRET || "", { expiresIn: "1d" },
                         (err, token) => {
                         if (err) { throw err; };
