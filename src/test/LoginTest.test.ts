@@ -20,7 +20,7 @@ describe('A user can log in, with his registered account.', ()=>{
     describe('Failed login', ()=>{
         it('Empty password field, gives error', (done)=>{
             chai.request(server).post('/api/auth/login').send({
-                emailAddress: "dummyField@outlook.com",
+                emailAddress: "emptyPassword@example.com",
             }).end((err, res)=>{
                 let {error, message} = res.body;
                 error.should.be.equal("wrong_input");
@@ -42,7 +42,7 @@ describe('A user can log in, with his registered account.', ()=>{
 
         it('User does not exist, gives error', (done)=>{
             chai.request(server).post('/api/auth/login').send({
-                emailAddress: "DummyField@outlook.com",
+                emailAddress: "UserDoesNotExist@example.com",
                 password: "Secerio"
             }).end((err, res)=>{
                 let {error, message} = res.body;
