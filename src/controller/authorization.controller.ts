@@ -20,7 +20,6 @@ export const controller = {
             return res.send({error: "unauthorized", message: "You need to provide authorization for this endpoint!"})
         }
     }
-
 }
 
 export const authorizationMethods = {
@@ -44,5 +43,20 @@ export const authorizationMethods = {
             .then(isCorrect => {
             return isCorrect;
         })
+    }
+    ,
+    generateRandomSecretKey(){
+        let token:string = "";
+        let randomLenght = Math.random() * 70;
+        for (let i = 0; i < randomLenght; i++) {
+            let asciiValue = Math.random() * 254;
+            let letter = String.fromCharCode(asciiValue);
+            token += letter;
+        }
+        return token;
+    }
+    ,
+    equalPasswords(newPassword:string, confirmedPassword:string){
+        return (newPassword == confirmedPassword);
     }
 }

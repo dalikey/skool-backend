@@ -20,16 +20,6 @@ const client = new MongoClient(mongoDBUrl);
 let connection:any = null;
 
 export const queryCommands = {
-
-
-
-    //Closes connection
-    closeDB:()=>{
-        connection.close();
-        console.log('Connection been cut off');
-        connection = null;
-    }
-    ,
    async getUserCollection() {
         if (!connection) {
             connection = await client.connect();
@@ -67,6 +57,39 @@ export const queryCommands = {
             return null;
         }
     }
+    ,
+    async storeSecretKeyPR(emailAddress: string, token: string, secretKey:string){
+       const collection = await this.getUserCollection();
+       const filter = {emailAddress: emailAddress};
+       const updateQuery  = {$set:{passwordResetToken: token, key: secretKey}};
+       try {
+            return  await collection.updateOne(filter, updateQuery);
+       } catch (err){
+            return null;
+       }
+    }
+    ,
+    async selectTokenFromUser(token: string){
+        const collection = await this.getUserCollection();
+        const projection = {key: 1};
+        try {
+            return await collection.findOne({passwordResetToken: token}, {projection});
+        } catch (err){
+            return null;
+        }
+    }
+    ,
+    async removeSecretKey(userId:string){
+        const collection = await this.getUserCollection();
+        const filter = {_id: new ObjectId(userId)};
+        const updateQuery  = {$unset:{passwordResetToken: "", key: ""}};
+        try {
+            return await collection.updateOne(filter, updateQuery);
+        } catch (e){
+            return null;
+        }
+    }
+
     ,
     async registerUser(registrationData: registrationInsert) {
         const collection = await this.getUserCollection();

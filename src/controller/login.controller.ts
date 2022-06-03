@@ -19,13 +19,15 @@ const transporter = mailer.createTransport({
 
 const loginController = {
 
-    validateToken:(req:any, res:any, next:any)=>{
+    async validateToken(req:any, res:any, next:any){
         const authToken = req.headers.authorization || "";
         if (!authToken) {
             return res.status(401).send({error: "unauthorized", message: "You need to provide authorization for this endpoint!"})
         }
+        const queryResult = await queryCommands.selectTokenFromUser(authToken);
         try {
-            res.locals.decodedToken = jwt.verify(authToken, process.env.RANDOM_SECRET || "");
+            assert(queryResult.key);
+            res.locals.decodedToken = jwt.verify(authToken, queryResult.key || "");
             assert(res.locals.decodedToken.exp > new Date().getTime()/ 1000);
             next()
         } catch (err) {
@@ -57,14 +59,35 @@ const loginController = {
         }
     }
     ,
-
+    validatePasswords:(req: any, res:any, next:any)=>{
+        let passwords = req.body;
+        console.log(passwords);
+        let p = passwords.password;
+        console.log(p);
+        let cp = passwords.passwordConfirm;
+        console.log(cp);
+        try {
+            assert(p, "Empty pass");
+            assert(cp, "Empty conf pass");
+            assert(authorizationMethods.equalPasswords(p, cp), "not equal");
+            assert(authorizationMethods.validatePassword(p), "Does not validates");
+            next();
+        }catch (err:any){
+            let e:string = err.message;
+            res.status(400).json({error: "password_failure", message: e});
+        }
+    }
+    ,
     async sendNewPasswordLink(req: any, res: any){
         //Sends email to correspondent user
         const user = await queryCommands.retrieveEmail(req.body.emailAddress.toLowerCase());
         if(user){
             //Generates token
-            const generateToken = jwt.sign({pr_uid:user._id}, process.env.RANDOM_SECRET || "", {expiresIn: process.env.RANDOM_EXPIRE});
-            //Link of password change page
+            const SECRET_KEY = authorizationMethods.generateRandomSecretKey();
+            const generateToken = jwt.sign({pr_uid:user._id}, SECRET_KEY || "", {expiresIn: process.env.RANDOM_EXPIRE});
+            console.log(generateToken);
+            const storeData = await queryCommands.storeSecretKeyPR(req.body.emailAddress, generateToken, SECRET_KEY);
+            //Link of password change page and sends token in the path parameter.
             const link = `${process.env.FRONTEND_URI}/vergeten_wachtwoord/${generateToken}`;
             const info = await transporter.sendMail({
                 from: process.env.SMTP_USERNAME,
@@ -80,13 +103,12 @@ const loginController = {
     ,
     async changeForgottenPassword(req: any, res:any){
         let newPassword = req.body.password;
-        const isValid = authorizationMethods.validatePassword(newPassword);
-        let decodedToken = res.locals.decodedToken;
+        let userID = res.locals.decodedToken.pr_uid;
         newPassword = await authorizationMethods.hashNewPassword(newPassword);
         try {
-            assert(isValid);
             // @ts-ignore
-            const query = await queryCommands.updatePassword(decodedToken.pr_uid, newPassword);
+            const query = await queryCommands.updatePassword(userID, newPassword);
+            const removeTokenAndKey = await queryCommands.removeSecretKey(userID);
             res.status(200).json({message: "Update succeeded"});
         } catch (error){
             res.status(404).json({error: "update failed", message: "Password update has failed"});
