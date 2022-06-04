@@ -86,12 +86,14 @@ const loginController = {
             const storeData = await queryCommands.storeSecretKeyPR(req.body.emailAddress, generateToken, SECRET_KEY);
             //Link of password change page and sends token in the path parameter.
             const link = `${process.env.FRONTEND_URI}/vergeten_wachtwoord/${generateToken}`;
-            const info = await transporter.sendMail({
-                from: process.env.SMTP_USERNAME,
-                to: user.emailAddress,
-                subject: `Hier is uw wachtwoord reset link.`,
-                text: `Hallo ${user.firstName} ${user.lastName},\n\nHier is uw wachtwoordherstel link.\nKlik de link hieronder om een nieuw wachtwoord in te voeren. \nLet op! De link is maar 10 minuten geldig\nLink: ${link}\n\nMet vriendelijke groet,\nSkool Workshops`
-            });
+            if(process.env.SMTP_SERVER){
+                const info = await transporter.sendMail({
+                    from: process.env.SMTP_USERNAME,
+                    to: user.emailAddress,
+                    subject: `Hier is uw wachtwoord reset link.`,
+                    text: `Hallo ${user.firstName} ${user.lastName},\n\nHier is uw wachtwoordherstel link.\nKlik de link hieronder om een nieuw wachtwoord in te voeren. \nLet op! De link is maar 10 minuten geldig\nLink: ${link}\n\nMet vriendelijke groet,\nSkool Workshops`
+                });
+            }
             res.status(200).json({success: true});
         } else{
             res.status(401).json({error: "retrieval_failure", message: "user does not exist"});
