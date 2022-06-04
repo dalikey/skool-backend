@@ -79,7 +79,7 @@ const loginController = {
         if(user){
             //Generates token
             const SECRET_KEY = authorizationMethods.generateRandomSecretKey();
-            const generateToken = jwt.sign({pr_uid:user._id}, SECRET_KEY || "", {expiresIn: process.env.RANDOM_EXPIRE});
+            const generateToken = jwt.sign({pr_uid:user._id}, SECRET_KEY || "", {expiresIn: "600s"});
             console.log(generateToken);
             const storeData = await queryCommands.storeSecretKeyPR(req.body.emailAddress, generateToken, SECRET_KEY);
             //Link of password change page and sends token in the path parameter.
@@ -88,7 +88,7 @@ const loginController = {
                 from: process.env.SMTP_USERNAME,
                 to: user.emailAddress,
                 subject: `Hier is uw wachtwoord reset link.`,
-                text: `Hallo ${user.firstName} ${user.lastName},\n\nHier is uw wachtwoordherstel link.\nKlik de link hieronder om een nieuw wachtwoord in te voeren.\nLink: ${link}\n\nMet vriendelijke groet,\nSkool Workshops`
+                text: `Hallo ${user.firstName} ${user.lastName},\n\nHier is uw wachtwoordherstel link.\nKlik de link hieronder om een nieuw wachtwoord in te voeren. \nLet op! De link is maar 10 minuten geldig\nLink: ${link}\n\nMet vriendelijke groet,\nSkool Workshops`
             });
             res.status(200).json({success: true});
         } else{

@@ -104,3 +104,19 @@ describe('A user can log in, with his registered account.', ()=>{
     ])
 })
 
+//Empty tests. Need to be tested!
+describe('A user can reset his password', ()=>{
+    before((done)=>[
+        queryCommands.getUserCollection().then(collection =>{
+            collection.insertOne([dummyUser]);
+            done();
+        })
+    ]);
+    after((done)=>[
+        queryCommands.getUserCollection().then(collection =>{
+            collection.deleteMany({emailAddress: {$in: ["test@example.com"]}});
+            done();
+        })
+    ])
+})
+
