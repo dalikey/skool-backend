@@ -111,7 +111,7 @@ const loginController = {
     }
     ,
     //Login method
-    async userLogin(req: any, res: any) {
+    async userLogin(req: any, res: any, next:any) {
         const loginData = req.body;
         let getUser = await queryCommands.loginUser(loginData);
         if (getUser) {
@@ -119,9 +119,9 @@ const loginController = {
             if (correctPassword) {
                 if (getUser.isActive) {
                     jwt.sign({ id: getUser._id, role: getUser.role},
-                        process.env.RANDOM_SECRET || "", { expiresIn: "1d" },
+                        process.env.APP_SECRET || "", { expiresIn: "1d" },
                         (err, token) => {
-                        if (err) { throw err; };
+                        if (err) { next({error: "token_generation_problem", message: err.message})};
                         delete getUser.password;
                         delete getUser.emailAddress;
                         delete getUser._id;
