@@ -3,17 +3,19 @@ import assert from 'assert';
 import { Request, Response } from 'express';
 import { queryCommands } from '../db/databaseCommands';
 import { registrationBody } from '../models/registrationBody';
-import nodemailer from "nodemailer";
-
-const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_SERVER,
-    port: 465,
-    secure: true, // true for 465, false for other ports
-    auth: {
-        user: process.env.SMTP_USERNAME, // generated ethereal user
-        pass: process.env.SMTP_PASSWORD, // generated ethereal password
-    },
-});
+import nodemailer, {Transporter} from "nodemailer";
+let transporter: Transporter;
+if (process.env.SMTP_SERVER) {
+    transporter = nodemailer.createTransport({
+        host: process.env.SMTP_SERVER,
+        port: 465,
+        secure: true, // true for 465, false for other ports
+        auth: {
+            user: process.env.SMTP_USERNAME, // generated ethereal user
+            pass: process.env.SMTP_PASSWORD, // generated ethereal password
+        },
+    });
+}
 
 export async function verifyInput(req: Request, res: Response, next: any) {
     const registration: registrationBody = req.body;
@@ -56,8 +58,15 @@ export async function registerUser(req: Request, res: Response, next: any) {
     if (confirmation.error !== 0) {
         res.status(400).send({error: "input_invalid", message: "The data you sent was not correctly formatted!"});
     }
-    const info = await transporter.sendMail({from: process.env.SMTP_USERNAME, to: "clinten.pique@duck-in.space", subject: `Gebruiker ${registration.firstName} ${registration.lastName} geregistreerd.`, text: `Accepteer/Weiger ${registration.firstName} ${registration.lastName} door ${process.env.FRONTEND_URI}/admin te bezoeken! `})
-    res.status(204).send();
+    if (process.env.SMTP_SERVER) {
+        const info = await transporter.sendMail({
+            from: process.env.SMTP_USERNAME,
+            to: "clinten.pique@duck-in.space",
+            subject: `Gebruiker ${registration.firstName} ${registration.lastName} geregistreerd.`,
+            text: `Accepteer/Weiger ${registration.firstName} ${registration.lastName} door ${process.env.FRONTEND_URI}/admin te bezoeken! `
+        })
+    }
+        res.status(204).send();
 }
 
 export default {verifyInput: verifyInput, hashPashword: hashPashword, registerUser: registerUser}
