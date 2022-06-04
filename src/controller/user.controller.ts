@@ -46,7 +46,7 @@ export async function getUsers(req: Request, res: Response) {
                 mongoQuery[key] = {'$exists': false};
             } else {
                 // @ts-ignore
-                mongoQuery[key] = `/${req.query[key]}/`;
+                mongoQuery[key] = `${req.query[key]}`;
             }
         }
     }
