@@ -75,12 +75,12 @@ const loginController = {
     ,
     async sendNewPasswordLink(req: any, res: any){
         //Sends email to correspondent user
-        const user = await queryCommands.retrieveEmail(req.body.emailAddress.toLowerCase());
+        let email = req.body.emailAddress;
+        const user = await queryCommands.retrieveEmail(email);
         if(user){
             //Generates token
             const SECRET_KEY = authorizationMethods.generateRandomSecretKey();
             const generateToken = jwt.sign({pr_uid:user._id}, SECRET_KEY || "", {expiresIn: "600s"});
-            console.log(generateToken);
             const storeData = await queryCommands.storeSecretKeyPR(req.body.emailAddress, generateToken, SECRET_KEY);
             //Link of password change page and sends token in the path parameter.
             const link = `${process.env.FRONTEND_URI}/vergeten_wachtwoord/${generateToken}`;

@@ -125,7 +125,9 @@ describe('A user can reset his password', ()=>{
         })
 
         it('Email does not exist',(done)=>{
-            chai.request(server).post("/api/auth/login/forgot").send({emailAddress: "sinterklaas@example.com"}).end((err, result)=>{
+            chai.request(server).post("/api/auth/login/forgot")
+            .send({emailAddress: "sinterklaas@example.com"})
+            .end((err, result)=>{
                 result.body.error.should.be.equal("retrieval_failure");
                 result.body.message.should.be.equal("user does not exist");
                 done();
@@ -133,7 +135,10 @@ describe('A user can reset his password', ()=>{
         })
 
         it('Confirmation mail send', (done)=>{
-            chai.request(server).post("/api/auth/login/forgot").send({emailAddress: "test@example.com"}).end((err, result)=>{
+            chai.request(server)
+            .post("/api/auth/login/forgot")
+            .send({emailAddress: "test@example.com"})
+            .end((err, result)=>{
                 result.body.success.should.be.equal(true);
                 done();
             })
