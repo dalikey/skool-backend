@@ -1,12 +1,22 @@
-import bcrypt from 'bcrypt';
-import assert from 'assert';
-import { Request, Response } from 'express';
-import { queryCommands } from '../db/databaseCommands';
-import { registrationBody } from '../models/registrationBody';
-import jwt, {JsonWebTokenError} from "jsonwebtoken";
+import {Request, Response} from 'express';
+import {queryCommands} from '../db/databaseCommands';
+import jwt from "jsonwebtoken";
 import Logger from "js-logger";
 import { ObjectId } from "mongodb";
+import nodemailer, {Transporter} from 'nodemailer';
 
+let transporter: Transporter;
+if (process.env.SMTP_SERVER) {
+    transporter = nodemailer.createTransport({
+        host: process.env.SMTP_SERVER,
+        port: 465,
+        secure: true, // true for 465, false for other ports
+        auth: {
+            user: process.env.SMTP_USERNAME, // generated ethereal user
+            pass: process.env.SMTP_PASSWORD, // generated ethereal password
+        },
+    });
+}
 
 
 export async function getUser(req: Request, res: Response, next: any) {
@@ -36,7 +46,7 @@ export async function getUsers(req: Request, res: Response) {
                 mongoQuery[key] = {'$exists': false};
             } else {
                 // @ts-ignore
-                mongoQuery[key] = req.query[key];
+                mongoQuery[key] = `/${req.query[key]}/`;
             }
         }
     }
@@ -57,8 +67,7 @@ export async function authorizeUser(req: Request, res: Response, next: any) {
         return res.status(401).send({error: "unauthorized", message: "You need to provide authorization for this endpoint!"})
     }
     try {
-        const decodedToken = jwt.verify(authToken,  process.env.APP_SECRET || "");
-        res.locals.decodedToken = decodedToken;
+        res.locals.decodedToken = jwt.verify(authToken, process.env.APP_SECRET || "");
         next()
     } catch (err) {
         Logger.error(err);
@@ -77,11 +86,25 @@ export async function activateUser(req: Request, res: Response) {
     try {
         const result = await queryCommands.approveUser(new ObjectId(userId), true);
         if (result.modifiedCount == 1) {
+
+            const user = await queryCommands.getUser(new ObjectId(userId));
+            const name = `${user.firstName} ${user.lastName}`;
+            if (process.env.SMTP_SERVER) {
+                const info = await transporter.sendMail({
+                    from: process.env.SMTP_USERNAME,
+                    to: user.emailAddress,
+                    subject: `${name}, Uw Skool Werknemer account is geaccepteerd`,
+                    text: `Beste ${name},\n\nU kunt nu inloggen op de website door ${process.env.FRONTEND_URI}/sign-in te bezoeken.\n\nMet vriendelijke groet\n\nSkool Workshops`
+                })
+                Logger.info(info);
+            }
+
             return res.send({success: true})
         } else {
             return res.status(400).send({error: "user_not_modified", message: "This user could not be modified, likely because it does not exist!"});
         }
-    } catch {
+    } catch (err) {
+        Logger.error(err);
         return res.status(400).send({error: "invalid_parameters", message: "The user ID is not valid!"})
     }
 
@@ -109,4 +132,4 @@ export async function deactivateUser(req: Request, res: Response) {
 
 
 
-export default {getUser, editUser: () => {}, activateUser, authorizeUser, deactivateUser, getUsers}
+export default {getUser, activateUser, authorizeUser, deactivateUser, getUsers}
