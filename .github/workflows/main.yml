@@ -1,4 +1,4 @@
-ame: Deploy Prod
+name: Deploy Prod
 
 on:
   pull_request:
