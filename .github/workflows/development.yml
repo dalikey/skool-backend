@@ -1,0 +1,43 @@
+name: Deploy Dev
+
+on: 
+  push: 
+    branches: 
+      - development
+jobs:
+    integrationtests:
+        runs-on: ubuntu-latest
+        env:
+          DB_URL: mongodb://localhost:27017/skool
+          FRONTEND_URI : '*'
+          MONGODB: 'skool'
+          APP_SECRET: secret-${{ github.run_id }}-${{ github.run_attempt }}
+        steps:
+            - uses: actions/checkout@v2
+            - name: Start MongoDB
+              uses: supercharge/mongodb-github-action@1.7.0
+              with:
+                mongodb-version: '5.0'
+            - name: Create Indexes
+              run: |
+                  mongo mongodb://localhost:27017/skool --eval 'db.user.createIndex({"emailAddress": 1}, {unique: true})'
+
+            - name: npm install
+              run: |
+                  npm install
+            - name: npm test
+              run: |
+                  npm test
+    build:
+      needs:
+        - integrationtests
+      runs-on: ubuntu-latest
+      steps: 
+      - uses: actions/checkout@v2
+      - uses: akhileshns/heroku-deploy@v3.12.12
+        with:
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+          heroku_email: "geoffreywesthoff@gmail.com"
+          heroku_app_name: "skool-development"
+          branch: "development"
+          procfile: "web: npm start"
