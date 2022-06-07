@@ -184,7 +184,7 @@ export async function createWorkshop(req: Request, res: Response, next: any) {
             from: process.env.SMTP_USERNAME,
             to: 'clinten.pique@duck-in.space',
             subject: `${newWorkshop.name} aangemaakt.`,
-            text: `Bezoek ${newWorkshop.name} door ${process.env.FRONTEND_URI}/workshops te bezoeken! `,
+            text: `Bezoek ${newWorkshop.name} door ${process.env.FRONTEND_URI}/workshop te bezoeken! `,
         });
     }
     res.status(204).send();

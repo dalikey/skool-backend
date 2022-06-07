@@ -26,4 +26,6 @@ workshopRouter.get(
     workshopController.getWorkshops
 );
 
+workshopRouter.post('/api/workshop', workshopController.createWorkshop);
+
 export default workshopRouter;
