@@ -1,11 +1,12 @@
 import express, {Request} from 'express';
-import loginRouter from './routes/login.routes';
 import bodyParser from 'body-parser';
 import con from 'dotenv';
 import Logger from 'js-logger';
 import cors from 'cors';
+import loginRouter from './routes/login.routes';
 import registrationRouter from './routes/registration.routes';
 import userRouter from "./routes/user.routes";
+import workshopRouter from "./routes/workshop.routes";
 
 Logger.useDefaults();
 con.config();
@@ -30,10 +31,9 @@ app.listen(port, ()=>{
     console.log(`Example appS listening on port Typescript tested ${port}`);
 })
 
-
-
-
 app.use(loginRouter);
 app.use(registrationRouter);
 app.use(userRouter);
+app.use(workshopRouter);
+
 export default app;
