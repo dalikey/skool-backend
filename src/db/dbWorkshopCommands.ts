@@ -29,10 +29,14 @@ export const queryCommands = {
     async getWorkshop(id: ObjectId) {
         const projection = {
             _id: 1,
-            firstName: 1,
-            lastName: 1,
-            emailAddress: 1,
-            role: 1,
+            name: 1,
+            city: 1,
+            street: 1,
+            description: 1,
+            // date
+            maxParticipants: 1,
+            imageUrl: 1,
+            userId: 1,
             isActive: 1,
         };
         Logger.info(projection);
@@ -53,10 +57,14 @@ export const queryCommands = {
     async getAllWorkshops(filter: any) {
         const projection = {
             _id: 1,
-            firstName: 1,
-            lastName: 1,
-            emailAddress: 1,
-            role: 1,
+            name: 1,
+            city: 1,
+            street: 1,
+            description: 1,
+            // date
+            maxParticipants: 1,
+            imageUrl: 1,
+            userId: 1,
             isActive: 1,
         };
         Logger.info(projection);
