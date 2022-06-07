@@ -8,6 +8,7 @@ ShiftRoutes.post('api/workshop/shift',
     controller.validateToken,
     ShiftController.validateWorkshopShiftInput,
     ShiftController.insertShift)
+
 //Update shift
 //Deletes shift
 //Retrieve shifts
