@@ -6,6 +6,7 @@ import Logger from 'js-logger';
 import cors from 'cors';
 import registrationRouter from './routes/registration.routes';
 import userRouter from "./routes/user.routes";
+import customerRoutes from "./routes/customer.routes";
 import workshopShiftRoutes from "./routes/WorkshopShift.routes";
 
 Logger.useDefaults();
@@ -33,9 +34,11 @@ app.listen(port, ()=>{
 
 
 
-
+app.use(customerRoutes);
 app.use(loginRouter);
 app.use(registrationRouter);
 app.use(userRouter);
 app.use(workshopShiftRoutes);
+
+
 export default app;

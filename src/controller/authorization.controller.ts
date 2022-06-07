@@ -5,6 +5,7 @@ const capitalRegex = /[A-Z]+/;
 const digitRegex = /[1-9]+/;
 
 export const controller = {
+    //Validates every endpoint on token
     validateToken: (req: any, res: any, next: any) => {
         const authToken = req.headers.authorization || "";
         if (!authToken) {
@@ -18,6 +19,16 @@ export const controller = {
             next()
         } catch (err) {
             return res.send({error: "unauthorized", message: "You need to provide authorization for this endpoint!"})
+        }
+    }
+    ,
+    validateOwnerRole:(req: any, res:any, next:any)=>{
+        const decodedToken = res.locals.decodedToken;
+        try {
+            assert(decodedToken.role == 'owner');
+            next();
+        }catch (e) {
+            return res.status(401).send({error: "unauthorized", message: "You do not have the right authority."});
         }
     }
 }
