@@ -23,15 +23,14 @@ if (process.env.SMTP_SERVER) {
 export async function verifyInput(req: Request, res: Response, next: any) {
     const newWorkshop: workshopBody = req.body;
     try {
-        assert(newWorkshop._id);
-        assert(newWorkshop.name);
-        assert(newWorkshop.city);
-        assert(newWorkshop.street);
-        assert(newWorkshop.description);
-        assert(newWorkshop.maxParticipants);
-        assert(newWorkshop.imageUrl);
-        assert(newWorkshop.userId);
-        assert(newWorkshop.isActive);
+        assert(typeof newWorkshop.name === 'string', 'Name is a required value');
+        assert(typeof newWorkshop.city === 'string', 'City is a required value');
+        assert(typeof newWorkshop.street === 'string', 'Street is a required value');
+        assert(typeof newWorkshop.description === 'string', 'Description is a required value');
+        assert(typeof newWorkshop.maxParticipants === 'number', 'MaxParticipants is a required value');
+        assert(typeof newWorkshop.imageUrl === 'string', 'ImageUrl is a required value');
+        assert(typeof newWorkshop.userId === 'number', 'UserId is a required value');
+        assert(typeof newWorkshop.isActive === 'boolean', 'IsActive is a required value');
         next();
     } catch (err) {
         return res.status(400).send({
