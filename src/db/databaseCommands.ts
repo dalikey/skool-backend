@@ -4,6 +4,7 @@ import  { registrationInsert } from '../models/registrationBody';
 import conf from 'dotenv';
 import Logger from 'js-logger';
 import app from "../index";
+import {userBody} from "../models/userBody";
 conf.config();
 
 //MongoDb url
@@ -29,7 +30,7 @@ export const queryCommands = {
     },
 
     async getUser(id: ObjectId) {
-        const projection = {_id: 1, firstName: 1, lastName: 1, emailAddress: 1, role: 1, isActive:1};
+        const projection = {password: 0};
         Logger.info(projection);
 
         try {
@@ -142,5 +143,16 @@ export const queryCommands = {
             return {error: "duplicate_user", message: err}
         }
         
+    },
+    async updateUser(userId: ObjectId, data: Object) {
+        const collection = await this.getUserCollection();
+        try {
+            const query = await collection.updateOne({"_id": userId}, {"$set": data})
+            Logger.info(query);
+            return {error: 0};
+        } catch (err) {
+            Logger.error(err);
+            return {error: "update_failure"}
+        }
     }
 }

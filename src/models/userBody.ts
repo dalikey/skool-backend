@@ -1,74 +1,137 @@
+import  {emailRegex} from "../controller/registration.controller";
+import phoneUtil from "google-libphonenumber";
+import assert from "assert";
+
+const postalCodeRegex = /[1-9]{4}[A-z]{2}/;
+
 export type userBody = {
-    emailAddress: string
+    rejected: Array<string>;
+    emailAddress: string | undefined
+    firstName: string | undefined
+    lastName: string | undefined
     nationality: "nl" | "be" | undefined,
     gender: "m" | "f" | "x" | undefined
-    dateOfBirth: Date
-    placeOfBirth: string
-    countryOfOrigin: string
-    mobileNumber: string,
-    emailCampaigns: boolean
-    textCampaigns: boolean
+    dateOfBirth: Date | undefined
+    placeOfBirth: string | undefined
+    countryOfOrigin: string | undefined
+    mobileNumber: string | undefined,
+    emailCampaigns: boolean | undefined
+    textCampaigns: boolean | undefined
 
-    location: locationBody
-    paymentInfo: paymentBody
-    passwordInfo: passwordBody | undefined
+    location: locationBody | undefined
+    paymentInfo: paymentBody | undefined
+    passwordInfo: passwordBody
 
-    kvkNumber: string
-    vatID: string
+    kvkNumber: string | undefined
+    vatID: string | undefined
 
-    workshopPreferences: Array<String>
-    transport: transportBody
+    workshopPreferences: Array<String> | undefined
+    transport: transportBody | undefined
 
 }
 
 export class User implements userBody {
     constructor(body: userBody) {
-        this.countryOfOrigin = body.countryOfOrigin;
-        this.dateOfBirth = body.dateOfBirth;
-        this.emailAddress = body.emailAddress;
-        this.emailCampaigns = body.emailCampaigns;
-        if (body.gender !== undefined && ['m', 'f', 'x'].includes(body.gender)) {
+        this.rejected = [];
+        try {
+            this.countryOfOrigin = body.countryOfOrigin;
+        } catch (err) {
+            this.rejected.push('countryOfOrigin')
+        }
+        try {
+            // @ts-ignore
+            this.dateOfBirth = new Date(body.dateOfBirth);
+        } catch (err) {
+            this.rejected.push('dateOfBirth')
+        }
+        try {
+            // @ts-ignore
+            assert(body.emailAddress.match(emailRegex))
+            this.emailAddress = body.emailAddress;
+        } catch (err) {
+            this.rejected.push("emailAddress")
+        }
+        try {
+            assert(body.emailCampaigns === true || body.emailCampaigns === false)
+            this.emailCampaigns = body.emailCampaigns;
+        } catch (err) {
+            this.rejected.push('emailCampaigns')
+        }
+
+        try {
+            // @ts-ignore
+            assert(['m', 'f', 'x'].includes(body.gender))
             this.gender = body.gender;
+        } catch (err) {
+            this.rejected.push("gender")
         }
         this.kvkNumber = body.kvkNumber;
-        this.location = body.location;
-        this.mobileNumber = body.mobileNumber;
-        if (body.nationality !== undefined && ['nl', 'be'].includes(body.nationality)) {
-            this.nationality = body.nationality
+        try {
+            // @ts-ignore
+            assert(body.location.city && body.location.address && body.location.country && body.location.postalCode)
+            // @ts-ignore
+            assert(['nl', 'be'].includes(body.location.country))
+            // @ts-ignore
+            assert(body.location.postalCode.match(postalCodeRegex))
+            this.location = body.location;
+        } catch (err) {
+            this.rejected.push("location")
         }
-        this.paymentInfo = body.paymentInfo;
+        try {
+            // @ts-ignore
+            const number = phoneUtil.PhoneNumberUtil.getInstance().parseAndKeepRawInput(body.mobileNumber);
+            if (phoneUtil.PhoneNumberUtil.getInstance().isValidNumber(number)) {
+                this.mobileNumber = body.mobileNumber;
+            }
+        } catch (err) {
+            this.rejected.push("mobileNumber")
+        }
+        try {
+            // @ts-ignore
+            assert(['nl', 'be'].includes(body.nationality))
+            this.nationality = body.nationality
+        } catch (err) {
+            this.rejected.push("nationality");
+        }
+
+        this.passwordInfo = body.passwordInfo;
+
+        try {
+            // @ts-ignore
+            assert(body.paymentInfo.IBAN && body.paymentInfo.BIC)
+            this.paymentInfo = body.paymentInfo;
+        } catch (err) {
+            this.rejected.push("paymentInfo")
+        }
         this.placeOfBirth  =body.placeOfBirth;
         this.textCampaigns = body.textCampaigns;
         this.transport = body.transport;
         this.vatID = body.vatID;
         this.workshopPreferences = body.workshopPreferences
+        this.lastName = body.lastName
+        this.firstName = body.firstName
     }
-    countryOfOrigin: string;
-    dateOfBirth: Date;
-    emailAddress: string;
-    emailCampaigns: boolean;
+    countryOfOrigin: string | undefined;
+    dateOfBirth: Date | undefined;
+    emailAddress: string | undefined;
+    emailCampaigns: boolean | undefined;
     // @ts-ignore
     gender: "m" | "f" | "x" | undefined;
-    kvkNumber: string;
-    location: locationBody;
-    mobileNumber: string;
+    kvkNumber: string | undefined;
+    location: locationBody | undefined;
+    mobileNumber: string | undefined;
     nationality: "nl" | "be" | undefined;
-    passwordInfo: passwordBody | undefined;
-    paymentInfo: paymentBody;
-    placeOfBirth: string;
-    textCampaigns: boolean;
-    transport: transportBody;
-    vatID: string;
-    workshopPreferences: Array<String>;
+    passwordInfo: passwordBody;
+    paymentInfo: paymentBody | undefined;
+    placeOfBirth: string | undefined;
+    textCampaigns: undefined | boolean;
+    transport: transportBody | undefined;
+    vatID: string | undefined;
+    workshopPreferences: Array<String> | undefined;
+    rejected: Array<string>;
+    lastName: string | undefined;
+    firstName: string | undefined;
 
-}
-
-export interface mongoUserBody extends userBody {
-    passwordInfo: undefined
-    password: string,
-    profilePicture: Buffer,
-    identity: Buffer,
-    VOGDocument: Buffer
 }
 
 interface locationBody {
@@ -79,13 +142,13 @@ interface locationBody {
 }
 
 interface paymentBody {
-    bankNumber: string
-    bicCode: string
+    IBAN: string
+    BIC: string
 }
 
 interface transportBody {
     hasDriversLicense: boolean
-    hasVehice: boolean
+    hasVehicle: boolean
 }
 
 interface passwordBody {
