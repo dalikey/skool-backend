@@ -5,6 +5,7 @@ import Logger from 'js-logger';
 import { ObjectId } from 'mongodb';
 import nodemailer, { Transporter } from 'nodemailer';
 import { workshopBody } from '../models/workshopBody';
+import assert from 'assert';
 
 let transporter: Transporter;
 if (process.env.SMTP_SERVER) {
@@ -19,9 +20,32 @@ if (process.env.SMTP_SERVER) {
     });
 }
 
+export async function verifyInput(req: Request, res: Response, next: any) {
+    const newWorkshop: workshopBody = req.body;
+    try {
+        assert(newWorkshop._id);
+        assert(newWorkshop.name);
+        assert(newWorkshop.city);
+        assert(newWorkshop.street);
+        assert(newWorkshop.description);
+        assert(newWorkshop.maxParticipants);
+        assert(newWorkshop.imageUrl);
+        assert(newWorkshop.userId);
+        assert(newWorkshop.isActive);
+        next();
+    } catch (err) {
+        return res.status(400).send({
+            error: 'input_invalid',
+            message: 'The data you sent was not correctly formatted!',
+        });
+    }
+}
+
 export async function getWorkshop(req: Request, res: Response, next: any) {
     // @ts-ignore
-    const workshop = await queryCommands.getWorkshop(ObjectId(res.locals.decodedToken.id));
+    const workshop = await queryCommands.getWorkshop(
+        new ObjectId(res.locals.decodedToken.id)
+    );
 
     return res.send({ result: workshop });
 }
@@ -191,6 +215,7 @@ export async function createWorkshop(req: Request, res: Response, next: any) {
 }
 
 export default {
+    verifyInput,
     getWorkshop,
     activateWorkshop,
     authorizeWorkshop,
