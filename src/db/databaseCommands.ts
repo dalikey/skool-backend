@@ -15,6 +15,7 @@ if(!mongoDBUrl){
 const skoolWorkshop = process.env.MONGODB;
 //Collection
 const user: string = "user"
+const customer: string = "client";
 //Client
 const client = new MongoClient(mongoDBUrl);
 //Connection
@@ -26,6 +27,13 @@ export const queryCommands = {
             connection = await client.connect();
         }
         return connection.db(skoolWorkshop).collection(user);
+    },
+
+    async getCustomerCollection(){
+        if (!connection) {
+            connection = await client.connect();
+        }
+        return connection.db(skoolWorkshop).collection(customer);
     },
 
     async getUser(id: ObjectId) {
@@ -130,7 +138,6 @@ export const queryCommands = {
             return null;
         }
     }
-
     ,
     async registerUser(registrationData: registrationInsert) {
         const collection = await this.getUserCollection();
@@ -142,5 +149,14 @@ export const queryCommands = {
             return {error: "duplicate_user", message: err}
         }
         
+    }
+    ,
+    async insertCustomer(customerData: any){
+       const collection = await this.getCustomerCollection();
+       try {
+           const query = await collection.insertOne(customerData);
+       } catch (e) {
+           return{error: "insert_error", message: "Insert of customer went wrong"};
+       }
     }
 }
