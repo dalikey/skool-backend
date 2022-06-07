@@ -1,5 +1,4 @@
 import { MongoClient, ObjectId } from 'mongodb';
-import loginBody from '../models/loginBody';
 import { workshopInsert } from '../models/workshopBody';
 import conf from 'dotenv';
 import Logger from 'js-logger';
@@ -88,25 +87,6 @@ export const queryCommands = {
         }
     },
 
-    //Retrieve workshop based on login body
-    async loginWorkshop(loginData: loginBody) {
-        const projection = {
-            _id: 1,
-            firstName: 1,
-            lastName: 1,
-            emailAddress: 1,
-            password: 1,
-            role: 1,
-            isActive: 1,
-        };
-        try {
-            let emailAddress = loginData.emailAddress;
-            const collection = await this.getWorkshopCollection();
-            return collection.findOne({ emailAddress }, { projection });
-        } catch (error: any) {
-            return { error: 'login_failure', message: error.message };
-        }
-    },
     async retrieveEmail(emailAddress: string) {
         try {
             const projection = {
