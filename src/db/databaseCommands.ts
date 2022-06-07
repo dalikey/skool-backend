@@ -14,7 +14,8 @@ if(!mongoDBUrl){
 //Database
 const skoolWorkshop = process.env.MONGODB;
 //Collection
-const user: string = "user"
+const user: string = "user";
+const shifts: string = "client";
 //Client
 const client = new MongoClient(mongoDBUrl);
 //Connection
@@ -27,7 +28,14 @@ export const queryCommands = {
         }
         return connection.db(skoolWorkshop).collection(user);
     },
+    async getCustomerCollection(){
+       if(!connection){
+           connection = await client.connect();
+       }
+       return connection.db(skoolWorkshop).collection(shifts);
+    }
 
+    ,
     async getUser(id: ObjectId) {
         const projection = {_id: 1, firstName: 1, lastName: 1, emailAddress: 1, role: 1, isActive:1};
         Logger.info(projection);
