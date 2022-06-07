@@ -31,6 +31,16 @@ export const controller = {
             return res.status(401).send({error: "unauthorized", message: "You do not have the right authority."});
         }
     }
+    ,
+    validateAdminRole:(req:any, res:any, next:any)=>{
+        const decodedToken = res.locals.decodedToken;
+        try {
+            assert(decodedToken.role == 'owner' || 'admin');
+            next();
+        }catch (e) {
+            return res.status(401).send({error: "unauthorized", message: "You do not have the right authority."});
+        }
+    }
 }
 
 export const authorizationMethods = {

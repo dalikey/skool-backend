@@ -11,13 +11,13 @@ customerRoutes.post('/api/customer',
     customerController.insertCustomer);
 
 //Deletes customer
-customerRoutes.delete('/api/customer',
+customerRoutes.delete('/api/customer/:customerId',
     controller.validateToken,
     controller.validateOwnerRole,
     customerController.deleteCustomer);
 
 //Update customer
-customerRoutes.put('/api/customer',
+customerRoutes.put('/api/customer/:customerId',
     controller.validateToken,
     controller.validateOwnerRole,
     customerController.validateInputCustomer,

@@ -45,9 +45,9 @@ const customerController = {
     ,
     async deleteCustomer(req:any, res:any){
         //Initiate variabels
-        const customer = req.body;
+        const customerID = req.params.customerId;
         //Delete command
-        const deletion = await queryCommands.deleteCustomer(customer._id);
+        const deletion = await queryCommands.deleteCustomer(customerID);
         if(deletion.deletedCount == 1){
             res.status(200).json({
                 message: "Customer deleted",
@@ -62,11 +62,12 @@ const customerController = {
     ,
     async updateCustomer(req: any, res: any){
         //Initiate variabels
+        const customerID = req.params.customerId;
         const customer = req.body;
         //Convert image to base64 string
         customer.logo = convertIntoBase64(customer.logo);
         //Updates customer
-        const update = await queryCommands.updateCustomer(customer._id, customer);
+        const update = await queryCommands.updateCustomer(customerID, customer);
         res.status(200).json({message: "update completed"});
     }
     ,
@@ -76,12 +77,13 @@ const customerController = {
     }
     ,
     async getOneCustomer(req:any, res:any){
-        const customer = req.body;
-        const customerOne = await queryCommands.getOneCustomer(customer._id);
+        const customerID = req.params.customerId;
+        const customerOne = await queryCommands.getOneCustomer(customerID);
         res.status(200).json({result: customerOne});
     }
 }
 
+//Converts imageUrl to base64 string
 function convertIntoBase64(url: string) {
     let bitmap = fs.readFileSync(url);
     return new Buffer(bitmap).toString('base64');

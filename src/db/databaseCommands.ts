@@ -15,7 +15,7 @@ if(!mongoDBUrl){
 const skoolWorkshop = process.env.MONGODB;
 //Collection
 const user: string = "user";
-const shifts: string = "client";
+const shifts: string = "shift";
 const customer: string = "client";
 //Client
 const client = new MongoClient(mongoDBUrl);
@@ -23,7 +23,14 @@ const client = new MongoClient(mongoDBUrl);
 let connection:any = null;
 
 export const queryCommands = {
-   async getUserCollection() {
+   async connectDB(){
+     if(!connection){
+         connection = await client.connect();
+     }
+     return connection;
+   },
+
+    async getUserCollection() {
         if (!connection) {
             connection = await client.connect();
         }
@@ -33,9 +40,13 @@ export const queryCommands = {
        if(!connection){
            connection = await client.connect();
        }
+       return connection.db(skoolWorkshop).collection(customer);
+    }
+    ,
+    async getShiftCollection(){
+       connection = await this.connectDB();
        return connection.db(skoolWorkshop).collection(shifts);
     }
-
     ,
     async getUser(id: ObjectId) {
         const projection = {_id: 1, firstName: 1, lastName: 1, emailAddress: 1, role: 1, isActive:1};
@@ -152,12 +163,13 @@ export const queryCommands = {
         
     }
     ,
+    //TODO interface model to be applied to customer object
     async insertCustomer(customerData: any){
        const collection = await this.getCustomerCollection();
        try {
-           const query = await collection.insertOne(customerData);
+           return await collection.insertOne(customerData);
        } catch (e) {
-           return{error: "insert_error", message: "Insert of customer went wrong"};
+           return {error: "insert_error", message: "Insert of customer went wrong"};
        }
     }
     ,
@@ -171,6 +183,7 @@ export const queryCommands = {
        }
     }
     ,
+    //TODO interface model to be applied to customer object
     async updateCustomer(customerId:string, customer: any){
        const collection = await this.getCustomerCollection();
        const query = {_id: new ObjectId(customerId)};
@@ -198,5 +211,55 @@ export const queryCommands = {
         } catch (e) {
 
         }
+    }
+    ,
+    //TODO interface model to be applied to shiftobject
+    async insertOneWorkshopShift(workshopShift:any){
+        const collection = await  this.getShiftCollection();
+        try {
+            return await collection.insertOne(workshopShift);
+        }catch (e) {
+
+        }
+    }
+    ,
+    async getAllShifts(){
+       const collection = await this.getShiftCollection();
+       try {
+           return await collection.find({}).toArray();
+       }catch (e){
+
+       }
+    }
+    ,
+    async getOneShift(shiftId: string){
+       const collection = await this.getShiftCollection();
+       const filter = {_id: new ObjectId(shiftId)};
+       try {
+           return await collection.findOne(filter);
+       }catch (e) {
+
+       }
+    }
+    ,
+    async updateShift(shiftId:string, shift:any){
+       const collection = await this.getShiftCollection();
+       const query = {_id: new ObjectId(shiftId)};
+       try {
+           return await collection.replaceOne(query, shift);
+       }catch (e) {
+           return null;
+       }
+    }
+    ,
+    async deleteShift(shiftId: string){
+       const collection = await this.getShiftCollection();
+       const query = {_id:shiftId};
+       try {
+           return await collection.deleteOne(query);
+       } catch (e) {
+           return null;
+       }
+
     }
 }
