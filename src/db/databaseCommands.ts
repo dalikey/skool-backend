@@ -194,6 +194,7 @@ export const queryCommands = {
         }
     }
     ,
+    //TODO Improve queries with joins
     async getAllCustomers(){
         const collection = await this.getCustomerCollection();
         try {
@@ -213,6 +214,7 @@ export const queryCommands = {
         }
     }
     ,
+    //TODO Improve queries with joins
     //TODO interface model to be applied to shiftobject
     async insertOneWorkshopShift(workshopShift:any){
         const collection = await  this.getShiftCollection();

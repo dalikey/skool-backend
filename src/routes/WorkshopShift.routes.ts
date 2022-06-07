@@ -2,7 +2,7 @@ import {authorizationMethods, controller} from "../controller/authorization.cont
 import ShiftController from "../controller/WorkshopShift.controller";
 import express from "express";
 const ShiftRoutes = express();
-
+//TODO Improve queries with joins
 //Creates shift
 ShiftRoutes.post('api/workshop/shift',
     controller.validateToken,
