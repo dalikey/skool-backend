@@ -6,6 +6,8 @@ import Logger from 'js-logger';
 import cors from 'cors';
 import registrationRouter from './routes/registration.routes';
 import userRouter from "./routes/user.routes";
+import fileupload from "express-fileupload";
+
 
 Logger.useDefaults();
 con.config();
@@ -13,6 +15,7 @@ const app = express();
 const port = process.env.PORT;
 
 app.use(bodyParser.json());
+app.use(fileupload());
 app.use(cors());
 
 //Catching errors

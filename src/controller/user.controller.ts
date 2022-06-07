@@ -4,6 +4,9 @@ import jwt from "jsonwebtoken";
 import Logger from "js-logger";
 import { ObjectId } from "mongodb";
 import nodemailer, {Transporter} from 'nodemailer';
+import {User, userBody} from "../models/userBody";
+import assert from "assert";
+
 
 let transporter: Transporter;
 if (process.env.SMTP_SERVER) {
@@ -130,6 +133,23 @@ export async function deactivateUser(req: Request, res: Response) {
     }
 }
 
+export async function editUser(req: Request, res: Response) {
+    if (res.locals.decodedToken._id !== req.params.id) {
+        return res.status(403).send({error: "forbidden", message: "You do not have permission for this endpoint"});
+    }
+
+    let acceptedKeys = ["emailAddress", "nationality", "gender"]
+
+    const userEdit: userBody = new User(req.body);
+    Logger.info(userEdit.countryOfOrigin);
 
 
-export default {getUser, activateUser, authorizeUser, deactivateUser, getUsers}
+    // @ts-ignore
+    // const profilePicture = req.files.profilePicture;
+
+    return res.send(userEdit);
+}
+
+
+
+export default { getUser, activateUser, authorizeUser, deactivateUser, getUsers, editUser }

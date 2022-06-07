@@ -9,7 +9,7 @@ jobs:
           DB_URL: mongodb://localhost:27017/skool
           FRONTEND_URI : '*'
           MONGODB: 'skool'
-          SMTP
+          APP_SECRET: secret-${{ github.run_id }}-${{ github.run_attempt }}
         steps:
             - uses: actions/checkout@v2
             - name: Start MongoDB
