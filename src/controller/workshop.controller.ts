@@ -27,16 +27,6 @@ export async function getWorkshop(req: Request, res: Response, next: any) {
 }
 
 export async function getWorkshops(req: Request, res: Response) {
-    if (
-        res.locals.decodedToken.role !== 'owner' ||
-        res.locals.decodedToken.role !== 'user'
-    ) {
-        return res.status(403).send({
-            error: 'forbidden',
-            message: 'You do not have permission for this endpoint',
-        });
-    }
-
     const mongoQuery = {};
 
     for (let key in req.query) {
