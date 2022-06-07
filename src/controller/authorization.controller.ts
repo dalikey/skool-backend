@@ -22,7 +22,7 @@ export const controller = {
         }
     }
     ,
-    validateOwnerStatus:(req: any, res:any, next:any)=>{
+    validateOwnerRole:(req: any, res:any, next:any)=>{
         const decodedToken = res.locals.decodedToken;
         try {
             assert(decodedToken.role == 'owner');

@@ -1,9 +1,9 @@
 import {MongoClient, ObjectId} from 'mongodb';
 import loginBody from '../models/loginBody';
-import  { registrationInsert } from '../models/registrationBody';
+import {registrationInsert} from '../models/registrationBody';
 import conf from 'dotenv';
 import Logger from 'js-logger';
-import app from "../index";
+
 conf.config();
 
 //MongoDb url
@@ -158,5 +158,44 @@ export const queryCommands = {
        } catch (e) {
            return{error: "insert_error", message: "Insert of customer went wrong"};
        }
+    }
+    ,
+    async deleteCustomer(customerId: string){
+       const collect = await this.getCustomerCollection();
+       const query = {_id: new ObjectId(customerId)};
+       try{
+           return await collect.deleteOne(query);
+       }catch (e) {
+
+       }
+    }
+    ,
+    async updateCustomer(customerId:string, customer: any){
+       const collection = await this.getCustomerCollection();
+       const query = {_id: new ObjectId(customerId)};
+       try {
+           return await collection.replaceOne(query, customer);
+        } catch (e) {
+            
+        }
+    }
+    ,
+    async getAllCustomers(){
+        const collection = await this.getCustomerCollection();
+        try {
+            return await collection.find({}).toArray();
+        } catch (e) {
+
+        }
+    }
+    ,
+    async getOneCustomer(customerId:string){
+        const collection = await this.getCustomerCollection();
+        const query = {_id: customerId};
+        try {
+            return await collection.findOne(query);
+        } catch (e) {
+
+        }
     }
 }

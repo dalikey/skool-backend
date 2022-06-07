@@ -6,6 +6,7 @@ import Logger from 'js-logger';
 import cors from 'cors';
 import registrationRouter from './routes/registration.routes';
 import userRouter from "./routes/user.routes";
+import customerRoutes from "./routes/customer.routes";
 
 Logger.useDefaults();
 con.config();
@@ -32,8 +33,10 @@ app.listen(port, ()=>{
 
 
 
-
+app.use(customerRoutes);
 app.use(loginRouter);
 app.use(registrationRouter);
 app.use(userRouter);
+
+
 export default app;
