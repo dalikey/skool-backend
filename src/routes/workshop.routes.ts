@@ -1,35 +1,22 @@
 import express from 'express';
 import workshopController from '../controller/workshop.controller';
+import {controller} from '../controller/authorization.controller';
+
 const workshopRouter = express.Router();
 
 workshopRouter.get(
     '/api/workshop/@me',
-    workshopController.authorizeWorkshop,
+    controller.validateToken,
     workshopController.getWorkshop
 );
 
-workshopRouter.post(
-    '/api/workshop/:workshopId/activate',
-    workshopController.authorizeWorkshop,
-    workshopController.activateWorkshop
-);
 
-workshopRouter.post(
-    '/api/workshop/:workshopId/deactivate',
-    workshopController.authorizeWorkshop,
-    workshopController.deactivateWorkshop
-);
-
-workshopRouter.get(
-    '/api/workshop',
-    workshopController.authorizeWorkshop,
-    workshopController.getWorkshops
-);
-
-workshopRouter.post(
-    '/api/workshop',
+//Creates workshop
+workshopRouter.post('/api/workshop/add',
+    controller.validateToken,
+    controller.validateOwnerRole,
+    // workshopController.handleFileInput,
     workshopController.verifyInput,
-    workshopController.createWorkshop
-);
+    workshopController.createWorkshop);
 
 export default workshopRouter;
