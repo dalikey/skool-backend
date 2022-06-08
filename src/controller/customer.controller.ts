@@ -31,7 +31,7 @@ const customerController = {
             assert(customer.emailAddress.toLowerCase().match(emailRegex));
             assert(customer.phoneNumber.match(phoneRegex));
             //Location
-            assert(typeof customer.location.street_houseNr == 'string');
+            assert(typeof customer.location.address == 'string');
             assert(typeof customer.location.postalcode == 'string');
             assert(typeof customer.location.city == 'string');
             assert(typeof customer.location.country == 'string');
@@ -52,7 +52,7 @@ const customerController = {
             phoneNumber:customer.phoneNumber,
             logoUrl:customer.logo,
             location:{
-                street_nr: customer.location.street_nr,
+                address: customer.location.address,
                 city:customer.location.city,
                 postalCode: customer.location.postalCode,
                 country: customer.location.country
@@ -95,7 +95,7 @@ const customerController = {
             phoneNumber:customer.phoneNumber,
             logoUrl:customer.logo,
             location:{
-                street_nr: customer.location.street_nr,
+                address: customer.location.address,
                 city:customer.location.city,
                 postalCode: customer.location.postalCode,
                 country: customer.location.country

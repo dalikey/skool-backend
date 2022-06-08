@@ -4,7 +4,7 @@ export interface CustomerBody {
     phoneNumber:string,
     logoUrl:string,
     location:{
-        street_nr: string,
+        address: string,
         city:string,
         postalCode: string,
         country: string
