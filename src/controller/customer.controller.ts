@@ -36,8 +36,20 @@ const customerController = {
         const customer = req.body;
         //Convert image to base64 string
         customer.logo = convertIntoBase64(customer.logo);
+        const customerObject = {
+            name: customer.name,
+            emailAddress:customer.emailAddress,
+            phoneNumber:customer.phoneNumber,
+            logoUrl:customer.logo,
+            location:{
+                street_nr: customer.location.street_nr,
+                city:customer.location.city,
+                postalCode: customer.location.postalCode,
+                country: customer.location.country
+            }
+        };
         //Database command.
-        const insert = await queryCommands.insertCustomer(customer);
+        const insert = await queryCommands.insertCustomer(customerObject);
         res.status(200).json({
             message: "Customer inserted",
         })
@@ -66,8 +78,21 @@ const customerController = {
         const customer = req.body;
         //Convert image to base64 string
         customer.logo = convertIntoBase64(customer.logo);
+        //New object
+        const customerObject = {
+            name: customer.name,
+            emailAddress:customer.emailAddress,
+            phoneNumber:customer.phoneNumber,
+            logoUrl:customer.logo,
+            location:{
+                street_nr: customer.location.street_nr,
+                city:customer.location.city,
+                postalCode: customer.location.postalCode,
+                country: customer.location.country
+            }
+        };
         //Updates customer
-        const update = await queryCommands.updateCustomer(customerID, customer);
+        const update = await queryCommands.updateCustomer(customerID, customerObject);
         res.status(200).json({message: "update completed"});
     }
     ,

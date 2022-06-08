@@ -3,6 +3,7 @@ import loginBody from '../models/loginBody';
 import {registrationInsert} from '../models/registrationBody';
 import conf from 'dotenv';
 import Logger from 'js-logger';
+import {CustomerBody} from "../models/customerBody";
 
 conf.config();
 
@@ -164,7 +165,7 @@ export const queryCommands = {
     }
     ,
     //TODO interface model to be applied to customer object
-    async insertCustomer(customerData: any){
+    async insertCustomer(customerData: CustomerBody){
        const collection = await this.getCustomerCollection();
        try {
            return await collection.insertOne(customerData);
@@ -184,7 +185,7 @@ export const queryCommands = {
     }
     ,
     //TODO interface model to be applied to customer object
-    async updateCustomer(customerId:string, customer: any){
+    async updateCustomer(customerId:string, customer: CustomerBody){
        const collection = await this.getCustomerCollection();
        const query = {_id: new ObjectId(customerId)};
        try {
