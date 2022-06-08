@@ -1,11 +1,12 @@
 import express, {Request} from 'express';
-import loginRouter from './routes/login.routes';
 import bodyParser from 'body-parser';
 import con from 'dotenv';
 import Logger from 'js-logger';
 import cors from 'cors';
+import loginRouter from './routes/login.routes';
 import registrationRouter from './routes/registration.routes';
 import userRouter from "./routes/user.routes";
+import workshopRouter from "./routes/workshop.routes";
 import customerRoutes from "./routes/customer.routes";
 import workshopShiftRoutes from "./routes/workshopShift.routes";
 // @ts-ignore
@@ -43,5 +44,7 @@ app.use(registrationRouter);
 app.use(userRouter);
 app.use(workshopShiftRoutes);
 
+
+app.use(workshopRouter);
 
 export default app;
