@@ -35,7 +35,7 @@ export const controller = {
     validateAdminRole:(req:any, res:any, next:any)=>{
         const decodedToken = res.locals.decodedToken;
         try {
-            assert(decodedToken.role == 'owner' || 'admin');
+            assert(decodedToken.role != 'user');
             next();
         }catch (e) {
             return res.status(401).send({error: "unauthorized", message: "You do not have the right authority."});

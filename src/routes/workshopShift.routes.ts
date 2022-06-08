@@ -4,7 +4,7 @@ import express from "express";
 const ShiftRoutes = express();
 //TODO Improve queries with joins
 //Creates shift
-ShiftRoutes.post('api/workshop/shift',
+ShiftRoutes.post('/api/workshop/shift',
     controller.validateToken,
     controller.validateAdminRole,
     ShiftController.validateWorkshopShiftInput,

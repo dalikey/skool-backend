@@ -1,16 +1,18 @@
 import {queryCommands} from "../db/databaseCommands";
-import {assign} from "nodemailer/lib/shared";
 import assert from "assert";
+import {WorkshopShiftBody} from "../models/workshopShiftBody";
+import {ObjectId} from "mongodb";
+import time, {DateTime, Duration} from 'luxon';
 
 let controller = {
     validateWorkshopShiftInput:(req:any, res:any, next:any)=>{
         const workshopShift = req.body;
+        let breakT = 0;
         try {
             assert(workshopShift);
             assert(workshopShift.workshopId);
             assert(workshopShift.clientId);
             //Locatie van de workshopshift is optioneel.
-            assert(typeof workshopShift.customerId == 'string');
             assert(typeof workshopShift.workshopId == 'string');
             assert(typeof workshopShift.function == 'string');
             assert(typeof workshopShift.maximumParticipants == "number");
@@ -19,8 +21,11 @@ let controller = {
             assert(workshopShift.location);
             assert(workshopShift.date);
             assert(workshopShift.availableUntil);
-            assert(workshopShift.hasBreaks);
-            //TODO shifts toevoegen
+            //Shift time and breaks
+            assert(workshopShift.startTime);
+            assert(workshopShift.endTime);
+            assert((workshopShift.hourRate && !workshopShift.dayRate)|| (workshopShift.dayRate && !workshopShift.hourRate));
+            //assert(workshopShift.breakTimeInMinutes); Is optioneel, als clinten een dagtarief invoert.
 
             next();
         }catch (e){
@@ -31,7 +36,32 @@ let controller = {
     insertShift:(req:any, res:any, next:any)=>{
         //Initialize variables
         const workshopShift = req.body;
+        let totalTariff;
+        let hasBreaks = false;
+        let formOfTime;
         //Database command
+        // @ts-ignore
+        const isHourRate = decideFormOfRate(workshopShift.hourRate);
+        if(isHourRate){
+           totalTariff = calculateFullRate(workshopShift.startTime, workshopShift.endTime, workshopShift.breakTimeInMinutes,workshopShift.hourRate);
+           formOfTime = "per uur";
+           delete workshopShift.dayRate;
+        } else{
+            totalTariff = workshopShift.dayRate;
+            formOfTime = "per dag";
+            delete workshopShift.hourRate;
+        }
+
+        if(workshopShift.breakTimeInMinutes || workshopShift.breakTimeInMinutes > 0){
+            hasBreaks = true;
+        }
+
+        workshopShift.workshopId = new ObjectId(workshopShift.workshopId);
+        workshopShift.clientId = new ObjectId(workshopShift.clientId);
+        workshopShift.tarriff =  totalTariff;
+        workshopShift.formOfTime = formOfTime;
+        workshopShift.hasBreaks= hasBreaks;
+
         const insert = queryCommands.insertOneWorkshopShift(workshopShift);
         //Sends status back
         res.status(200).json({message: "shift added"});
@@ -74,6 +104,22 @@ let controller = {
         await queryCommands.deleteShift(shiftId);
         res.status(200).json({message: "Successful deletion"});
     }
+}
+
+
+function calculateFullRate(startTime:string, endTime:string, hourRate: number, minutesOfBreak:number) {
+    let start  = DateTime.fromISO(startTime);
+    let end = DateTime.fromISO(endTime);
+    let durationInHours = end.diff(start, 'hours');
+    let breakTimeInHours = minutesOfBreak / 60;
+    // @ts-ignore
+    let paidTime = durationInHours.toObject().hours - breakTimeInHours;
+    return paidTime * hourRate;
+}
+
+function decideFormOfRate(hourRate: number) {
+    return !!hourRate;
+
 }
 
 export default controller;

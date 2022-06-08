@@ -7,7 +7,7 @@ import cors from 'cors';
 import registrationRouter from './routes/registration.routes';
 import userRouter from "./routes/user.routes";
 import customerRoutes from "./routes/customer.routes";
-import workshopShiftRoutes from "./routes/WorkshopShift.routes";
+import workshopShiftRoutes from "./routes/workshopShift.routes";
 // @ts-ignore
 import fileHandler from 'express-fileupload';
 

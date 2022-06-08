@@ -1,6 +1,7 @@
 import {queryCommands} from '../db/databaseCommands';
 import assert from "assert";
 import fs from 'fs';
+import time, {DateTime} from 'luxon';
 
 const emailRegex = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/g;
 //Regex for phones - every phonenumber must start with 06 or 31 and has either a space sign, - or nothing in between, and then 9 digits
@@ -9,7 +10,13 @@ const phoneRegex = /(06)(\s|\-|)\d{8}|31(\s6|\-6|6)\d{8}/;
 const customerController = {
     test:(req:any, res:any)=>{
         try {
-            return res.status(401).json({message: req.body});
+            const start = "09:24:00";
+            const end = "11:17:00";
+            let stTime = DateTime.fromISO(start);
+            let endT = DateTime.fromISO(end);
+            let diff = endT.diff(stTime, 'hours');
+            let i = 0 /60;
+            return res.status(401).json({message: i});
         }catch (e) {
             return res.status(401).json({error: "file_upload_failure", message: "Wrong file insert"});
         }
