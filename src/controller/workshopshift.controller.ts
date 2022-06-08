@@ -9,6 +9,7 @@ let controller = {
             assert(workshopShift);
             assert(workshopShift.workshopId);
             assert(workshopShift.clientId);
+            //Locatie van de workshopshift is optioneel.
             assert(typeof workshopShift.customerId == 'string');
             assert(typeof workshopShift.workshopId == 'string');
             assert(typeof workshopShift.function == 'string');
@@ -38,9 +39,9 @@ let controller = {
     ,
     async getAllShifts(req:any, res:any){
         //Database command
-        const resultset = await queryCommands.getAllShifts();
+        const resultSet = await queryCommands.getAllShifts();
         //Sends status back
-        res.status(200).json({result: resultset});
+        res.status(200).json({result: resultSet});
     }
     ,
     async getOneShift(req:any, res:any){
@@ -70,7 +71,7 @@ let controller = {
     ,
     async deleteShift(req:any, res:any){
         const shiftId = req.params.shiftId;
-        const deletion = await queryCommands.deleteShift(shiftId);
+        await queryCommands.deleteShift(shiftId);
         res.status(200).json({message: "Successful deletion"});
     }
 }

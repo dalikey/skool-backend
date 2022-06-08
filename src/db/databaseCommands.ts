@@ -164,7 +164,6 @@ export const queryCommands = {
         
     }
     ,
-    //TODO interface model to be applied to customer object
     async insertCustomer(customerData: CustomerBody){
        const collection = await this.getCustomerCollection();
        try {
@@ -184,7 +183,6 @@ export const queryCommands = {
        }
     }
     ,
-    //TODO interface model to be applied to customer object
     async updateCustomer(customerId:string, customer: CustomerBody){
        const collection = await this.getCustomerCollection();
        const query = {_id: new ObjectId(customerId)};

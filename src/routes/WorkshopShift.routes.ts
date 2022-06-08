@@ -1,5 +1,5 @@
 import {authorizationMethods, controller} from "../controller/authorization.controller";
-import ShiftController from "../controller/WorkshopShift.controller";
+import ShiftController from "../controller/workshopshift.controller";
 import express from "express";
 const ShiftRoutes = express();
 //TODO Improve queries with joins
