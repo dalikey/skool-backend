@@ -141,7 +141,7 @@ describe('Failed workshopShift insert', ()=>{
                 .send({
                     workshopId: "6290c81e409379906a5dba4a",
                     clientId: "6290c737409379906a5dba47",
-                    function: "Docent Vloggen",
+                    function: "VoorbeeldFunctie@Uniek",
                     maximumParticipants: 3,
                     targetAudience: "VO",
                     level: "MBO",
