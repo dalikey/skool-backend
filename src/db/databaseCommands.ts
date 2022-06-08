@@ -154,5 +154,18 @@ export const queryCommands = {
             Logger.error(err);
             return {error: "update_failure"}
         }
+    },
+    async deleteUser(userId: ObjectId) {
+        const collection = await this.getUserCollection();
+        try {
+            const query = await collection.deleteOne({"_id": userId});
+            Logger.info(query)
+            if (query.deletedCount === 0) {
+                return false;
+            }
+            return true
+        } catch (err) {
+            return false;
+        }
     }
 }

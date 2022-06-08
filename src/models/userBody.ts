@@ -41,6 +41,7 @@ export class User implements userBody {
         }
         try {
             // @ts-ignore
+            assert(body.dateOfBirth)
             this.dateOfBirth = new Date(body.dateOfBirth);
         } catch (err) {
             this.rejected.push('dateOfBirth')
@@ -53,7 +54,6 @@ export class User implements userBody {
             this.rejected.push("emailAddress")
         }
         try {
-            assert(body.emailCampaigns === true || body.emailCampaigns === false)
             this.emailCampaigns = body.emailCampaigns;
         } catch (err) {
             this.rejected.push('emailCampaigns')

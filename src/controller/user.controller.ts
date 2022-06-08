@@ -7,9 +7,8 @@ import nodemailer, {Transporter} from 'nodemailer';
 import {User, userBody} from "../models/userBody";
 import assert from "assert";
 import {authorizationMethods} from "./authorization.controller";
-import loginController from "./login.controller";
 import {capitalRegex, digitRegex} from "./registration.controller";
-import fileUpload, {UploadedFile} from "express-fileupload";
+import fileUpload from "express-fileupload";
 
 
 let transporter: Transporter;
@@ -26,7 +25,7 @@ if (process.env.SMTP_SERVER) {
 }
 
 
-export async function getUser(req: Request, res: Response, next: any) {
+export async function getUser(req: Request, res: Response) {
     // @ts-ignore
     const user = await queryCommands.getUser(ObjectId(res.locals.decodedToken.id));
 
@@ -181,11 +180,15 @@ export async function editUser(req: Request, res: Response) {
 
         for (let key in userEdit) {
             // @ts-ignore
-            if ((ownerOnly.includes(key) && res.locals.decodedToken.role === 'owner') && (userEdit[key] !== null && userEdit[key] !== undefined) && key !== 'passwordInfo' && key !== 'rejected') {
+            if ((userEdit[key] !== null && userEdit[key] !== undefined) && key !== 'passwordInfo' && key !== 'rejected' && (!ownerOnly.includes(key) || res.locals.decotedToken.role === 'owner')) {
                 // @ts-ignore
                 queryData[key] = userEdit[key];
             }
         }
+
+        Logger.info(userEdit)
+
+        Logger.info(queryData)
 
 
         if (userEdit.passwordInfo.password && userEdit.passwordInfo.passwordConfirm) {
@@ -278,9 +281,20 @@ export async function editUser(req: Request, res: Response) {
             res.status(400).send({error: "no_files", message: "Please provide files for uploading!"})
         }
     }
-
 }
 
+export async function deleteUser(req: Request, res: Response) {
+    if (res.locals.decodedToken.role !== "owner") {
+        return res.status(403).send({error: "forbidden", message: "You do not have permission for this endpoint"});
+    }
 
+    const success = await queryCommands.deleteUser(new ObjectId(req.params.userId));
 
-export default { getUser, activateUser, authorizeUser, deactivateUser, getUsers, editUser }
+    if (success) {
+        return res.status(204).send()
+    } else {
+        return res.status(400).send()
+    }
+}
+
+export default { getUser, activateUser, authorizeUser, deactivateUser, getUsers, editUser, deleteUser }

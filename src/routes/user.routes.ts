@@ -28,5 +28,9 @@ userRouter.put('/api/user/:userId',
     userController.editUser
 );
 
+userRouter.delete('/api/user/:userId',
+    userController.authorizeUser,
+    userController.deleteUser)
+
 
 export default userRouter;

@@ -83,6 +83,14 @@ describe('An owner can authorize approve or deny a new user registration.', ()=>
                 done();
             })
         })
+        it('User is not logged in for DELETE /api/user/:userId', (done)=>{
+            chai.request(server).delete('/api/user/6295e96d7f984a246108b36d').send({
+            }).end((err, res)=>{
+                let { error } = res.body;
+                res.status.should.equal(401);
+                done();
+            })
+        })
 
 
     })
@@ -111,6 +119,16 @@ describe('An owner can authorize approve or deny a new user registration.', ()=>
             const authToken = jwt.sign({id: "6295e96d7f984a246108b36d", role: "user"}, process.env.APP_SECRET || "", {expiresIn: "1d"})
 
             chai.request(server).post('/api/user/6295e96d7f984a246108b36d/deactivate').set({authorization: authToken}).send({
+            }).end((err, res)=>{
+                let { error } = res.body;
+                res.status.should.equal(403);
+                done();
+            })
+        })
+        it('User does not belong to role owner for DELETE /api/user/:userId', (done)=>{
+            const authToken = jwt.sign({id: "6295e96d7f984a246108b36d", role: "user"}, process.env.APP_SECRET || "", {expiresIn: "1d"})
+
+            chai.request(server).delete('/api/user/6295e96d7f984a246108b36d').set({authorization: authToken}).send({
             }).end((err, res)=>{
                 let { error } = res.body;
                 res.status.should.equal(403);
@@ -202,6 +220,16 @@ describe('An owner can authorize approve or deny a new user registration.', ()=>
                 done();
             })
         })
+        it('User does not exist on DELETE /api/user/:userId', (done)=>{
+            const authToken = jwt.sign({id: "6295e96d7f984a246108b36a", role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"})
+
+            chai.request(server).delete('/api/user/6295e96d7f984a246108b367').set({authorization: authToken}).send({
+            }).end((err, res)=>{
+                let { error } = res.body;
+                res.status.should.equal(400);
+                done();
+            })
+        })
     })
     describe('Success Cases', () => {
         it('User can be succesfully activated!', (done)=>{
@@ -271,7 +299,7 @@ describe('An owner can authorize approve or deny a new user registration.', ()=>
         it('User can edit their own data ', (done)=>{
             const authToken = jwt.sign({id: "6295e96d7f984a246108b36d", role: "user"}, process.env.APP_SECRET || "", {expiresIn: "1d"})
 
-            chai.request(server).put('/api/user/6295e96d7f984a246108b36d').set({authorization: authToken}).send({emailCampaigns: true, passwordInfo: {currentPassword: "Secret22"}
+            chai.request(server).put('/api/user/6295e96d7f984a246108b36d').set({authorization: authToken, "content-type": "application/json"}).send({emailCampaigns: true, passwordInfo: {currentPassword: "Secret22"}
             }).end((err, res)=>{
                 let { error } = res.body;
                 res.status.should.equal(200);
@@ -282,7 +310,7 @@ describe('An owner can authorize approve or deny a new user registration.', ()=>
         it('Owner can edit another user\'s data ', (done)=>{
             const authToken = jwt.sign({id: "6295e96d7f984a246108b36f", role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"})
 
-            chai.request(server).put('/api/user/6295e96d7f984a246108b36d').set({authorization: authToken}).send({gender: "m"
+            chai.request(server).put('/api/user/6295e96d7f984a246108b36d').set({authorization: authToken, "content-type": "application/json"}).send({gender: "m"
             }).end((err, res)=>{
                 let { error } = res.body;
                 res.status.should.equal(200);
@@ -293,11 +321,21 @@ describe('An owner can authorize approve or deny a new user registration.', ()=>
         it('Owner can edit another user\'s priviliged fields ', (done)=>{
             const authToken = jwt.sign({id: "6295e96d7f984a246108b36f", role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"})
 
-            chai.request(server).put('/api/user/6295e96d7f984a246108b36d').set({authorization: authToken}).send({firstName: "Aang"
+            chai.request(server).put('/api/user/6295e96d7f984a246108b36d').set({authorization: authToken, "content-type": "application/json"}).send({firstName: "Aang"
             }).end((err, res)=>{
                 let { error } = res.body;
                 res.status.should.equal(200);
                 res.body.result.firstName.should.equal("Aang");
+                done();
+            })
+        })
+        it('User can be succesfully deleted', (done)=>{
+            const authToken = jwt.sign({id: "6295e96d7f984a246108b36f", role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"})
+
+            chai.request(server).delete('/api/user/6295e96d7f984a246108b36d').set({authorization: authToken}).send({
+            }).end((err, res)=>{
+                let { error } = res.body;
+                res.status.should.equal(204);
                 done();
             })
         })
