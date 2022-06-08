@@ -10,13 +10,14 @@ export type userBody = {
     firstName: string | undefined
     lastName: string | undefined
     nationality: "nl" | "be" | undefined,
-    gender: "m" | "f" | "x" | undefined
+    gender: "m" | "f" | undefined
     dateOfBirth: Date | undefined
     placeOfBirth: string | undefined
     countryOfOrigin: string | undefined
     mobileNumber: string | undefined,
     emailCampaigns: boolean | undefined
     textCampaigns: boolean | undefined
+    role: "user" | "admin" | "owner" | undefined
 
     location: locationBody | undefined
     paymentInfo: paymentBody | undefined
@@ -60,7 +61,7 @@ export class User implements userBody {
 
         try {
             // @ts-ignore
-            assert(['m', 'f', 'x'].includes(body.gender))
+            assert(['m', 'f'].includes(body.gender))
             this.gender = body.gender;
         } catch (err) {
             this.rejected.push("gender")
@@ -110,13 +111,18 @@ export class User implements userBody {
         this.workshopPreferences = body.workshopPreferences
         this.lastName = body.lastName
         this.firstName = body.firstName
+        try {
+            assert(body.role);
+            assert(['owner', 'admin', 'user'].includes(body.role));
+            this.role = body.role
+        } catch (err) {}
     }
     countryOfOrigin: string | undefined;
     dateOfBirth: Date | undefined;
     emailAddress: string | undefined;
     emailCampaigns: boolean | undefined;
     // @ts-ignore
-    gender: "m" | "f" | "x" | undefined;
+    gender: "m" | "f" | undefined;
     kvkNumber: string | undefined;
     location: locationBody | undefined;
     mobileNumber: string | undefined;
@@ -131,6 +137,7 @@ export class User implements userBody {
     rejected: Array<string>;
     lastName: string | undefined;
     firstName: string | undefined;
+    role: "user" | "owner" | "admin" | undefined
 
 }
 

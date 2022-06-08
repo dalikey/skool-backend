@@ -34,7 +34,7 @@ export async function getUser(req: Request, res: Response, next: any) {
 }
 
 export async function getUsers(req: Request, res: Response) {
-    if (res.locals.decodedToken.role !== 'owner') {
+    if (res.locals.decodedToken.role !== 'owner' && res.locals.decodedToken.role !== 'admin') {
         return res.status(403).send({error: "forbidden", message: "You do not have permission for this endpoint"})
     }
 
@@ -85,7 +85,7 @@ export async function authorizeUser(req: Request, res: Response, next: any) {
 
 export async function activateUser(req: Request, res: Response) {
     // @ts-ignore
-    if (res.locals.decodedToken.role !== 'owner') {
+    if (res.locals.decodedToken.role !== 'owner' && res.locals.decodedToken.role !== 'admin') {
         return res.status(403).send({error: "forbidden", message: "You do not have permission for this endpoint"})
     }
 
@@ -119,7 +119,7 @@ export async function activateUser(req: Request, res: Response) {
 
 export async function deactivateUser(req: Request, res: Response) {
     // @ts-ignore
-    if (res.locals.decodedToken.role !== 'owner') {
+    if (res.locals.decodedToken.role !== 'owner' && res.locals.decodedToken.role !== 'admin') {
         return res.status(403).send({error: "forbidden", message: "You do not have permission for this endpoint"})
     }
 
@@ -150,7 +150,7 @@ export async function editUser(req: Request, res: Response) {
 
     if (req.headers["content-type"] === 'application/json') {
 
-        const ownerOnly = ["firstName", "lastName"];
+        const ownerOnly = ["firstName", "lastName", "role"];
 
         const userEdit: userBody = new User(req.body);
         if (res.locals.decodedToken.role !== "owner") {
