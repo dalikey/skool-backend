@@ -7,6 +7,13 @@ const emailRegex = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}
 const phoneRegex = /(06)(\s|\-|)\d{8}|31(\s6|\-6|6)\d{8}/;
 
 const customerController = {
+    test:(req:any, res:any)=>{
+        try {
+            return res.status(401).json({message: req.body});
+        }catch (e) {
+            return res.status(401).json({error: "file_upload_failure", message: "Wrong file insert"});
+        }
+    },
     handleFileInput:(req:any, res:any, next:any)=>{
         try {
             let imageFile = req.files.image.data;
@@ -21,20 +28,19 @@ const customerController = {
         const customer = req.body;
         try {
             assert(customer);
-            assert(customer.location);
-            assert(customer.contact);
             //Customer
             assert(typeof customer.name == 'string');
             //Contact info
-            assert(typeof customer.contact.emailAddress == 'string');
-            assert(typeof customer.contact.phoneNumber == 'string');
+            assert(typeof customer.emailAddress == 'string');
+            assert(typeof customer.phoneNumber == 'string');
             assert(customer.emailAddress.toLowerCase().match(emailRegex));
             assert(customer.phoneNumber.match(phoneRegex));
             //Location
-            assert(typeof customer.location.address == 'string');
-            assert(typeof customer.location.postalcode == 'string');
-            assert(typeof customer.location.city == 'string');
-            assert(typeof customer.location.country == 'string');
+            assert(typeof customer.address == 'string');
+            assert(typeof customer.postalCode == 'string');
+            assert(typeof customer.city == 'string');
+            assert(typeof customer.country == 'string');
+            next();
         } catch (e){
             return res.status(400).json({error: "input_error", message: "Wrong input"});
         }
@@ -45,18 +51,19 @@ const customerController = {
         //Initiate variabels
         const customer = req.body;
         //Convert image to base64 string
-        customer.logo = convertIntoBase64(customer.logo);
         const customerObject = {
             name: customer.name,
-            emailAddress:customer.emailAddress,
-            phoneNumber:customer.phoneNumber,
-            logoUrl:customer.logo,
+            contact: {
+                emailAddress:customer.emailAddress,
+                phoneNumber:customer.phoneNumber,
+            },
             location:{
-                address: customer.location.address,
-                city:customer.location.city,
-                postalCode: customer.location.postalCode,
-                country: customer.location.country
-            }
+                address: customer.address,
+                city:customer.city,
+                postalCode: customer.postalCode,
+                country: customer.country
+            },
+            logo: customer.logo,
         };
         //Database command.
         const insert = await queryCommands.insertCustomer(customerObject);
@@ -91,15 +98,17 @@ const customerController = {
         //New object
         const customerObject = {
             name: customer.name,
-            emailAddress:customer.emailAddress,
-            phoneNumber:customer.phoneNumber,
-            logoUrl:customer.logo,
+            contact: {
+                emailAddress:customer.emailAddress,
+                phoneNumber:customer.phoneNumber,
+            },
             location:{
-                address: customer.location.address,
-                city:customer.location.city,
-                postalCode: customer.location.postalCode,
-                country: customer.location.country
-            }
+                address: customer.address,
+                city:customer.city,
+                postalCode: customer.postalCode,
+                country: customer.country
+            },
+            logo:customer.logo,
         };
         //Updates customer
         const update = await queryCommands.updateCustomer(customerID, customerObject);
