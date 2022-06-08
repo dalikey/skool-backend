@@ -52,7 +52,7 @@ let controller = {
             delete workshopShift.hourRate;
         }
 
-        if(workshopShift.breakTimeInMinutes || workshopShift.breakTimeInMinutes > 0){
+        if(workshopShift.breakTimeInMinutes || workshopShift.breakTimeInMinutes == 0){
             hasBreaks = true;
         }
 
@@ -61,7 +61,8 @@ let controller = {
         workshopShift.tarriff =  totalTariff;
         workshopShift.formOfTime = formOfTime;
         workshopShift.hasBreaks= hasBreaks;
-
+        workshopShift.date = DateTime.fromISO(workshopShift.date);
+        workshopShift.availableUntil = DateTime.fromISO(workshopShift.availableUntil);
         const insert = queryCommands.insertOneWorkshopShift(workshopShift);
         //Sends status back
         res.status(200).json({message: "shift added"});

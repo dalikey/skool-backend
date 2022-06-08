@@ -20,7 +20,7 @@ ShiftRoutes.get('/api/workshop/shift/:shiftId',
 
 //TODO Tests need to be written
 //Deletes shift
-ShiftRoutes.get('/api/workshop/shift/:shiftId',
+ShiftRoutes.delete('/api/workshop/shift/:shiftId',
     controller.validateToken,
     controller.validateAdminRole,
     ShiftController.deleteShift);

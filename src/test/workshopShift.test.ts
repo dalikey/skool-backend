@@ -5,6 +5,7 @@ import assert from "assert";
 import server from '../index';
 import {queryCommands} from '../db/databaseCommands';
 import jwt from "jsonwebtoken";
+import {ObjectId} from "mongodb";
 
 chai.should();
 chai.use(chaiHttp);
@@ -170,6 +171,68 @@ describe('Failed workshopShift insert', ()=>{
     after((done)=>{
         queryCommands.getShiftCollection().then(collection =>{
             collection.deleteMany({function: {$in: ["VoorbeeldFunctie@Uniek"]}});
+            done();
+        })
+    })
+})
+
+const workshopsShift = {
+    _id: new ObjectId(100),
+    workshopId: new ObjectId(200),
+    clientId: new ObjectId(300),
+    function: "Dummy@#DataWorkshopShift",
+    maximumParticipants: 6,
+    targetAudience: "WO",
+    level: "WO",
+    location:{
+        address: "teststraat 1",
+        postalCode: "3000VN",
+        city: "Haarlem",
+        country: "Nederland"
+    },
+    date: "2022-09-21",
+    availableUntil: "2022-09-01",
+    startTime: "18:00",
+    endTime: "22:00",
+    hourRate: 35.50,
+    dayRate: undefined,
+    breakTime: 0
+}
+const workshopsShift2 = {
+    workshopId: "6290c81e409379906a5dba4a",
+    clientId: "6290c737409379906a5dba47",
+    function: "Dummy@#DataWorkshopShiftNummer2",
+    maximumParticipants: 6,
+    targetAudience: "WO",
+    level: "WO",
+    location:{
+        address: "teststraat 1",
+        postalCode: "3000VN",
+        city: "Haarlem",
+        country: "Nederland"
+    },
+    date: "2022-09-21",
+    availableUntil: "2022-09-01",
+    startTime: "18:00",
+    endTime: "20:00",
+    hourRate: 35.50,
+    dayRate: undefined,
+    breakTime: 0
+}
+
+describe('Delete workshopshifts', ()=>{
+    before((done)=>{
+        queryCommands.getShiftCollection().then(collection => {
+            collection.insertOne(workshopsShift);
+            done();
+        })
+    })
+
+    it('No token', (done)=>{
+        chai.request(server).delete('/api/workshop/shift/nr4').end((err, res)=>{
+            let {error, message} = res.body;
+            error.should.be.equal("unauthorized");
+            message.should.be.equal('You need to provide authorization for this endpoint!');
             done();
         })
     })

@@ -231,7 +231,7 @@ export const queryCommands = {
     //TODO Improve queries with joins
     //TODO interface model to be applied to shiftobject
     async insertOneWorkshopShift(workshopShift:any){
-        const collection = await  this.getShiftCollection();
+        const collection = await this.getShiftCollection();
         try {
             return await collection.insertOne(workshopShift);
         }catch (e) {
