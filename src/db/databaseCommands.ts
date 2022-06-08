@@ -147,9 +147,8 @@ export const queryCommands = {
     async updateUser(userId: ObjectId, data: Object) {
         const collection = await this.getUserCollection();
         try {
-            const query = await collection.updateOne({"_id": userId}, {"$set": data})
-            Logger.info(query);
-            return {error: 0};
+            const query = await collection.findOneAndUpdate({"_id": userId}, {$set: data}, { projection: {password: 0}, returnDocument: "after"})
+            return query.value;
         } catch (err) {
             Logger.error(err);
             return {error: "update_failure"}

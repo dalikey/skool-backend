@@ -152,6 +152,9 @@ export async function editUser(req: Request, res: Response) {
         const ownerOnly = ["firstName", "lastName", "role"];
 
         const userEdit: userBody = new User(req.body);
+
+        Logger.info('before pw')
+
         if (res.locals.decodedToken.role !== "owner") {
             const loginUser = await queryCommands.loginUser({emailAddress: currentUser.emailAddress});
             try {
@@ -176,39 +179,48 @@ export async function editUser(req: Request, res: Response) {
             }
         }
 
+        Logger.info('after pw')
+
         let queryData: Object = {};
 
         for (let key in userEdit) {
             // @ts-ignore
-            if ((userEdit[key] !== null && userEdit[key] !== undefined) && key !== 'passwordInfo' && key !== 'rejected' && (!ownerOnly.includes(key) || res.locals.decotedToken.role === 'owner')) {
+            if (userEdit[key] && key !== 'passwordInfo' && key !== 'rejected' && !ownerOnly.includes(key)) {
                 // @ts-ignore
                 queryData[key] = userEdit[key];
+            } else {
+                // @ts-ignore
+                if (res.locals.decodedToken.role === 'owner' && ownerOnly.includes(key) && userEdit[key] && key !== 'passwordInfo' && key !== 'rejected') {
+                    // @ts-ignore
+                    queryData[key] = userEdit[key];
+                }
             }
         }
 
-        Logger.info(userEdit)
 
         Logger.info(queryData)
+        try {
+            if (userEdit.passwordInfo.password && userEdit.passwordInfo.passwordConfirm) {
+                try {
+                    const password = userEdit.passwordInfo.password;
+                    const confirm = userEdit.passwordInfo.passwordConfirm;
+                    assert(password === confirm);
+                    assert(password.length >= 8);
+                    assert(password.match(digitRegex));
+                    assert(password.match(capitalRegex));
+                    // @ts-ignore
+                    queryData['password'] = await authorizationMethods.hashNewPassword(password);
+                } catch (err) {
 
-
-        if (userEdit.passwordInfo.password && userEdit.passwordInfo.passwordConfirm) {
-            try {
-                const password = userEdit.passwordInfo.password;
-                const confirm = userEdit.passwordInfo.passwordConfirm;
-                assert(password === confirm);
-                assert(password.length >= 8);
-                assert(password.match(digitRegex));
-                assert(password.match(capitalRegex));
-                // @ts-ignore
-                queryData['password'] = await authorizationMethods.hashNewPassword(password);
-            } catch (err) {
-
+                }
             }
-        }
+        } catch (err) {}
 
-        await queryCommands.updateUser(new ObjectId(req.params.userId), queryData);
+        Logger.info('after pw check')
 
-        const updatedUser = await queryCommands.getUser(new ObjectId(req.params.userId));
+        const updatedUser = await queryCommands.updateUser(new ObjectId(req.params.userId), queryData);
+
+        Logger.info(updatedUser)
 
         return res.send({result: updatedUser, rejected: userEdit.rejected});
 
