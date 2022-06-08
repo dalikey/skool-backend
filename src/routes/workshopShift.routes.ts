@@ -10,6 +10,7 @@ ShiftRoutes.post('/api/workshop/shift',
     ShiftController.validateWorkshopShiftInput,
     ShiftController.insertShift)
 
+//TODO Tests need to be written
 //Update shift
 ShiftRoutes.get('/api/workshop/shift/:shiftId',
     controller.validateToken,
@@ -17,17 +18,20 @@ ShiftRoutes.get('/api/workshop/shift/:shiftId',
     ShiftController.validateWorkshopShiftInput,
     ShiftController.updateShift);
 
+//TODO Tests need to be written
 //Deletes shift
 ShiftRoutes.get('/api/workshop/shift/:shiftId',
     controller.validateToken,
     controller.validateAdminRole,
     ShiftController.deleteShift);
 
+//TODO Tests need to be written
 //Retrieve shifts
 ShiftRoutes.get('/api/workshop/shift',
     controller.validateToken,
     ShiftController.getAllShifts);
 
+//TODO Tests need to be written
 //Retrieve one shift
 ShiftRoutes.get('/api/workshop/shift/:shiftId',
     controller.validateToken,
