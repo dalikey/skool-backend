@@ -4,6 +4,7 @@ import {registrationInsert} from '../models/registrationBody';
 import conf from 'dotenv';
 import Logger from 'js-logger';
 import {CustomerBody} from "../models/customerBody";
+import {workshopBody, workshopInsert} from "../models/workshopBody";
 
 conf.config();
 
@@ -18,25 +19,28 @@ const skoolWorkshop = process.env.MONGODB;
 const user: string = "user";
 const shifts: string = "shift";
 const customer: string = "client";
+const workshop: string = "workshop";
 //Client
 const client = new MongoClient(mongoDBUrl);
 //Connection
 let connection:any = null;
 
 export const queryCommands = {
+    //Connections
    async connectDB(){
      if(!connection){
          connection = await client.connect();
      }
      return connection;
    },
-
+    //User collection
     async getUserCollection() {
         if (!connection) {
             connection = await client.connect();
         }
         return connection.db(skoolWorkshop).collection(user);
     },
+    //Customer collection
     async getCustomerCollection(){
        if(!connection){
            connection = await client.connect();
@@ -44,11 +48,22 @@ export const queryCommands = {
        return connection.db(skoolWorkshop).collection(customer);
     }
     ,
+    //Shift collection
     async getShiftCollection(){
        connection = await this.connectDB();
        return connection.db(skoolWorkshop).collection(shifts);
     }
     ,
+    //Workshop collection
+    async getWorkshopCollection(){
+        if(!connection){
+            connection = await this.connectDB();
+        }
+        return connection.db(skoolWorkshop).collection(workshop);
+    }
+    ,
+
+    //Database commands
     async getUser(id: ObjectId) {
         const projection = {_id: 1, firstName: 1, lastName: 1, emailAddress: 1, role: 1, isActive:1};
         Logger.info(projection);
@@ -263,4 +278,14 @@ export const queryCommands = {
        }
 
     }
+    ,
+    async createWorkshop(workshop:workshopInsert){
+        const collection = await this.getWorkshopCollection();
+        try {
+            return await collection.insertOne(workshop);
+        }catch (e){
+            return null;
+        }
+    }
+
 }

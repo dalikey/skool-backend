@@ -9,7 +9,6 @@ jobs:
           DB_URL: mongodb://localhost:27017/skool
           FRONTEND_URI : '*'
           MONGODB: 'skool'
-          SMTP
         steps:
             - uses: actions/checkout@v2
             - name: Start MongoDB
