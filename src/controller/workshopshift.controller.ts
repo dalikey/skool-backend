@@ -14,11 +14,9 @@ let controller = {
             assert(workshopShift.clientId);
             //Locatie van de workshopshift is optioneel.
             assert(typeof workshopShift.workshopId == 'string');
-            assert(typeof workshopShift.function == 'string');
             assert(typeof workshopShift.maximumParticipants == "number");
             assert(typeof workshopShift.targetAudience == 'string');
             assert(typeof workshopShift.level == 'string');
-            assert(typeof workshopShift.extraInfo == 'string');
             assert(workshopShift.location);
             assert(workshopShift.date);
             assert(workshopShift.availableUntil);
@@ -38,31 +36,50 @@ let controller = {
         const workshopShift = req.body;
         // const resultshift = formatWorkShopShift(workshopShift);
         let totalTariff;
-        //let hasBreaks = false;
         let formOfTime;
-        //
+        let rate;
         let duration = getHoursFromTimeStampList(workshopShift.timestamps);
         //Database command
         // @ts-ignore
         const isHourRate = decideFormOfRate(workshopShift.hourRate);
         if(isHourRate){
-           totalTariff = calculateFullRate(duration, workshopShift.hourRate);
+           totalTariff = calculateFullRate(duration, workshopShift.hourRate).toFixed(2);
            formOfTime = "per uur";
+           rate = workshopShift.hourRate.toFixed(2);
            delete workshopShift.dayRate;
         } else{
-            totalTariff = workshopShift.dayRate;
+            totalTariff = workshopShift.dayRate.toFixed(2);
             formOfTime = "per dag";
+            rate = workshopShift.dayRate.toFixed(2);
             delete workshopShift.hourRate;
         }
         workshopShift.workshopId = new ObjectId(workshopShift.workshopId);
         workshopShift.clientId = new ObjectId(workshopShift.clientId);
-        workshopShift.tarriff =  totalTariff;
-        workshopShift.formOfTime = formOfTime;
-        // workshopShift.hasBreaks= hasBreaks;
         workshopShift.date = DateTime.fromISO(workshopShift.date);
         workshopShift.availableUntil = DateTime.fromISO(workshopShift.availableUntil);
-        workshopShift.participants = [];
-        const insert = queryCommands.insertOneWorkshopShift(workshopShift);
+        const shiftObject: WorkshopShiftBody ={
+            workshopId: workshopShift.workshopId,
+            clientId:workshopShift.clientId,
+            location: {
+                address: workshopShift.location.address,
+                city: workshopShift.city,
+                postalCode: workshopShift.postalCode,
+                country: workshopShift.country
+            },
+            date: workshopShift.date,
+            availableUntil: workshopShift.availableUntil,
+            maximumParticipants: workshopShift.maximumParticipants,
+            extraInfo: workshopShift.extraInfo,
+            level: workshopShift.level,
+            targetAudience: workshopShift.targetAudience,
+            timestamps: workshopShift.timestamps,
+            tariff: rate,
+            total_Amount: totalTariff,
+            formOfTime: formOfTime,
+            participants: [],
+            candidates: []
+        };
+        const insert = queryCommands.insertOneWorkshopShift(shiftObject);
         //Sends status back
         res.status(200).json({message: "shift added"});
     }

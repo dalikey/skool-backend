@@ -57,7 +57,7 @@ describe('Failed workshopShift insert', ()=>{
                     availableUntil: "2022-09-01",
                     startTime: "18:00",
                     endTime: "21:00",
-                    hourRate: 45.00,
+                    hourRate: 45.0123143,
                     dayRate: undefined,
                     breakTime: 30
                 })
@@ -75,7 +75,6 @@ describe('Failed workshopShift insert', ()=>{
                 .send({
                     workshopId: "6290c81e409379906a5dba4a",
                     clientId: "6290c737409379906a5dba47",
-                    function: "VoorbeeldFunctie@Uniek",
                     maximumParticipants: 3,
                     targetAudience: "VO",
                     level: "MBO",
@@ -107,8 +106,6 @@ describe('Failed workshopShift insert', ()=>{
                 .send({
                     workshopId: "6290c81e409379906a5dba4a",
                     clientId: "6290c737409379906a5dba47",
-                    function: "Docent Vloggen",
-
                     targetAudience: "VO",
                     level: "MBO",
                     location:{
@@ -142,7 +139,6 @@ describe('Failed workshopShift insert', ()=>{
                 .send({
                     workshopId: "6290c81e409379906a5dba4a",
                     clientId: "6290c737409379906a5dba47",
-                    function: "VoorbeeldFunctie@Uniek",
                     maximumParticipants: 3,
                     targetAudience: "VO",
                     level: "MBO",
@@ -154,7 +150,7 @@ describe('Failed workshopShift insert', ()=>{
                     },
                     date: "2022-09-21",
                     availableUntil: "2022-09-01",
-                    extraInfo: "Nothing",
+                    extraInfo: "Nothing@@@",
                     timestamps: [{startTime: "11:00", endTime: "13:00"}, {startTime: "14:00", endTime: "16:00"}],
                     hourRate: 45.00,
                     dayRate: undefined,
@@ -170,7 +166,7 @@ describe('Failed workshopShift insert', ()=>{
 
     after((done)=>{
         queryCommands.getShiftCollection().then(collection =>{
-            collection.deleteMany({function: {$in: ["VoorbeeldFunctie@Uniek"]}});
+            collection.deleteMany({extraInfo: {$in: ["Nothing@@@"]}});
             done();
         })
     })

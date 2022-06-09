@@ -10,17 +10,18 @@ export interface WorkshopShiftBody{
     date: any,
     availableUntil: any,
     maximumParticipants: number,
-    picture: string,
+    extraInfo: string,
     level: string,
     targetAudience: string,
-    startTime: any,
-    endTime: any,
+    timestamps: any,
     //Wordt deels bepaald bepaald in de API
     tariff: string,
     //Wordt berekent in de API
     total_Amount: number,
     //Wordt bepaald in de API
     formOfTime: string,
-    //Wordt bepaald in de API
-    hasBreaks: boolean
+    //Automatisch aangemaakt. Participantlijst voor toegewezen medewerkers voor de shift
+    //Candidatenlijst is een lijst ingeschreven medewerkers, die nog bevestigt of geweigerd kunnen worden.
+    participants: any,
+    candidates: any
 }
