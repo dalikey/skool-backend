@@ -61,6 +61,7 @@ let controller = {
         // workshopShift.hasBreaks= hasBreaks;
         workshopShift.date = DateTime.fromISO(workshopShift.date);
         workshopShift.availableUntil = DateTime.fromISO(workshopShift.availableUntil);
+        workshopShift.participants = [];
         const insert = queryCommands.insertOneWorkshopShift(workshopShift);
         //Sends status back
         res.status(200).json({message: "shift added"});

@@ -275,11 +275,11 @@ export const queryCommands = {
     ,
     async getOneShift(shiftId: string){
        const collection = await this.getShiftCollection();
-       const filter = {_id: new ObjectId(shiftId)};
        try {
+           const filter = {_id: new ObjectId(shiftId)};
            return await collection.findOne(filter);
        }catch (e) {
-
+           return null;
        }
     }
     ,
@@ -302,6 +302,18 @@ export const queryCommands = {
            return null;
        }
 
+    }
+    ,
+
+    async enrollToShift(shiftId: string, enrollmentObject: any){
+       try {
+           const collection = await this.getShiftCollection();
+           const pushQuery = {$push: {candidates: enrollmentObject}};
+           const enrollQuery = collection.updateOne({_id: new ObjectId(shiftId)}, pushQuery);
+           return enrollQuery;
+       } catch (e){
+           return null;
+       }
     }
     ,
     async createWorkshop(workshop:workshopInsert){
