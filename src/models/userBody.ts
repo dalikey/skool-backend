@@ -9,7 +9,7 @@ export type userBody = {
     emailAddress: string | undefined
     firstName: string | undefined
     lastName: string | undefined
-    nationality: "nl" | "be" | undefined,
+    nationality: "Nederlands" | "Belgisch" | undefined,
     gender: "m" | "f" | undefined
     dateOfBirth: Date | undefined
     placeOfBirth: string | undefined
@@ -72,7 +72,7 @@ export class User implements userBody {
             // @ts-ignore
             assert(body.location.city && body.location.address && body.location.country && body.location.postalCode)
             // @ts-ignore
-            assert(['nl', 'be'].includes(body.location.country))
+            assert(['Nederland', 'België'].includes(body.location.country))
             // @ts-ignore
             assert(body.location.postalCode.match(postalCodeRegex))
             this.location = body.location;
@@ -90,7 +90,7 @@ export class User implements userBody {
         }
         try {
             // @ts-ignore
-            assert(['nl', 'be'].includes(body.nationality))
+            assert(['Nederlands', 'Belgisch'].includes(body.nationality))
             this.nationality = body.nationality
         } catch (err) {
             this.rejected.push("nationality");
@@ -128,7 +128,7 @@ export class User implements userBody {
     kvkNumber: string | undefined;
     location: locationBody | undefined;
     mobileNumber: string | undefined;
-    nationality: "nl" | "be" | undefined;
+    nationality: "Nederland" | "België" | undefined;
     passwordInfo: passwordBody;
     paymentInfo: paymentBody | undefined;
     placeOfBirth: string | undefined;
@@ -148,7 +148,7 @@ interface locationBody {
     address: string
     postalCode: string
     city: string,
-    country: "nl" | "be"
+    country: "Nederland" | "België"
 }
 
 interface paymentBody {

@@ -67,7 +67,7 @@ export const queryCommands = {
 
     //Database commands
     async getUser(id: ObjectId) {
-        const projection = {_id: 1, firstName: 1, lastName: 1, emailAddress: 1, role: 1, isActive:1};
+        const projection = {password: 0};
         Logger.info(projection);
 
         try {
