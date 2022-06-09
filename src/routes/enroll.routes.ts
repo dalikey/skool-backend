@@ -7,6 +7,7 @@ enrollRoutes.post('/api/workshop/shift/:shiftId/enroll' ,
     controller.validateToken,
     enrollController.checkExistenceShift,
     enrollController.checkEnrollDate,
+    enrollController.checkEnrollmentExistence,
     enrollController.enrollToShift)
 
 export default enrollRoutes;

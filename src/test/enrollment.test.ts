@@ -15,8 +15,10 @@ chai.use(chaiHttp);
 describe('Enroll to workshop', ()=>{
     before(async ()=>{
         const collection = await queryCommands.getShiftCollection();
+        const pushQuery = {$push: {candidates: {userId: new ObjectId("6299f064aa4cd598e78e59bb"), shiftId: new ObjectId("62a20e41bce044ece60a1e3f")}}};
         await collection.insertOne({_id: new ObjectId("62a20e41bce044ece60a1e3f"), participants: [], maximumParticipants: 1, availableUntil: DateTime.now().plus({day: 1})});
         await collection.insertOne({_id: new ObjectId("62a213d47782483d77ab0dc5"), participants: [], maximumParticipants: 1, availableUntil: DateTime.now().minus({day: 1})});
+        await collection.updateOne({_id: new ObjectId("62a20e41bce044ece60a1e3f")}, pushQuery);
     })
 
     describe('Failed enrollment', ()=>{
@@ -60,7 +62,19 @@ describe('Enroll to workshop', ()=>{
                     done();
                 })
         })
-
+        it('Already enrolled', (done)=>{
+            const authToken = jwt.sign({id: "6299f064aa4cd598e78e59bb", role: "user"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+            const shiftId = "62a20e41bce044ece60a1e3f"
+            chai.request(server).post(`/api/workshop/shift/${shiftId}/enroll`)
+                .send({motivation: "Ik zit"})
+                .set({authorization: authToken})
+                .end((err, res)=>{
+                    let {error, message} = res.body;
+                    error.should.be.equal("already_enrolled");
+                    message.should.be.equal("user has already been enrolled");
+                    done();
+                })
+        })
         it('Expired enrolldate', (done)=>{
             const authToken = jwt.sign({id: "6295e96d7f984a246108b36e", role: "user"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
             const shiftId = "62a213d47782483d77ab0dc5"
@@ -78,7 +92,7 @@ describe('Enroll to workshop', ()=>{
 
     describe('Successfully enrolled to workshop', ()=>{
         it('Enroll the right way', (done)=>{
-            const authToken = jwt.sign({id: "6295e96d7f984a246108b36e", role: "user"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+            const authToken = jwt.sign({id: "62a2270f89fbb3801d3c1e95", role: "user"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
             const shiftId = "62a20e41bce044ece60a1e3f"
             chai.request(server).post(`/api/workshop/shift/${shiftId}/enroll`)
                 .set({authorization: authToken})
