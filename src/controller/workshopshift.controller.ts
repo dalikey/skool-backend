@@ -62,9 +62,9 @@ let controller = {
             clientId:workshopShift.clientId,
             location: {
                 address: workshopShift.location.address,
-                city: workshopShift.city,
-                postalCode: workshopShift.postalCode,
-                country: workshopShift.country
+                city: workshopShift.location.city,
+                postalCode: workshopShift.location.postalCode,
+                country: workshopShift.location.country
             },
             date: workshopShift.date,
             availableUntil: workshopShift.availableUntil,
