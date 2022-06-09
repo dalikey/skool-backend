@@ -93,7 +93,7 @@ let controller = {
     ,
     async getOneShift(req:any, res:any){
         const shiftId = req.params.shiftId;
-        const shift = queryCommands.getOneShift(shiftId);
+        const shift = await queryCommands.getOneShift(shiftId);
         if(shift){
             res.status(200).json({result:shift});
         } else {

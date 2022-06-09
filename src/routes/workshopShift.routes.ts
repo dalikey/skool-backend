@@ -2,7 +2,7 @@ import {authorizationMethods, controller} from "../controller/authorization.cont
 import ShiftController from "../controller/workshopshift.controller";
 import express from "express";
 const ShiftRoutes = express();
-//TODO Improve queries with joins
+
 //Creates shift
 ShiftRoutes.post('/api/workshop/shift',
     controller.validateToken,
@@ -12,7 +12,7 @@ ShiftRoutes.post('/api/workshop/shift',
 
 //TODO Tests need to be written
 //Update shift
-ShiftRoutes.get('/api/workshop/shift/:shiftId',
+ShiftRoutes.get('/api/workshop/shift/:shiftId/update',
     controller.validateToken,
     controller.validateAdminRole,
     ShiftController.validateWorkshopShiftInput,
@@ -20,20 +20,18 @@ ShiftRoutes.get('/api/workshop/shift/:shiftId',
 
 //TODO Tests need to be written
 //Deletes shift
-ShiftRoutes.delete('/api/workshop/shift/:shiftId',
+ShiftRoutes.delete('/api/workshop/shift/:shiftId/delete',
     controller.validateToken,
     controller.validateAdminRole,
     ShiftController.deleteShift);
 
-//TODO Tests need to be written
 //Retrieve shifts
 ShiftRoutes.get('/api/workshop/shift',
     controller.validateToken,
     ShiftController.getAllShifts);
 
-//TODO Tests need to be written
 //Retrieve one shift
-ShiftRoutes.get('/api/workshop/shift/:shiftId',
+ShiftRoutes.get('/api/workshop/shift/:shiftId/single',
     controller.validateToken,
     ShiftController.getOneShift);
 
