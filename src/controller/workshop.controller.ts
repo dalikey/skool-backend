@@ -1,23 +1,10 @@
 import { Request, Response } from 'express';
 import Logger from 'js-logger';
 import { ObjectId } from 'mongodb';
-import nodemailer, { Transporter } from 'nodemailer';
 import {workshopInsert} from '../models/workshopBody';
 import {queryCommands} from '../db/databaseCommands';
 import assert from 'assert';
 
-let transporter: Transporter;
-if (process.env.SMTP_SERVER) {
-    transporter = nodemailer.createTransport({
-        host: process.env.SMTP_SERVER,
-        port: 465,
-        secure: true, // true for 465, false for other ports
-        auth: {
-            user: process.env.SMTP_USERNAME, // generated ethereal user
-            pass: process.env.SMTP_PASSWORD, // generated ethereal password
-        },
-    });
-}
 export async function handleFileInput(req:any, res:any, next:any){
     try {
         let imageFile = req.files.image.data;
@@ -43,13 +30,10 @@ export async function verifyInput(req: Request, res: Response, next: any) {
     }
 }
 
-export async function getWorkshop(req: Request, res: Response, next: any) {
+export async function getAllWorkshop(req: Request, res: Response) {
     // @ts-ignore
-    const workshop = await queryCommands.getWorkshop(
-        new ObjectId(res.locals.decodedToken.id)
-    );
-
-    return res.send({ result: workshop });
+    const workshop = await queryCommands.getAllCustomers();
+    res.status(200).send({ result: workshop });
 }
 
 
@@ -66,6 +50,6 @@ export async function createWorkshop(req: Request, res: Response) {
 
 export default {
     verifyInput,
-    getWorkshop,
+    getAllWorkshop,
     createWorkshop,
 };

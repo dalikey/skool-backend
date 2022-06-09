@@ -1,14 +1,18 @@
 import express from 'express';
-import workshopController from '../controller/workshop.controller';
+import workshopController, {getAllWorkshop} from '../controller/workshop.controller';
 import {controller} from '../controller/authorization.controller';
 
 const workshopRouter = express.Router();
 
-workshopRouter.get(
-    '/api/workshop/@me',
+// workshopRouter.get(
+//     '/api/workshop/@me',
+//     controller.validateToken,
+//     workshopController.getAllWorkshop
+// );
+
+workshopRouter.get('/api/customer/all',
     controller.validateToken,
-    workshopController.getWorkshop
-);
+    workshopController.getAllWorkshop);
 
 
 //Creates workshop
