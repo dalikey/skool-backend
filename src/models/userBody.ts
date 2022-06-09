@@ -128,7 +128,7 @@ export class User implements userBody {
     kvkNumber: string | undefined;
     location: locationBody | undefined;
     mobileNumber: string | undefined;
-    nationality: "Nederland" | "België" | undefined;
+    nationality: "Nederlands" | "Belgisch" | undefined;
     passwordInfo: passwordBody;
     paymentInfo: paymentBody | undefined;
     placeOfBirth: string | undefined;
