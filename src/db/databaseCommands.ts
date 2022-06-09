@@ -7,6 +7,7 @@ import app from "../index";
 import {userBody} from "../models/userBody";
 import {CustomerBody} from "../models/customerBody";
 import {workshopInsert} from "../models/workshopBody";
+import {WorkshopShiftBody} from "../models/workshopShiftBody";
 
 conf.config();
 
@@ -255,7 +256,7 @@ export const queryCommands = {
     ,
     //TODO Improve queries with joins
     //TODO interface model to be applied to shiftobject
-    async insertOneWorkshopShift(workshopShift:any){
+    async insertOneWorkshopShift(workshopShift:WorkshopShiftBody){
         const collection = await this.getShiftCollection();
         try {
             return await collection.insertOne(workshopShift);
