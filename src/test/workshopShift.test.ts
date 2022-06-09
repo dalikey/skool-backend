@@ -154,10 +154,10 @@ describe('Failed workshopShift insert', ()=>{
                     },
                     date: "2022-09-21",
                     availableUntil: "2022-09-01",
-                    startTime: "18:00",
-                    endTime: "21:00",
-                    hourRate: undefined,
-                    dayRate: 220,
+                    extraInfo: "Nothing",
+                    timestamps: [{startTime: "11:00", endTime: "13:00"}, {startTime: "14:00", endTime: "16:00"}],
+                    hourRate: 45.00,
+                    dayRate: undefined,
                     breakTime: 30
                 })
                 .end((err, res)=>{

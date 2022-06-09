@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import Logger from 'js-logger';
 import { ObjectId } from 'mongodb';
 import nodemailer, { Transporter } from 'nodemailer';
-import {workshopBody, workshopInsert} from '../models/workshopBody';
+import {workshopInsert} from '../models/workshopBody';
 import {queryCommands} from '../db/databaseCommands';
 import assert from 'assert';
 

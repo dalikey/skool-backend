@@ -4,7 +4,7 @@ import {registrationInsert} from '../models/registrationBody';
 import conf from 'dotenv';
 import Logger from 'js-logger';
 import {CustomerBody} from "../models/customerBody";
-import {workshopBody, workshopInsert} from "../models/workshopBody";
+import {workshopInsert} from "../models/workshopBody";
 
 conf.config();
 

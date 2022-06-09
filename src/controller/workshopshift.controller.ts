@@ -18,12 +18,12 @@ let controller = {
             assert(typeof workshopShift.maximumParticipants == "number");
             assert(typeof workshopShift.targetAudience == 'string');
             assert(typeof workshopShift.level == 'string');
+            assert(typeof workshopShift.extraInfo == 'string');
             assert(workshopShift.location);
             assert(workshopShift.date);
             assert(workshopShift.availableUntil);
             //Shift time and breaks
-            assert(workshopShift.startTime);
-            assert(workshopShift.endTime);
+            assert(workshopShift.timestamps.length > 0);
             assert((workshopShift.hourRate && !workshopShift.dayRate)|| (workshopShift.dayRate && !workshopShift.hourRate));
             //assert(workshopShift.breakTimeInMinutes); Is optioneel, als clinten een dagtarief invoert.
 
@@ -36,14 +36,17 @@ let controller = {
     insertShift:(req:any, res:any, next:any)=>{
         //Initialize variables
         const workshopShift = req.body;
+        // const resultshift = formatWorkShopShift(workshopShift);
         let totalTariff;
-        let hasBreaks = false;
+        //let hasBreaks = false;
         let formOfTime;
+        //
+        let duration = getHoursFromTimeStampList(workshopShift.timestamps);
         //Database command
         // @ts-ignore
         const isHourRate = decideFormOfRate(workshopShift.hourRate);
         if(isHourRate){
-           totalTariff = calculateFullRate(workshopShift.startTime, workshopShift.endTime, workshopShift.breakTimeInMinutes,workshopShift.hourRate);
+           totalTariff = calculateFullRate(duration, workshopShift.hourRate);
            formOfTime = "per uur";
            delete workshopShift.dayRate;
         } else{
@@ -51,16 +54,11 @@ let controller = {
             formOfTime = "per dag";
             delete workshopShift.hourRate;
         }
-
-        if(workshopShift.breakTimeInMinutes || workshopShift.breakTimeInMinutes == 0){
-            hasBreaks = true;
-        }
-
         workshopShift.workshopId = new ObjectId(workshopShift.workshopId);
         workshopShift.clientId = new ObjectId(workshopShift.clientId);
         workshopShift.tarriff =  totalTariff;
         workshopShift.formOfTime = formOfTime;
-        workshopShift.hasBreaks= hasBreaks;
+        // workshopShift.hasBreaks= hasBreaks;
         workshopShift.date = DateTime.fromISO(workshopShift.date);
         workshopShift.availableUntil = DateTime.fromISO(workshopShift.availableUntil);
         const insert = queryCommands.insertOneWorkshopShift(workshopShift);
@@ -107,20 +105,26 @@ let controller = {
     }
 }
 
-
-function calculateFullRate(startTime:string, endTime:string, hourRate: number, minutesOfBreak:number) {
-    let start  = DateTime.fromISO(startTime);
-    let end = DateTime.fromISO(endTime);
-    let durationInHours = end.diff(start, 'hours');
-    let breakTimeInHours = minutesOfBreak / 60;
-    // @ts-ignore
-    let paidTime = durationInHours.toObject().hours - breakTimeInHours;
-    return paidTime * hourRate;
+function calculateFullRate(hoursWork: number, hourRate: number) {
+    return hoursWork * hourRate;
 }
 
 function decideFormOfRate(hourRate: number) {
     return !!hourRate;
 
+}
+
+function getHoursFromTimeStampList(timeStampsList: any){
+    let hours = 0;
+    for (const timeObject of timeStampsList) {
+        let start  =DateTime.fromISO(timeObject.startTime);
+        let end = DateTime.fromISO(timeObject.endTime);
+        let difference = end.diff(start, 'hours').toObject();
+        let durationHours = difference.hours;
+        // @ts-ignore
+        hours += durationHours;
+    }
+    return hours;
 }
 
 export default controller;
