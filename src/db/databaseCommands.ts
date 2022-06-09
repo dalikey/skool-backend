@@ -332,5 +332,14 @@ export const queryCommands = {
             return null;
         }
     }
+    ,
+    async getAllWorkshops(){
+        const collection = await this.getWorkshopCollection();
+        try {
+            return await collection.find({}).toArray();
+        }catch (e){
+            return null;
+        }
+    }
 
 }

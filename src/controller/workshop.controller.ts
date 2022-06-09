@@ -32,7 +32,7 @@ export async function verifyInput(req: Request, res: Response, next: any) {
 
 export async function getAllWorkshop(req: Request, res: Response) {
     // @ts-ignore
-    const workshop = await queryCommands.getAllCustomers();
+    const workshop = await queryCommands.getAllWorkshops();
     res.status(200).send({ result: workshop });
 }
 
