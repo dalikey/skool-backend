@@ -165,18 +165,17 @@ describe('Failed workshopShift insert', ()=>{
     })
 
     after((done)=>{
-        queryCommands.getShiftCollection().then(collection =>{
-            collection.deleteMany({extraInfo: {$in: ["Nothing@@@"]}});
+        queryCommands.getShiftCollection().then(async collection => {
+            await collection.deleteMany({extraInfo: {$in: ["Nothing@@@"]}});
             done();
         })
     })
 })
 
 const workshopsShift = {
-    _id: new ObjectId(100),
-    workshopId: new ObjectId(200),
-    clientId: new ObjectId(300),
-    function: "Dummy@#DataWorkshopShift",
+    _id: new ObjectId("62a242ff67ffdef340ff0c95"),
+    workshopId: new ObjectId("62a242e04cf01cbac99d7d0f"),
+    clientId: new ObjectId("62a242f5fa1b3d40ef808468"),
     maximumParticipants: 6,
     targetAudience: "WO",
     level: "WO",
@@ -186,7 +185,7 @@ const workshopsShift = {
         city: "Haarlem",
         country: "Nederland"
     },
-    date: "2022-09-21",
+    date: "2029-12-21",
     availableUntil: "2022-09-01",
     startTime: "18:00",
     endTime: "22:00",
@@ -194,10 +193,11 @@ const workshopsShift = {
     dayRate: undefined,
     breakTime: 0
 }
+
 const workshopsShift2 = {
-    workshopId: "6290c81e409379906a5dba4a",
-    clientId: "6290c737409379906a5dba47",
-    function: "Dummy@#DataWorkshopShiftNummer2",
+    _id: new ObjectId("62a24334ede1fac86edd1701"),
+    workshopId: new ObjectId("62a2434060f613b82112c12d"),
+    clientId: new ObjectId("62a24347ec4ee19b0cb1d73b"),
     maximumParticipants: 6,
     targetAudience: "WO",
     level: "WO",
@@ -208,24 +208,91 @@ const workshopsShift2 = {
         country: "Nederland"
     },
     date: "2022-09-21",
-    availableUntil: "2022-09-01",
+    availableUntil: "2022-06-01",
     startTime: "18:00",
-    endTime: "20:00",
+    endTime: "22:00",
     hourRate: 35.50,
     dayRate: undefined,
     breakTime: 0
 }
 
-describe('Delete workshopshifts', ()=>{
-    before((done)=>{
-        queryCommands.getShiftCollection().then(collection => {
-            collection.insertOne(workshopsShift);
+describe('Retrieve workshops', ()=>{
+    before(async ()=>{
+        const col = await queryCommands.getShiftCollection();
+        await col.insertMany([workshopsShift2, workshopsShift]);
+    })
+    after(async ()=>{
+        const col = await queryCommands.getShiftCollection();
+        await col.deleteMany({_id: {$in: [new ObjectId("62a24334ede1fac86edd1701"), new ObjectId("62a242ff67ffdef340ff0c95")]}});
+    })
+    it('No token', (done)=>{
+        chai.request(server).get('/api/workshop/shift').end((err, res)=>{
+            let {error, message} = res.body;
+            error.should.be.equal("unauthorized");
+            message.should.be.equal('You need to provide authorization for this endpoint!');
             done();
         })
     })
 
+    it('Invalid token', (done)=>{
+        const authToken = jwt.sign({id: "6295e96d7f984a246108b36e", role: "user"}, process.env.APP_SECRET || "", {expiresIn: "1"});
+        chai.request(server).get('/api/workshop/shift').set({authorization: authToken}).end((err, res)=>{
+            let {error, message} = res.body;
+            error.should.be.equal("unauthorized");
+            message.should.be.equal('You need to provide authorization for this endpoint!');
+            done();
+        })
+    })
+
+    it('Gets workshopshifts', (done)=>{
+        const authToken = jwt.sign({id: "6295e96d7f984a246108b36e", role: "user"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+        chai.request(server).get('/api/workshop/shift').set({authorization: authToken}).end((err, res)=>{
+            let {result} = res.body;
+            assert(result.length > 1);
+            done();
+        })
+    })
+
+    it('Gets one workshop', (done)=>{
+        const authToken = jwt.sign({id: "6295e96d7f984a246108b36e", role: "user"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+        const shiftId = "62a242ff67ffdef340ff0c95";
+        chai.request(server).get(`/api/workshop/shift/${shiftId}/single`)
+            .set({authorization: authToken})
+            .end((err, res)=>{
+            let {result} = res.body;
+            assert.deepEqual(result, {_id: "62a242ff67ffdef340ff0c95",
+                workshopId: "62a242e04cf01cbac99d7d0f",
+                clientId: "62a242f5fa1b3d40ef808468",
+                maximumParticipants: 6,
+                targetAudience: "WO",
+                level: "WO",
+                location:{
+                    address: "teststraat 1",
+                    postalCode: "3000VN",
+                    city: "Haarlem",
+                    country: "Nederland"
+                },
+                date: "2029-12-21",
+                availableUntil: "2022-09-01",
+                startTime: "18:00",
+                endTime: "22:00",
+                hourRate: 35.50,
+                dayRate: null,
+                breakTime: 0
+            })
+            done();
+        })
+    })
+})
+
+describe('Delete workshopshifts', ()=>{
+    // before(async ()=>{
+    //     // const collection = await queryCommands.getShiftCollection();
+    //     // await collection.insertMany([workshopsShift, workshopsShift2]);
+    // })
+
     it('No token', (done)=>{
-        chai.request(server).delete('/api/workshop/shift/nr4').end((err, res)=>{
+        chai.request(server).delete('/api/workshop/shift/nr4/delete').end((err, res)=>{
             let {error, message} = res.body;
             error.should.be.equal("unauthorized");
             message.should.be.equal('You need to provide authorization for this endpoint!');
