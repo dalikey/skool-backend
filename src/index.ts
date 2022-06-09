@@ -11,6 +11,7 @@ import customerRoutes from "./routes/customer.routes";
 import workshopShiftRoutes from "./routes/workshopShift.routes";
 // @ts-ignore
 import fileHandler from 'express-fileupload';
+import enrollRoutes from "./routes/enroll.routes";
 
 Logger.useDefaults();
 con.config();
@@ -44,8 +45,7 @@ app.use(loginRouter);
 app.use(registrationRouter);
 app.use(userRouter);
 app.use(workshopShiftRoutes);
-
-
+app.use(enrollRoutes);
 app.use(workshopRouter);
 
 export default app;
