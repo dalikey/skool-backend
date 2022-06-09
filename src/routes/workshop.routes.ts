@@ -9,7 +9,7 @@ const workshopRouter = express.Router();
 //     controller.validateToken,
 //     workshopController.getAllWorkshop
 // );
-
+//Gets all workshops
 workshopRouter.get('/api/workshop',
     controller.validateToken,
     workshopController.getAllWorkshop);
