@@ -106,8 +106,9 @@ let controller = {
         //Initialise variables
         const shiftId = req.params.shiftId;
         const shift = req.body;
+        const workShift = shiftFormat(shift);
         //Database commands
-        const update = await queryCommands.updateShift(shiftId, shift);
+        const update = await queryCommands.updateShift(shiftId, workShift);
         if(update){
             res.status(200).json({message: "Update successfull"});
         }else{
@@ -122,7 +123,53 @@ let controller = {
         res.status(200).json({message: "Successful deletion"});
     }
 }
-
+function shiftFormat(shift:any){
+    let totalTariff;
+    let formOfTime;
+    let rate;
+    let duration = getHoursFromTimeStampList(shift.timestamps);
+    //Database command
+    // @ts-ignore
+    const isHourRate = decideFormOfRate(shift.hourRate);
+    if(isHourRate){
+        totalTariff = calculateFullRate(duration, shift.hourRate).toFixed(2);
+        formOfTime = "per uur";
+        rate = shift.hourRate.toFixed(2);
+        delete shift.dayRate;
+    } else{
+        totalTariff = shift.dayRate.toFixed(2);
+        formOfTime = "per dag";
+        rate = shift.dayRate.toFixed(2);
+        delete shift.hourRate;
+    }
+    shift.workshopId = new ObjectId(shift.workshopId);
+    shift.clientId = new ObjectId(shift.clientId);
+    shift.date = DateTime.fromISO(shift.date);
+    shift.availableUntil = DateTime.fromISO(shift.availableUntil);
+    const shiftObject: WorkshopShiftBody ={
+        workshopId: shift.workshopId,
+        clientId:shift.clientId,
+        location: {
+            address: shift.location.address,
+            city: shift.location.city,
+            postalCode: shift.location.postalCode,
+            country: shift.location.country
+        },
+        date: shift.date,
+        availableUntil: shift.availableUntil,
+        maximumParticipants: shift.maximumParticipants,
+        extraInfo: shift.extraInfo,
+        level: shift.level,
+        targetAudience: shift.targetAudience,
+        timestamps: shift.timestamps,
+        tariff: rate,
+        total_Amount: totalTariff,
+        formOfTime: formOfTime,
+        participants: shift.participants || [],
+        candidates: shift.candidates || []
+    };
+    return shiftObject;
+}
 function calculateFullRate(hoursWork: number, hourRate: number) {
     return hoursWork * hourRate;
 }
