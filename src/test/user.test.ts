@@ -38,6 +38,11 @@ describe('An owner can authorize approve or deny a new user registration.', ()=>
         const coll = client.db(skoolWorkshop).collection('user');
         await coll.deleteOne({"emailAddress": "test@example.com"})
         await coll.deleteOne({"emailAddress": "admin@example.com"});
+
+    })
+    afterEach((done) => {
+        // @ts-ignore
+        setTimeout(done, 10)
     })
     describe('Unauthorized', ()=>{
         it('User is not logged in for /api/user', (done)=>{
@@ -318,7 +323,7 @@ describe('An owner can authorize approve or deny a new user registration.', ()=>
                 done();
             })
         })
-        it('Owner can edit another user\'s priviliged fields ', (done)=>{
+        it('Owner can edit another user\'s privileged fields ', (done)=>{
             const authToken = jwt.sign({id: "6295e96d7f984a246108b36f", role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"})
 
             chai.request(server).put('/api/user/6295e96d7f984a246108b36d').set({authorization: authToken, "content-type": "application/json"}).send({firstName: "Aang"
