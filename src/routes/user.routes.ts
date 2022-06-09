@@ -7,6 +7,10 @@ userRouter.get('/api/user/@me',
     userController.getUser,
 );
 
+userRouter.get('/api/user/:userId',
+    userController.authorizeUser,
+    userController.getUser)
+
 userRouter.post('/api/user/:userId/activate',
     userController.authorizeUser,
     userController.activateUser

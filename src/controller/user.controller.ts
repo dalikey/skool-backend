@@ -27,9 +27,24 @@ if (process.env.SMTP_SERVER) {
 
 export async function getUser(req: Request, res: Response) {
     // @ts-ignore
-    const user = await queryCommands.getUser(ObjectId(res.locals.decodedToken.id));
+    try {
+        assert (req.params.userId)
+        if (res.locals.decodedToken.role === 'admin' || res.locals.decodedToken.role === 'owner') {
+            const user = await queryCommands.getUser(new ObjectId(res.locals.decodedToken.id));
+            if (user) {
+                return res.send({result: user})
+            } else {
+                return res.status(404).send({error: "not_found"})
+            }
+        } else {
+            return res.status(403).send({error: "forbidden"})
+        }
+    } catch (err) {
+        const user = await queryCommands.getUser(new ObjectId(res.locals.decodedToken.id));
 
-    return res.send({result: user});
+        return res.send({result: user});
+    }
+
 }
 
 export async function getUsers(req: Request, res: Response) {
