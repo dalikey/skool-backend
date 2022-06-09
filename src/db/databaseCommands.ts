@@ -219,7 +219,7 @@ export const queryCommands = {
        try{
            return await collect.deleteOne(query);
        }catch (e) {
-
+           return null;
        }
     }
     ,
@@ -229,7 +229,7 @@ export const queryCommands = {
        try {
            return await collection.replaceOne(query, customer);
         } catch (e) {
-
+           return null;
         }
     }
     ,
@@ -239,7 +239,7 @@ export const queryCommands = {
         try {
             return await collection.find({}).toArray();
         } catch (e) {
-
+            return null;
         }
     }
     ,
@@ -249,7 +249,7 @@ export const queryCommands = {
         try {
             return await collection.findOne(query);
         } catch (e) {
-
+            return null;
         }
     }
     ,
@@ -269,7 +269,7 @@ export const queryCommands = {
        try {
            return await collection.find({}).toArray();
        }catch (e){
-
+           return null;
        }
     }
     ,
