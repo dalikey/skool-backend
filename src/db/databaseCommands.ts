@@ -3,6 +3,8 @@ import loginBody from '../models/loginBody';
 import {registrationInsert} from '../models/registrationBody';
 import conf from 'dotenv';
 import Logger from 'js-logger';
+import app from "../index";
+import {userBody} from "../models/userBody";
 import {CustomerBody} from "../models/customerBody";
 import {workshopInsert} from "../models/workshopBody";
 
@@ -177,6 +179,29 @@ export const queryCommands = {
             return {error: "duplicate_user", message: err}
         }
         
+    },
+    async updateUser(userId: ObjectId, data: Object) {
+        const collection = await this.getUserCollection();
+        try {
+            const query = await collection.findOneAndUpdate({"_id": userId}, {$set: data}, { projection: {password: 0}, returnDocument: "after"})
+            return query.value;
+        } catch (err) {
+            Logger.error(err);
+            return {error: "update_failure"}
+        }
+    },
+    async deleteUser(userId: ObjectId) {
+        const collection = await this.getUserCollection();
+        try {
+            const query = await collection.deleteOne({"_id": userId});
+            Logger.info(query)
+            if (query.deletedCount === 0) {
+                return false;
+            }
+            return true
+        } catch (err) {
+            return false;
+        }
     }
     ,
     async insertCustomer(customerData: CustomerBody){

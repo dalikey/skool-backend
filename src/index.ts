@@ -1,9 +1,9 @@
 import express, {Request} from 'express';
+import loginRouter from './routes/login.routes';
 import bodyParser from 'body-parser';
 import con from 'dotenv';
 import Logger from 'js-logger';
 import cors from 'cors';
-import loginRouter from './routes/login.routes';
 import registrationRouter from './routes/registration.routes';
 import userRouter from "./routes/user.routes";
 import workshopRouter from "./routes/workshop.routes";
@@ -19,6 +19,7 @@ const port = process.env.PORT;
 
 app.use(bodyParser.json());
 
+app.use(bodyParser.urlencoded())
 app.use(cors());
 app.use(fileHandler());
 //Catching errors
