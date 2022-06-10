@@ -30,7 +30,7 @@ export async function getUser(req: Request, res: Response) {
     try {
         assert (req.params.userId)
         if (res.locals.decodedToken.role === 'admin' || res.locals.decodedToken.role === 'owner') {
-            const user = await queryCommands.getUser(new ObjectId(res.locals.decodedToken.id));
+            const user = await queryCommands.getUser(new ObjectId(req.params.userId));
             if (user) {
                 return res.send({result: user})
             } else {
