@@ -18,7 +18,7 @@ export type userBody = {
     emailCampaigns: boolean | undefined
     textCampaigns: boolean | undefined
     role: "user" | "admin" | "owner" | undefined
-    levelPreference: string | undefined
+    levelPreferences: string | undefined
     contractType: "freelancer" | "full-time" | undefined
 
     location: locationBody | undefined
@@ -113,7 +113,7 @@ export class User implements userBody {
         this.workshopPreferences = body.workshopPreferences
         this.lastName = body.lastName
         this.firstName = body.firstName
-        this.levelPreference = body.levelPreference;
+        this.levelPreferences = body.levelPreferences;
         try {
             // @ts-ignore
             assert(['full-time', 'freelancer'].includes(body.contractType));
@@ -148,7 +148,7 @@ export class User implements userBody {
     lastName: string | undefined;
     firstName: string | undefined;
     role: "user" | "owner" | "admin" | undefined
-    levelPreference: string | undefined
+    levelPreferences: string | undefined
     contractType: "freelancer" | "full-time" | undefined
 
 }
