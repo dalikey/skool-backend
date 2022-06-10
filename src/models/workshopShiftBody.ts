@@ -25,3 +25,11 @@ export interface WorkshopShiftBody{
     participants: any,
     candidates: any
 }
+
+export interface confirmBody{
+    userId: string,
+    shiftId: string,
+    status: string,
+    enrollDate: any,
+    motivation: string,
+}

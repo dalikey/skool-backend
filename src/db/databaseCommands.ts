@@ -303,7 +303,17 @@ export const queryCommands = {
 
     }
     ,
-
+    async changeStatusEnrollmentParticipant(shiftId:string, userId:string, status: string){
+        try {
+            const collection = await this.getShiftCollection();
+            const changeStatusQuery = {$set: {"candidates.$.status": status}};
+            const query = {_id: new ObjectId(shiftId),"candidates._id": new ObjectId(userId)};
+            return await collection.updateOne(query, changeStatusQuery);
+        } catch (e){
+            return null;
+        }
+    }
+    ,
     async enrollToShift(shiftId: string, enrollmentObject: any){
        try {
            const collection = await this.getShiftCollection();
@@ -312,8 +322,26 @@ export const queryCommands = {
        } catch (e){
            return null;
        }
+    },
+    async confirmParticipation(shiftId: string, userId: string){
+        try {
+            const collection = await this.getShiftCollection();
+            const pushQuery = {$push: {participants: new ObjectId(userId)}};
+            return await collection.updateOne({_id: new ObjectId(shiftId)}, pushQuery);
+        } catch (e){
+            return null;
+        }
     }
     ,
+    async cancelParticipation(shiftId:string, userId:string){
+      try {
+          const collection = await this.getShiftCollection();
+          const deleteQuery = {$pull: {participants: { $in: [new ObjectId(userId)] } } };
+          return await collection.updateOne({_id: new ObjectId(shiftId)}, deleteQuery);
+      } catch (e) {
+          return null;
+      }
+    },
     async checkEnrollmentOfUser(shiftId: string, userId:string){
         try {
             const collection = await this.getShiftCollection();
@@ -323,6 +351,17 @@ export const queryCommands = {
             return null;
         }
     },
+
+    async checkParticipationOfUser(shiftId: string, userId:string){
+        try {
+            const collection = await this.getShiftCollection();
+            const filterEmbeddedObjectQuery = {userId: new ObjectId(userId), shiftId: new ObjectId(shiftId)};
+            return await collection.findOne({_id: new ObjectId(shiftId), participants: filterEmbeddedObjectQuery });
+        } catch (e){
+            return null;
+        }
+    },
+
     async createWorkshop(workshop:workshopInsert){
         const collection = await this.getWorkshopCollection();
         try {
