@@ -19,6 +19,7 @@ export type userBody = {
     textCampaigns: boolean | undefined
     role: "user" | "admin" | "owner" | undefined
     levelPreference: string | undefined
+    contractType: "freelancer" | "full-time"
 
     location: locationBody | undefined
     paymentInfo: paymentBody | undefined
@@ -114,6 +115,12 @@ export class User implements userBody {
         this.firstName = body.firstName
         this.levelPreference = body.levelPreference;
         try {
+            assert(['full-time', 'freelancer'].includes(body.contractType));
+            this.contractType = body.contractType;
+        } catch (err) {
+            this.rejected.push('contractType')
+        }
+        try {
             assert(body.role);
             assert(['owner', 'admin', 'user'].includes(body.role));
             this.role = body.role
@@ -141,6 +148,7 @@ export class User implements userBody {
     firstName: string | undefined;
     role: "user" | "owner" | "admin" | undefined
     levelPreference: string | undefined
+    contractType: "freelancer" | "full-time"
 
 }
 
