@@ -125,6 +125,7 @@ let controller = {
             res.status(200).json({result: resultSet});
         }catch (e) {
             logger.error("resultSet is not well retrieved");
+            logger.error(e);
             res.status(400).json({message: "Error"});
         };
     }
