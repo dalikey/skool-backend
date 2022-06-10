@@ -247,7 +247,7 @@ describe('Retrieve workshops', ()=>{
     it('Gets workshopshifts', (done)=>{
         const authToken = jwt.sign({id: "6298f28ada1b261c5f7bff83", role: "user"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
         chai.request(server).get('/api/workshop/shift').set({authorization: authToken}).end((err, res)=>{
-            let {result} = res.body;
+            let { result } = res.body;
             assert(result.length > 1);
             done();
         })

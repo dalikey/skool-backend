@@ -249,7 +249,7 @@ export const queryCommands = {
             return null;
         }
     },
-    async getAllShifts(filter:any){
+    async getAllShifts(){
        const agg = [
             {
                 '$lookup': {

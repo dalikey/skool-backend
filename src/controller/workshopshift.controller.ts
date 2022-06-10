@@ -3,6 +3,7 @@ import assert from "assert";
 import {WorkshopShiftBody} from "../models/workshopShiftBody";
 import {ObjectId} from "mongodb";
 import time, {DateTime, Duration} from 'luxon';
+import logger from 'js-logger'
 
 let controller = {
     validateWorkshopShiftInput:(req:any, res:any, next:any)=>{
@@ -85,17 +86,19 @@ let controller = {
     }
     ,
     async getAllShifts(req:any, res:any){
-        const userId = res.locals.decodedToken;
-        let queryFilters = [];
         try {
+            const userId = res.locals.decodedToken;
+            let queryFilters = [];
             //Gets user
             const user = await queryCommands.getUser(new ObjectId(userId.id));
+            logger.info(user);
             //Converts each workshop objectId-string to objectId
             for (const element of user.workshopPreferences) {
                 queryFilters.push(element);
             }
             //Database command
-            const resultSet = await queryCommands.getAllShifts(queryFilters);
+            const resultSet = await queryCommands.getAllShifts();
+            logger.info(resultSet);
             //Filter through preferences
             for (let i = 0; i < resultSet.length; i++) {
                 const code = resultSet[i].workshopId.toString();
@@ -111,12 +114,12 @@ let controller = {
                 resultSet.splice(i, 1);
                 i--;
             }
+            logger.info(resultSet);
             res.status(200).json({result: resultSet});
         }catch (e) {
+            logger.error("resultSet");
             res.status(400).json({message: "Error"});
-        }
-        //Sends status back
-
+        };
     }
     ,
     async getOneShift(req:any, res:any){
