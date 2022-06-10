@@ -90,18 +90,23 @@ let controller = {
             const userId = res.locals.decodedToken;
             let queryFilters = [];
             //Gets user
+            logger.info("User retrieval for getAllShifts has started");
             const user = await queryCommands.getUser(new ObjectId(userId.id));
             logger.info(user);
+            logger.info("User retrieval for getAllShifts has ended");
             //Converts each workshop objectId-string to objectId
             for (const element of user.workshopPreferences) {
                 queryFilters.push(element);
             }
+            logger.info("Queryset completed");
             //Database command
+            logger.info("Shift retrieval completed");
             const resultSet = await queryCommands.getAllShifts();
             logger.info(resultSet);
             //Filter through preferences
             for (let i = 0; i < resultSet.length; i++) {
                 const code = resultSet[i].workshopId.toString();
+                logger.info("Filter");
                 //Checks if workshop is included in the queryFilters
                 if(queryFilters.includes(code) || queryFilters.length == 0){
                     //Format results
@@ -109,15 +114,17 @@ let controller = {
                     resultSet[i].workshop = resultSet[i].workshop[0];
                     delete resultSet[i].clientId;
                     delete resultSet[i].workshopId;
+                    logger.info("Filter continue");
                     continue;
                 }
                 resultSet.splice(i, 1);
                 i--;
             }
+            logger.info("Send result to set");
             logger.info(resultSet);
             res.status(200).json({result: resultSet});
         }catch (e) {
-            logger.error("resultSet");
+            logger.error("resultSet is not well retrieved");
             res.status(400).json({message: "Error"});
         };
     }

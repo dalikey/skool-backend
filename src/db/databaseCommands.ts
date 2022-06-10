@@ -8,6 +8,7 @@ import {userBody} from "../models/userBody";
 import {CustomerBody} from "../models/customerBody";
 import {workshopInsert} from "../models/workshopBody";
 import {WorkshopShiftBody} from "../models/workshopShiftBody";
+import logger from "js-logger";
 
 conf.config();
 
@@ -250,6 +251,7 @@ export const queryCommands = {
         }
     },
     async getAllShifts(){
+       logger.info("Aggregation setup");
        const agg = [
             {
                 '$lookup': {
@@ -281,10 +283,15 @@ export const queryCommands = {
                 }
             }
         ];
+        logger.info("Aggregation setup completed");
        try {
+           logger.info("Retrieval from database started");
            const collection = await this.getShiftCollection();
+           logger.info("Aggregation setup");
            return await collection.aggregate(agg).toArray();
        }catch (e){
+           logger.info("Something went wrong with retrieval");
+           logger.info(e);
            return null;
        }
     },
