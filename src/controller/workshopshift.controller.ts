@@ -95,8 +95,8 @@ let controller = {
             logger.info(user);
             logger.info("User retrieval for getAllShifts has ended");
             //Converts each workshop objectId-string to objectId
-            for (const element of user.workshopPreferences) {
-                queryFilters.push(element);
+            if(user.workshopPreferences){
+                queryFilters = user.workshopPreferences;
             }
             logger.info("Queryset completed");
             //Database command

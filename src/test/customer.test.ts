@@ -187,7 +187,7 @@ describe('Creation of customer in the database', ()=>{
 
     after((done) => {
         queryCommands.getCustomerCollection().then(collection=>{
-            collection.deleteMany({name: {$in: ["Done Institute"]}});
+            collection.deleteMany({name: {$in: ["Done Institute", "Mentis ICT Consultancy B.V."]}});
             done();
         });
     })
