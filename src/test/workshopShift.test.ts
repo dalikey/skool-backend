@@ -216,14 +216,19 @@ const workshopsShift2 = {
     breakTime: 0
 }
 
+const user = {_id: new ObjectId("62a39fa5dfb7a383d6edce09"), name: "TestBob", workshopPreferences: ["62a2434060f613b82112c12d", "62a242e04cf01cbac99d7d0f"]};
 describe('Retrieve workshops', ()=>{
     before(async ()=>{
         const col = await queryCommands.getShiftCollection();
+        const col2 = await queryCommands.getUserCollection();
         await col.insertMany([workshopsShift2, workshopsShift]);
+        await col2.insertOne(user);
     })
     after(async ()=>{
         const col = await queryCommands.getShiftCollection();
+        const col2 = await queryCommands.getUserCollection();
         await col.deleteMany({_id: {$in: [new ObjectId("62a24334ede1fac86edd1701"), new ObjectId("62a242ff67ffdef340ff0c95")]}});
+        await col2.deleteOne(user);
     })
     it('No token', (done)=>{
         chai.request(server).get('/api/workshop/shift').end((err, res)=>{
@@ -245,7 +250,7 @@ describe('Retrieve workshops', ()=>{
     })
 
     it('Gets workshopshifts', (done)=>{
-        const authToken = jwt.sign({id: "6295e96d7f984a246108b36e", role: "user"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+        const authToken = jwt.sign({id: "62a39fa5dfb7a383d6edce09", role: "user"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
         chai.request(server).get('/api/workshop/shift').set({authorization: authToken}).end((err, res)=>{
             let { result } = res.body;
             assert(result.length > 1);
