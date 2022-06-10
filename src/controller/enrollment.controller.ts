@@ -37,7 +37,7 @@ const controller = {
         if(currentDate <= result.availableUntil){
             next();
         } else {
-            res.status(401).json({error: "time_issue", message: "shift is not available for enrollment."})
+            res.status(400).json({error: "time_issue", message: "shift is not available for enrollment."})
         }
     }
     ,
@@ -47,7 +47,7 @@ const controller = {
         if(result.participants.length < result.maximumParticipants){
             next();
         } else{
-            res.status(401).json({error: "limit_reached", message: "maximum amount of participants reached."});
+            res.status(400).json({error: "limit_reached", message: "maximum amount of participants reached."});
         }
     },
     async checkEnrollmentExistence(req:any, res:any, next:any){
@@ -80,7 +80,7 @@ const controller = {
             const enroll = await queryCommands.enrollToShift(WshiftId, enrollmentObject);
             res.status(201).json({message: "user has send enrollment."})
         }catch (e){
-            res.status(401).json({message: "Failure enrollment"});
+            res.status(400).json({message: "Failure enrollment"});
         }
     }
     ,
@@ -135,7 +135,7 @@ const controller = {
             }
             res.status(201).json({message: "User has been confirmed to be part of this shift."})
         }catch (e){
-            res.status(401).json({message: "Failure enrollment"});
+            res.status(400).json({message: "Failure enrollment"});
         }
     },
     async rejectEnrollment(req:any, res:any){
@@ -158,7 +158,7 @@ const controller = {
             }
             res.status(201).json({message: "User has been rejected from the workshop"})
         }catch (e){
-            res.status(401).json({message: "Failed database action"});
+            res.status(400).json({message: "Failed database action"});
         }
     },
     async removeEnrollment(req:any, res:any){

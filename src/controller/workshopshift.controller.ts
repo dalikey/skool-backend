@@ -140,7 +140,7 @@ let controller = {
         if(update){
             res.status(200).json({message: "Update successfull"});
         }else{
-            res.status(401).json({error: "update_failure" ,message: "Update failed"});
+            res.status(400).json({error: "update_failure" ,message: "Update failed"});
         }
 
     }

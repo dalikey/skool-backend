@@ -16,9 +16,9 @@ const customerController = {
             let endT = DateTime.fromISO(end);
             let diff = endT.diff(stTime, 'hours');
             let i = 0 /60;
-            return res.status(401).json({message: i});
+            return res.status(400).json({message: i});
         }catch (e) {
-            return res.status(401).json({error: "file_upload_failure", message: "Wrong file insert"});
+            return res.status(400).json({error: "file_upload_failure", message: "Wrong file insert"});
         }
     },
     handleFileInput:(req:any, res:any, next:any)=>{
@@ -31,7 +31,7 @@ const customerController = {
                 next();
             }
         }catch (e) {
-            return res.status(401).json({error: "file_upload_failure", message: "Wrong file insert"});
+            return res.status(400).json({error: "file_upload_failure", message: "Wrong file insert"});
         }
     }
     ,
@@ -40,20 +40,20 @@ const customerController = {
         try {
             assert(customer);
             //Customer
-            assert(typeof customer.name == 'string');
+            assert(typeof customer.name == 'string', "name issue");
             //Contact info
-            assert(typeof customer.emailAddress == 'string');
-            assert(typeof customer.phoneNumber == 'string');
-            assert(customer.emailAddress.toLowerCase().match(emailRegex));
-            assert(customer.phoneNumber.match(phoneRegex));
+            assert(typeof customer.emailAddress == 'string', "email issue");
+            assert(typeof customer.phoneNumber == 'string', "phoneNumber issue");
+            assert(customer.emailAddress.toLowerCase().match(emailRegex), "email matching issue");
+            assert(customer.phoneNumber.match(phoneRegex), "phoneNumber regex issue");
             //Location
-            assert(typeof customer.address == 'string');
-            assert(typeof customer.postalCode == 'string');
-            assert(typeof customer.city == 'string');
-            assert(typeof customer.country == 'string');
+            assert(typeof customer.address == 'string', "address issue");
+            assert(typeof customer.postalCode == 'string', "postalCode issue");
+            assert(typeof customer.city == 'string', "city issue");
+            assert(typeof customer.country == 'string', "country issue");
             next();
-        } catch (e){
-            return res.status(400).json({error: "input_error", message: "Wrong input"});
+        } catch (e: any){
+            return res.status(400).json({error: "input_error", message: e.message});
         }
     }
     ,

@@ -18,7 +18,7 @@ export const controller = {
             res.locals.decodedToken = jwt.verify(authToken, process.env.APP_SECRET || "");
             next()
         } catch (err) {
-            return res.send({error: "unauthorized", message: "You need to provide authorization for this endpoint!"})
+            return res.status(401).send({error: "unauthorized", message: "You need to provide authorization for this endpoint!"})
         }
     }
     ,
@@ -28,7 +28,7 @@ export const controller = {
             assert(decodedToken.role == 'owner');
             next();
         }catch (e) {
-            return res.status(401).send({error: "unauthorized", message: "You do not have the right authority."});
+            return res.status(400).send({error: "unauthorized", message: "You do not have the right authority."});
         }
     }
     ,
@@ -38,7 +38,7 @@ export const controller = {
             assert(decodedToken.role != 'user');
             next();
         }catch (e) {
-            return res.status(401).send({error: "unauthorized", message: "You do not have the right authority."});
+            return res.status(400).send({error: "unauthorized", message: "You do not have the right authority."});
         }
     }
 }

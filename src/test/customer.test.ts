@@ -10,9 +10,14 @@ import {CustomerBody} from "../models/customerBody";
 chai.should();
 chai.use(chaiHttp);
 
-let customer = {name: "Done Institute",
-    emailAddress:"customer@example.com", phoneNumber:"06 45330803" ,
-    address: "sIMPLE 22",city:"City",postalCode: "Post3000",country: "Country"};
+let customer = {
+    name: "Mentis ICT Consultancy B.V.",
+    emailAddress:"mentis@gmail.com",
+    phoneNumber:"0611223344" ,
+    address: "Hogeschoollaan 12",
+    city:"Breda",
+    postalCode: "4831SD",
+    country: "Nederland"};
 describe('Creation of customer in the database', ()=>{
     describe('Authorithy issues', ()=> {
         it('No token', (done)=>{
@@ -86,7 +91,7 @@ describe('Creation of customer in the database', ()=>{
                     .end((err, res)=>{
                         let {error, message} = res.body;
                         error.should.be.equal("input_error");
-                        message.should.be.equal('Wrong input');
+                        message.should.be.equal('name issue');
                         done();
                     })
             }),
@@ -104,7 +109,7 @@ describe('Creation of customer in the database', ()=>{
                     .end((err, res)=>{
                         let {error, message} = res.body;
                         error.should.be.equal("input_error");
-                        message.should.be.equal('Wrong input');
+                        message.should.be.equal('email issue');
                         done();
                     })
             })
@@ -123,7 +128,7 @@ describe('Creation of customer in the database', ()=>{
                     .end((err, res)=>{
                         let {error, message} = res.body;
                         error.should.be.equal("input_error");
-                        message.should.be.equal('Wrong input');
+                        message.should.be.equal('email matching issue');
                         done();
                     })
             })
@@ -143,7 +148,7 @@ describe('Creation of customer in the database', ()=>{
                     .end((err, res)=>{
                         let {error, message} = res.body;
                         error.should.be.equal("input_error");
-                        message.should.be.equal('Wrong input');
+                        message.should.be.equal('email matching issue');
                         done();
                     })
             })

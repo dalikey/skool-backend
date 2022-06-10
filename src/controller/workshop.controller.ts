@@ -11,7 +11,7 @@ export async function handleFileInput(req:any, res:any, next:any){
         req.body.logo = imageFile.toString('base64');
         next();
     }catch (e) {
-        return res.status(401).json({error: "file_upload_failure", message: "Wrong file insert"});
+        return res.status(400).json({error: "file_upload_failure", message: "Wrong file insert"});
     }
 }
 
