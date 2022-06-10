@@ -31,7 +31,7 @@ let controller = {
         }
     }
     ,
-    insertShift:(req:any, res:any, next:any)=>{
+    async insertShift(req:any, res:any){
         //Initialize variables
         const workshopShift = req.body;
         // const resultshift = formatWorkShopShift(workshopShift);
@@ -79,7 +79,7 @@ let controller = {
             participants: [],
             candidates: []
         };
-        const insert = queryCommands.insertOneWorkshopShift(shiftObject);
+        const insert = await queryCommands.insertOneWorkshopShift(shiftObject);
         //Sends status back
         res.status(200).json({message: "shift added"});
     }

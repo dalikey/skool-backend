@@ -34,7 +34,7 @@ const controller = {
         const shiftId = req.params.shiftId;
         const result = await queryCommands.getOneShift(shiftId);
         const currentDate = DateTime.now();
-        if(currentDate < result.availableUntil){
+        if(currentDate <= result.availableUntil){
             next();
         } else {
             res.status(401).json({error: "time_issue", message: "shift is not available for enrollment."})

@@ -23,9 +23,13 @@ const customerController = {
     },
     handleFileInput:(req:any, res:any, next:any)=>{
         try {
-            let imageFile = req.files.image.data;
-            req.body.logo = imageFile.toString('base64');
-            next();
+            if(req.headers["content-type"] === 'application/json'){
+                next();
+            } else if(req.headers["content-type"]?.startsWith('multipart/form-data')){
+                let imageFile = req.files.image.data;
+                req.body.logo = imageFile.toString('base64');
+                next();
+            }
         }catch (e) {
             return res.status(401).json({error: "file_upload_failure", message: "Wrong file insert"});
         }

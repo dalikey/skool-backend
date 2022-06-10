@@ -10,10 +10,9 @@ import {CustomerBody} from "../models/customerBody";
 chai.should();
 chai.use(chaiHttp);
 
-let customer:CustomerBody = {name: "customer.name",
-    contact: { emailAddress:"customer@example.com", phoneNumber:"06 45330803" },
-    location:{address: "sIMPLE 22",city:"City",postalCode: "Post3000",country: "Country"},
-    logo:""};
+let customer = {name: "Done Institute",
+    emailAddress:"customer@example.com", phoneNumber:"06 45330803" ,
+    address: "sIMPLE 22",city:"City",postalCode: "Post3000",country: "Country"};
 describe('Creation of customer in the database', ()=>{
     describe('Authorithy issues', ()=> {
         it('No token', (done)=>{
@@ -162,6 +161,17 @@ describe('Creation of customer in the database', ()=>{
                 .field('city', 'Arnhem')
                 .field('country', 'Nederland')
                 .attach('image', `${__dirname}/testImage/downloaden (2).png`)
+                .end((err, res)=>{
+                    let {message} = res.body;
+                    message.should.be.equal('Customer inserted');
+                    done();
+                })
+        })
+        it('Valid insert 2 without image', (done)=>{
+            const authToken = jwt.sign({role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+            chai.request(server).post('/api/customer')
+                .set({authorization: authToken})
+                .send(customer)
                 .end((err, res)=>{
                     let {message} = res.body;
                     message.should.be.equal('Customer inserted');
