@@ -178,7 +178,7 @@ const controller = {
            assert(typeof unknownUser.firstName == 'string');
            assert(typeof unknownUser.lastName == 'string');
            assert(typeof unknownUser.emailAddress == 'string');
-           assert(typeof unknownUser.telefoon == 'string');
+           assert(typeof unknownUser.phoneNumber == 'string');
         } catch (e) {
             return res.status(400).json({error: "input_error", message: "Missing inputfields"});
         }

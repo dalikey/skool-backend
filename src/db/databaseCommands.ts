@@ -249,10 +249,45 @@ export const queryCommands = {
             return null;
         }
     },
-    async getAllShifts(){
-       const collection = await this.getShiftCollection();
+    async getAllShifts(filter:any){
+       const queryFilter = { $in: filter};
+       const agg = [
+            {
+                '$lookup': {
+                    'from': 'client',
+                    'localField': 'clientId',
+                    'foreignField': '_id',
+                    'as': 'client'
+                }
+            }, {
+                '$lookup': {
+                    'from': 'workshop',
+                    'localField': 'workshopId',
+                    'foreignField': '_id',
+                    'as': 'workshop'
+                }
+            }, {
+                '$lookup': {
+                    'from': 'user',
+                    'localField': 'participants',
+                    'foreignField': '_id',
+                    'as': 'participants'
+                }
+            }, {
+                '$lookup': {
+                    'from': 'user',
+                    'localField': 'candidates',
+                    'foreignField': '_id',
+                    'as': 'candidates'
+                }
+            }
+        ];
+        // @ts-ignore
+        // agg.push(queryFilter);
+
        try {
-           return await collection.find({}).toArray();
+           const collection = await this.getShiftCollection();
+           return await collection.aggregate(agg).toArray();
        }catch (e){
            return null;
        }

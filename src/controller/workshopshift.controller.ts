@@ -85,10 +85,38 @@ let controller = {
     }
     ,
     async getAllShifts(req:any, res:any){
-        //Database command
-        const resultSet = await queryCommands.getAllShifts();
+        const userId = res.locals.decodedToken;
+        let queryFilters = [];
+        try {
+            //Gets user
+            const user = await queryCommands.getUser(new ObjectId(userId.id));
+            //Converts each workshop objectId-string to objectId
+            for (const element of user.workshopPreferences) {
+                queryFilters.push(element);
+            }
+            //Database command
+            const resultSet = await queryCommands.getAllShifts(queryFilters);
+            //Filter through preferences
+            for (let i = 0; i < resultSet.length; i++) {
+                const code = resultSet[i].workshopId.toString();
+                //Checks if workshop is included in the queryFilters
+                if(queryFilters.includes(code) || queryFilters.length == 0){
+                    //Format results
+                    resultSet[i].client = resultSet[i].client[0];
+                    resultSet[i].workshop = resultSet[i].workshop[0];
+                    delete resultSet[i].clientId;
+                    delete resultSet[i].workshopId;
+                    continue;
+                }
+                resultSet.splice(i, 1);
+                i--;
+            }
+            res.status(200).json({result: resultSet});
+        }catch (e) {
+            res.status(400).json({message: "Error"});
+        }
         //Sends status back
-        res.status(200).json({result: resultSet});
+
     }
     ,
     async getOneShift(req:any, res:any){

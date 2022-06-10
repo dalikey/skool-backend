@@ -336,7 +336,6 @@ describe('An owner can authorize approve or deny a new user registration.', ()=>
         })
         it('User can be succesfully deleted', (done)=>{
             const authToken = jwt.sign({id: "6295e96d7f984a246108b36f", role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"})
-
             chai.request(server).delete('/api/user/6295e96d7f984a246108b36d').set({authorization: authToken}).send({
             }).end((err, res)=>{
                 let { error } = res.body;
