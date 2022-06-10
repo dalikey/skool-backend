@@ -30,6 +30,12 @@ ShiftRoutes.get('/api/workshop/shift',
     controller.validateToken,
     ShiftController.getAllShifts);
 
+//Retrieve shifts, by the admin and owner
+ShiftRoutes.get('/api/workshop/shift/admin',
+    controller.validateToken,
+    controller.validateAdminRole,
+    ShiftController.getAllShiftsForAdmin);
+
 //Retrieve one shift
 ShiftRoutes.get('/api/workshop/shift/:shiftId/single',
     controller.validateToken,

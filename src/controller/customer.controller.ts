@@ -10,13 +10,13 @@ const phoneRegex = /(06)(\s|\-|)\d{8}|31(\s6|\-6|6)\d{8}/;
 const customerController = {
     test:(req:any, res:any)=>{
         try {
-            const start = "09:24:00";
-            const end = "11:17:00";
+            const start = "2022-06-10T11:17:00";
+            const end = "2022-06-10T11:17:00";
             let stTime = DateTime.fromISO(start);
             let endT = DateTime.fromISO(end);
-            let diff = endT.diff(stTime, 'hours');
+            let result = stTime < endT;
             let i = 0 /60;
-            return res.status(400).json({message: i});
+            return res.status(400).json({message: DateTime.now()});
         }catch (e) {
             return res.status(400).json({error: "file_upload_failure", message: "Wrong file insert"});
         }

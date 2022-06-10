@@ -6,6 +6,7 @@ import server from '../index';
 import {queryCommands} from '../db/databaseCommands';
 import jwt from "jsonwebtoken";
 import {ObjectId} from "mongodb";
+import {DateTime} from "luxon";
 
 chai.should();
 chai.use(chaiHttp);
@@ -172,6 +173,9 @@ describe('Failed workshopShift insert', ()=>{
     })
 })
 
+
+const dateDummy = DateTime.now().minus({day:3}).toISODate();
+const availableD = DateTime.now().minus({day:1}).toISODate();
 const workshopsShift = {
     _id: new ObjectId("62a242ff67ffdef340ff0c95"),
     workshopId: new ObjectId("62a242e04cf01cbac99d7d0f"),
@@ -185,8 +189,8 @@ const workshopsShift = {
         city: "Haarlem",
         country: "Nederland"
     },
-    date: "2029-12-21",
-    availableUntil: "2022-09-01",
+    date: dateDummy,
+    availableUntil: availableD,
     startTime: "18:00",
     endTime: "22:00",
     hourRate: 35.50,
@@ -207,8 +211,8 @@ const workshopsShift2 = {
         city: "Haarlem",
         country: "Nederland"
     },
-    date: "2022-09-21",
-    availableUntil: "2022-06-01",
+    date: DateTime.now().plus({day:2}),
+    availableUntil: DateTime.now().plus({day:5}),
     startTime: "18:00",
     endTime: "22:00",
     hourRate: 35.50,
@@ -216,7 +220,7 @@ const workshopsShift2 = {
     breakTime: 0
 }
 
-const user = {_id: new ObjectId("62a39fa5dfb7a383d6edce09"), name: "TestBob", workshopPreferences: ["62a2434060f613b82112c12d", "62a242e04cf01cbac99d7d0f"]};
+const user = {_id: new ObjectId("62a39fa5dfb7a383d6edce09"), name: "TestBob", availableUntil: DateTime.now(), workshopPreferences: ["62a2434060f613b82112c12d", "62a242e04cf01cbac99d7d0f"]};
 describe('Retrieve workshops', ()=>{
     before(async ()=>{
         const col = await queryCommands.getShiftCollection();
@@ -253,7 +257,7 @@ describe('Retrieve workshops', ()=>{
         const authToken = jwt.sign({id: "62a39fa5dfb7a383d6edce09", role: "user"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
         chai.request(server).get('/api/workshop/shift').set({authorization: authToken}).end((err, res)=>{
             let { result } = res.body;
-            assert(result.length > 1);
+            assert(result.length >= 1);
             done();
         })
     })
@@ -277,8 +281,8 @@ describe('Retrieve workshops', ()=>{
                     city: "Haarlem",
                     country: "Nederland"
                 },
-                date: "2029-12-21",
-                availableUntil: "2022-09-01",
+                date: dateDummy,
+                availableUntil: availableD,
                 startTime: "18:00",
                 endTime: "22:00",
                 hourRate: 35.50,

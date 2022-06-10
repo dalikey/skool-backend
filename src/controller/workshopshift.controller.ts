@@ -102,21 +102,21 @@ let controller = {
             //Database command
             logger.info("Shift retrieval completed");
             const resultSet = await queryCommands.getAllShifts();
-            logger.info(resultSet);
             //Filter through preferences
             for (let i = 0; i < resultSet.length; i++) {
                 const code = resultSet[i].workshopId.toString();
-                logger.info("Filter");
                 //Checks if workshop is included in the queryFilters
-                if(queryFilters.includes(code) || queryFilters.length == 0){
-                    //Format results
-                    resultSet[i].client = resultSet[i].client[0];
-                    resultSet[i].workshop = resultSet[i].workshop[0];
-                    delete resultSet[i].clientId;
-                    delete resultSet[i].workshopId;
-                    logger.info("Filter continue");
+                if(resultSet[i].availableUntil > DateTime.now()){
+                    if(queryFilters.includes(code) || queryFilters.length == 0){
+                        //Format results
+                        resultSet[i].client = resultSet[i].client[0];
+                        resultSet[i].workshop = resultSet[i].workshop[0];
+                        delete resultSet[i].clientId;
+                        delete resultSet[i].workshopId;
+                    }
                     continue;
                 }
+
                 resultSet.splice(i, 1);
                 i--;
             }
@@ -140,7 +140,15 @@ let controller = {
         }
     }
     ,
-
+    //This is meant to be for the admin or owner, to manage all shifts.
+    async getAllShiftsForAdmin(req:any, res:any){
+      try {
+          const resultset = await queryCommands.getAllShifts();
+          res.status(200).json({result: resultset})
+      }  catch (e) {
+          return res.status(400).json({message: "retrieval_failure"});
+      }
+    },
     async updateShift(req:any, res: any){
         //Initialise variables
         const shiftId = req.params.shiftId;
