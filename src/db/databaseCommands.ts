@@ -250,7 +250,6 @@ export const queryCommands = {
         }
     },
     async getAllShifts(filter:any){
-       const queryFilter = { $in: filter};
        const agg = [
             {
                 '$lookup': {
@@ -282,9 +281,6 @@ export const queryCommands = {
                 }
             }
         ];
-        // @ts-ignore
-        // agg.push(queryFilter);
-
        try {
            const collection = await this.getShiftCollection();
            return await collection.aggregate(agg).toArray();
@@ -320,7 +316,7 @@ export const queryCommands = {
        }
 
     },
-    //Enrollments and participations
+    //Enrollments and participation
     async changeStatusEnrollmentParticipant(shiftId:string, userId:string, status: string){
         try {
             const collection = await this.getShiftCollection();
