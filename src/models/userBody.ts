@@ -19,7 +19,7 @@ export type userBody = {
     textCampaigns: boolean | undefined
     role: "user" | "admin" | "owner" | undefined
     levelPreference: string | undefined
-    contractType: "freelancer" | "full-time"
+    contractType: "freelancer" | "full-time" | undefined
 
     location: locationBody | undefined
     paymentInfo: paymentBody | undefined
@@ -115,6 +115,7 @@ export class User implements userBody {
         this.firstName = body.firstName
         this.levelPreference = body.levelPreference;
         try {
+            // @ts-ignore
             assert(['full-time', 'freelancer'].includes(body.contractType));
             this.contractType = body.contractType;
         } catch (err) {
@@ -148,7 +149,7 @@ export class User implements userBody {
     firstName: string | undefined;
     role: "user" | "owner" | "admin" | undefined
     levelPreference: string | undefined
-    contractType: "freelancer" | "full-time"
+    contractType: "freelancer" | "full-time" | undefined
 
 }
 
