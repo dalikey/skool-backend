@@ -65,7 +65,6 @@ export const queryCommands = {
         return connection.db(skoolWorkshop).collection(workshop);
     }
     ,
-
     //Database commands
     async getUser(id: ObjectId) {
         const projection = {password: 0};
@@ -81,7 +80,6 @@ export const queryCommands = {
         }
 
     },
-
     async getAllUsers(filter: any) {
         const projection = {_id: 1, firstName: 1, lastName: 1, emailAddress: 1, role: 1, isActive:1};
         Logger.info(projection);
@@ -95,7 +93,6 @@ export const queryCommands = {
             return {status: 500, error: err.message}
         }
     },
-
     async approveUser(id: ObjectId, approve: boolean) {
         try {
             const collection = await this.getUserCollection();
@@ -105,8 +102,7 @@ export const queryCommands = {
             return {status: 500, error: err.message}
         }
     },
-
-    //Retrieve user based on login body
+    //Login
     async loginUser(loginData: loginBody) {
         const projection = {_id: 1, firstName: 1, lastName: 1, emailAddress: 1, password: 1, role: 1, isActive:1};
         try {
@@ -116,8 +112,7 @@ export const queryCommands = {
         } catch (error:any) {
             return {error: "login_failure", message: error.message};
         }
-    }
-    ,
+    },
     async retrieveEmail(emailAddress: string){
         try {
             const projection = {_id: 1, emailAddress:1, firstName: 1, lastName: 1};
@@ -127,7 +122,7 @@ export const queryCommands = {
             return undefined;
         }
     },
-    //
+    //User and password update
     async updatePassword(userId: string, newPassword: string){
         const collection = await this.getUserCollection();
         try {
@@ -136,8 +131,7 @@ export const queryCommands = {
         } catch (e) {
             return null;
         }
-    }
-    ,
+    },
     async storeSecretKeyPR(emailAddress: string, token: string, secretKey:string){
        const collection = await this.getUserCollection();
        const filter = {emailAddress: emailAddress};
@@ -147,8 +141,7 @@ export const queryCommands = {
        } catch (err){
             return null;
        }
-    }
-    ,
+    },
     async selectTokenFromUser(token: string){
         const collection = await this.getUserCollection();
         const projection = {key: 1};
@@ -157,8 +150,7 @@ export const queryCommands = {
         } catch (err){
             return null;
         }
-    }
-    ,
+    },
     async removeSecretKey(userId:string){
         const collection = await this.getUserCollection();
         const filter = {_id: new ObjectId(userId)};
@@ -168,8 +160,7 @@ export const queryCommands = {
         } catch (e){
             return null;
         }
-    }
-    ,
+    },
     async registerUser(registrationData: registrationInsert) {
         const collection = await this.getUserCollection();
         try {
@@ -203,8 +194,8 @@ export const queryCommands = {
         } catch (err) {
             return false;
         }
-    }
-    ,
+    },
+    //Customers
     async insertCustomer(customerData: CustomerBody){
        const collection = await this.getCustomerCollection();
        try {
@@ -212,8 +203,7 @@ export const queryCommands = {
        } catch (e) {
            return {error: "insert_error", message: "Insert of customer went wrong"};
        }
-    }
-    ,
+    },
     async deleteCustomer(customerId: string){
        const collect = await this.getCustomerCollection();
        const query = {_id: new ObjectId(customerId)};
@@ -222,8 +212,7 @@ export const queryCommands = {
        }catch (e) {
            return null;
        }
-    }
-    ,
+    },
     async updateCustomer(customerId:string, customer: CustomerBody){
        const collection = await this.getCustomerCollection();
        const query = {_id: new ObjectId(customerId)};
@@ -232,8 +221,7 @@ export const queryCommands = {
         } catch (e) {
            return null;
         }
-    }
-    ,
+    },
     //TODO Improve queries with joins
     async getAllCustomers(){
         const collection = await this.getCustomerCollection();
@@ -242,8 +230,7 @@ export const queryCommands = {
         } catch (e) {
             return null;
         }
-    }
-    ,
+    },
     async getOneCustomer(customerId:string){
         const collection = await this.getCustomerCollection();
         const query = {_id: customerId};
@@ -252,8 +239,8 @@ export const queryCommands = {
         } catch (e) {
             return null;
         }
-    }
-    ,
+    },
+    //Shifts
     async insertOneWorkshopShift(workshopShift:WorkshopShiftBody){
         const collection = await this.getShiftCollection();
         try {
@@ -261,8 +248,7 @@ export const queryCommands = {
         }catch (e) {
             return null;
         }
-    }
-    ,
+    },
     async getAllShifts(){
        const collection = await this.getShiftCollection();
        try {
@@ -270,8 +256,7 @@ export const queryCommands = {
        }catch (e){
            return null;
        }
-    }
-    ,
+    },
     async getOneShift(shiftId: string){
        const collection = await this.getShiftCollection();
        try {
@@ -280,8 +265,7 @@ export const queryCommands = {
        }catch (e) {
            return null;
        }
-    }
-    ,
+    },
     async updateShift(shiftId:string, shift:any){
        const collection = await this.getShiftCollection();
        const query = {_id: new ObjectId(shiftId)};
@@ -290,8 +274,7 @@ export const queryCommands = {
        }catch (e) {
            return null;
        }
-    }
-    ,
+    },
     async deleteShift(shiftId: string){
        const collection = await this.getShiftCollection();
        const query = {_id:shiftId};
@@ -301,8 +284,8 @@ export const queryCommands = {
            return null;
        }
 
-    }
-    ,
+    },
+    //Enrollments and participations
     async changeStatusEnrollmentParticipant(shiftId:string, userId:string, status: string){
         try {
             const collection = await this.getShiftCollection();
@@ -312,8 +295,7 @@ export const queryCommands = {
         } catch (e){
             return null;
         }
-    }
-    ,
+    },
     async enrollToShift(shiftId: string, enrollmentObject: any){
        try {
            const collection = await this.getShiftCollection();
@@ -331,8 +313,7 @@ export const queryCommands = {
         } catch (e){
             return null;
         }
-    }
-    ,
+    },
     async cancelParticipation(shiftId:string, userId:string){
       try {
           const collection = await this.getShiftCollection();
@@ -351,7 +332,15 @@ export const queryCommands = {
             return null;
         }
     },
-
+    async deleteUnknownParticipant(shiftId: string, ExternalStatus:string, ExternalUserBody: any){
+        try {
+            const collection = await this.getShiftCollection();
+            const deleteQuery = {$pull: {participants: { emailAddress: ExternalUserBody.emailAddress } } };
+            return await collection.updateOne({_id: new ObjectId(shiftId)}, deleteQuery);
+        } catch (e) {
+            return null;
+        }
+    },
     async checkParticipationOfUser(shiftId: string, userId:string){
         try {
             const collection = await this.getShiftCollection();
@@ -361,7 +350,16 @@ export const queryCommands = {
             return null;
         }
     },
-
+    async enrollUnknownUser(unknownUserObject: any, shiftId: string){
+       try {
+           const collection = await this.getShiftCollection();
+           const pushQuery = {$push: {participants: unknownUserObject}};
+           return await collection.updateOne({_id: new ObjectId(shiftId)},pushQuery)
+       }catch (e) {
+           return null;
+       }
+    },
+    //Workshops
     async createWorkshop(workshop:workshopInsert){
         const collection = await this.getWorkshopCollection();
         try {

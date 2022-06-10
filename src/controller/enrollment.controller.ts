@@ -96,13 +96,21 @@ const controller = {
         const shiftId = req.params.shiftId;
         const status = "Rejected";
         try {
-            //Delete userId from participationlist.
-            await queryCommands.cancelParticipation(shiftId, userId);
-            //Change status in candidatelist to rejected.
-            await queryCommands.changeStatusEnrollmentParticipant(shiftId, userId, status);
-            res.status(201).json({message: "Participation has been canceled."});
+            //needs to check if userId is external or not
+            //If userId is external, it will delete unknown user
+            if(userId == "Extern"){
+                const externalBody = req.body;
+                await queryCommands.deleteUnknownParticipant(shiftId, userId, externalBody);
+                res.status(201).json({message: "Participation unknown user has been removed."});
+            } else{
+                //Delete userId from participationlist.
+                await queryCommands.cancelParticipation(shiftId, userId);
+                //Change status in candidatelist to rejected.
+                await queryCommands.changeStatusEnrollmentParticipant(shiftId, userId, status);
+                res.status(201).json({message: "Participation has been canceled."});
+            }
         } catch (e){
-
+            res.status(400).json({error: "participation_change_error", message: "Problems with change in participants"});
         }
     },
     async confirmEnrollmentToShift(req:any, res:any){
@@ -159,6 +167,31 @@ const controller = {
         //Remove candidate
 
         res.status(201).json({message: "User has been rejected from the workshop"})
+    }
+    ,
+    async addUnknownUserToParticipantList(req:any, res:any){
+        //Extern_Status, firstname, lastName, emailAddress, telefoon, tarief, formOfTime
+        const unknownUser = req.body;
+        const shiftId = req.params.shiftId;
+        //Checks input-validation of unknown user
+        try {
+           assert(typeof unknownUser.firstName == 'string');
+           assert(typeof unknownUser.lastName == 'string');
+           assert(typeof unknownUser.emailAddress == 'string');
+           assert(typeof unknownUser.telefoon == 'string');
+        } catch (e) {
+            return res.status(400).json({error: "input_error", message: "Missing inputfields"});
+        }
+        //Assigns Extern_Id
+        unknownUser.Extern_Status = "Extern";
+        try {
+            //Database command
+            await queryCommands.enrollUnknownUser(unknownUser, shiftId);
+            res.status(201).json({message: "Unknown user successfully registered in shift."});
+        }catch (e){
+            res.status(400).json({error: "database_error", message: "Enrollment of unknown user went wrong."});
+        }
+
     }
 }
 
