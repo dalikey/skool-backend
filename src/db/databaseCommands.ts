@@ -404,12 +404,12 @@ export const queryCommands = {
         }
     }
     ,
-    async getAllWorkshops(){
-        const collection = await this.getWorkshopCollection();
+    async getAllWorkshops(filter: any){
         try {
-            return await collection.find({}).toArray();
+            const collection = await this.getWorkshopCollection();
+            return await collection.find(filter).toArray();
         }catch (e){
-            return null;
+            return e;
         }
     }
 

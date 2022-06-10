@@ -31,9 +31,31 @@ export async function verifyInput(req: Request, res: Response, next: any) {
 }
 
 export async function getAllWorkshop(req: Request, res: Response) {
-    // @ts-ignore
-    const workshop = await queryCommands.getAllWorkshops();
-    res.status(200).send({ result: workshop });
+    const mongoQuery = {};
+    for (let key in req.query) {
+        if (["isActive", "name"].includes(key)) {
+            if (req.query[key] === 'true') {
+                // @ts-ignore
+                mongoQuery[key] = true
+            } else if (req.query[key] === 'false') {
+                // @ts-ignore
+                mongoQuery[key] = false;
+            } else if (req.query[key] === 'null') {
+                // @ts-ignore
+                mongoQuery[key] = {'$exists': false};
+            } else {
+                // @ts-ignore
+                mongoQuery[key] = `${req.query[key]}`;
+            }
+        }
+    }
+    try {
+        const workshop = await queryCommands.getAllWorkshops(mongoQuery);
+        res.status(200).send({ result: workshop });
+    }catch (e) {
+        res.status(400).send({ error:"data_retrieval_failure", message: "get all workshop failed to retrieve" });
+    }
+
 }
 
 
