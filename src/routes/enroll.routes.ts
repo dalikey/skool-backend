@@ -55,5 +55,4 @@ enrollRoutes.post('/api/workshop/shift/:shiftId/enroll/unknownUser',
     controller.validateAdminRole,
     enrollController.addUnknownUserToParticipantList
 )
-//TODO add unknown user to shift.
 export default enrollRoutes;
