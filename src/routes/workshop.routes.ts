@@ -14,6 +14,11 @@ workshopRouter.get('/api/workshop',
     controller.validateToken,
     workshopController.getAllWorkshop);
 
+//Deletes workshop - need to be tested.
+workshopRouter.get('/api/workshop/:workshopId/delete',
+    controller.validateToken,
+    controller.validateOwnerRole,
+    workshopController.deleteWorkshop);
 
 //Creates workshop
 workshopRouter.post('/api/workshop/add',

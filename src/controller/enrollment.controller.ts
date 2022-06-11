@@ -92,14 +92,14 @@ const controller = {
     }
     ,
     async putStatusOnDone(req: any, res: any){
-        const userId = res.params.userId;
+        const userId = req.params.userId;
         const shiftId = req.params.shiftId;
         const status = "Rejected";
         await queryCommands.changeStatusEnrollmentParticipant(shiftId, userId, status);
         res.status(201).json({message: "User has completed the shift"});
     },
     async cancelParticipation(req: any, res:any){
-        const userId = res.params.userId;
+        const userId = req.params.userId;
         const shiftId = req.params.shiftId;
         const status = "Rejected";
         try {
@@ -113,8 +113,8 @@ const controller = {
                 //Delete userId from participationlist.
                 await queryCommands.cancelParticipation(shiftId, userId);
                 //Change status in candidatelist to rejected.
-                await queryCommands.changeStatusEnrollmentParticipant(shiftId, userId, status);
-                res.status(201).json({message: "Participation has been canceled."});
+                const resultset = await queryCommands.changeStatusEnrollmentParticipant(shiftId, userId, status);
+                res.status(201).json({message: "Participation has been canceled.", result: resultset.value});
             }
         } catch (e){
             res.status(400).json({error: "participation_change_error", message: "Problems with change in participants"});
@@ -146,12 +146,12 @@ const controller = {
         }
     },
     async rejectEnrollment(req:any, res:any){
-        const userId = res.params.userId;
+        const userId = req.params.userId;
         const shiftId = req.params.shiftId;
         const status = "Rejected";
         try {
             //Changes status in candidateslist.
-            await queryCommands.changeStatusEnrollmentParticipant(shiftId, userId, status);
+            const enrollmentStatus = await queryCommands.changeStatusEnrollmentParticipant(shiftId, userId, status);
             // Sends confirmation mail.
             if (process.env.SMTP_SERVER) {
                 const registration = await queryCommands.getUser(new ObjectId(userId));
@@ -163,16 +163,19 @@ const controller = {
                     Wij hopen u spoedig te zien in de toekomst.`
                 });
             }
-            res.status(201).json({message: "User has been rejected from the workshop"})
+            res.status(201).json({message: "User has been rejected from the workshop", result: enrollmentStatus.value.candidates})
         }catch (e){
             res.status(400).json({message: "Failed database action"});
         }
     },
     async removeEnrollment(req:any, res:any){
         //Initialize variables
+        const userId = req.params.userId;
+        const shiftId = req.params.shiftId;
         //Remove participant
+        await queryCommands.cancelParticipation(shiftId, userId);
         //Remove candidate
-
+        await queryCommands.deleteEnrollment(shiftId, userId);
         res.status(201).json({message: "User has been rejected from the workshop"})
     }
     ,

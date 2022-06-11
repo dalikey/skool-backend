@@ -34,6 +34,7 @@ customerRoutes.put('/api/customer/:customerId',
 customerRoutes.get('/api/customer',
     controller.validateToken,
     customerController.getAllCustomers);
+
 //Get one customer
 //TODO Test need to be made
 customerRoutes.get('/api/customer/:customerId',
