@@ -62,7 +62,7 @@ export async function getAllWorkshop(req: Request, res: Response) {
 export async function createWorkshop(req: Request, res: Response) {
     //Initialize workshop(activity)
     const newWorkshop = req.body;
-    const work: workshopInsert = {name: newWorkshop.name, content: newWorkshop.content, materials: newWorkshop.materials};
+    const work: workshopInsert = {name: newWorkshop.name, content: newWorkshop.content, materials: newWorkshop.materials, isActive: true};
     //Database command
     const insert = await queryCommands.createWorkshop(work);
 
