@@ -11,7 +11,20 @@ import {DateTime} from "luxon";
 
 chai.should();
 chai.use(chaiHttp);
-
+const emptyShift = {_id: new ObjectId("62a4607c4540f4612588a42f"), maximumParticipants: 2, participants: [], candidates: [
+        {userId: new ObjectId("62a4617f33427f5d3fe48f55"), shiftId: new ObjectId("62a4607c4540f4612588a42f"), status: "Pending"},
+        {userId: new ObjectId("62a4607c4540f4612588a42f"), shiftId: new ObjectId("62a4607c4540f4612588a42f"), status: "Pending"}
+    ]};
+const fullShift = {_id: new ObjectId("62a4626bd8951db31e6ca14d"), maximumParticipants: 1, participants: [new ObjectId("62a4617f33427f5d3fe48f55")],
+    candidates: [{userId: new ObjectId("62a4617f33427f5d3fe48f55"), shiftId: new ObjectId("62a4626bd8951db31e6ca14d"), status: "Current"},  {userId: new ObjectId("62a464ceafbae637a6aad1f4"), shiftId: new ObjectId("62a4626bd8951db31e6ca14d"), status: "Pending"}]};
+const shiftWithDuplication= {_id: new ObjectId("62a465586e5066876d3155fc"), maximumParticipants: 2, participants: [new ObjectId("62a4617f33427f5d3fe48f55")],
+    candidates: [
+        {userId: new ObjectId("62a4617f33427f5d3fe48f55"), shiftId: new ObjectId("62a465586e5066876d3155fc"), status: "Current"},
+        {userId: new ObjectId("62a464ceafbae637a6aad1f4"), shiftId: new ObjectId("62a465586e5066876d3155fc"), status: "Pending"}
+    ]};
+const user11 = {_id: new ObjectId("62a4607c4540f4612588a42f"), firstName: "Eline", lastName: "Sebastiaan", emailAddress: "email@example.com"};
+const user12 = {_id: new ObjectId("62a464ceafbae637a6aad1f4"), firstName: "Eline", lastName: "Sebastiaan", emailAddress: "email@example.com"};
+const user13 = {_id: new ObjectId("62a4617f33427f5d3fe48f55"), firstName: "Eline", lastName: "Sebastiaan", emailAddress: "email@example.com"};
 describe('Enroll to workshop', ()=>{
     before(async ()=>{
         const collection = await queryCommands.getShiftCollection();
@@ -113,22 +126,6 @@ describe('Enroll to workshop', ()=>{
         await collection.deleteMany({_id: new ObjectId("62a213d47782483d77ab0dc5")});
     })
 })
-const emptyShift = {_id: new ObjectId("62a4607c4540f4612588a42f"), maximumParticipants: 2, participants: [], candidates: [
-        {userId: new ObjectId("62a4617f33427f5d3fe48f55"), shiftId: new ObjectId("62a4607c4540f4612588a42f"), status: "Pending"},
-        {userId: new ObjectId("62a4607c4540f4612588a42f"), shiftId: new ObjectId("62a4607c4540f4612588a42f"), status: "Pending"}
-    ]};
-const fullShift = {_id: new ObjectId("62a4626bd8951db31e6ca14d"), maximumParticipants: 1, participants: [new ObjectId("62a4617f33427f5d3fe48f55")],
-    candidates: [
-        {userId: new ObjectId("62a4617f33427f5d3fe48f55"), shiftId: new ObjectId("62a4626bd8951db31e6ca14d"), status: "Current"},
-        {userId: new ObjectId("62a464ceafbae637a6aad1f4"), shiftId: new ObjectId("62a4626bd8951db31e6ca14d"), status: "Pending"}
-    ]};
-
-const shiftWithDuplication= {_id: new ObjectId("62a465586e5066876d3155fc"), maximumParticipants: 2, participants: [new ObjectId("62a4617f33427f5d3fe48f55")],
-    candidates: [
-        {userId: new ObjectId("62a4617f33427f5d3fe48f55"), shiftId: new ObjectId("62a465586e5066876d3155fc"), status: "Current"},
-        {userId: new ObjectId("62a464ceafbae637a6aad1f4"), shiftId: new ObjectId("62a465586e5066876d3155fc"), status: "Pending"}
-    ]};
-const user11 = {_id: new ObjectId("62a4607c4540f4612588a42f"), firstName: "Eline", lastName: "Sebastiaan", emailAddress: "email@example.com"};
 describe('Confirmation enrollment', ()=>{
 
     before(async ()=>{
@@ -204,6 +201,116 @@ describe('Confirmation enrollment', ()=>{
                         {userId: "62a4617f33427f5d3fe48f55", shiftId: "62a4607c4540f4612588a42f", status: "Pending"},
                         {userId: "62a4607c4540f4612588a42f", shiftId: "62a4607c4540f4612588a42f", status: "Current"}
                     ]});
+                done();
+            })
+    })
+})
+describe('Cancel user participation to shift', ()=>{
+    before(async ()=>{
+        const collection = await queryCommands.getShiftCollection();
+        const userCollect = await queryCommands.getUserCollection();
+        await collection.insertMany([emptyShift, fullShift, shiftWithDuplication])
+        await userCollect.insertOne(user13);
+    })
+    after(async ()=>{
+        const collection = await queryCommands.getShiftCollection();
+        const userCollect = await queryCommands.getUserCollection();
+        await collection.deleteOne({_id: new ObjectId("62a4607c4540f4612588a42f")});
+        await collection.deleteOne({_id: new ObjectId("62a4626bd8951db31e6ca14d")});
+        await collection.deleteOne({_id: new ObjectId("62a465586e5066876d3155fc")});
+        await userCollect.deleteOne(user13);
+    })
+
+    it('No token to cancel participation', (done)=>{
+        chai.request(server)
+            .put("/api/workshop/shift/62a4626bd8951db31e6ca14d/enroll/62a4617f33427f5d3fe48f55/canceled")
+            .end((err, res)=>{
+                let {error, message}= res.body;
+                error.should.be.equal("unauthorized");
+                message.should.be.equal("You need to provide authorization for this endpoint!");
+                done();
+            })
+    })
+    it('Not the authorization to cancel participation', (done)=>{
+        const authToken = jwt.sign({role: "user"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+        chai.request(server)
+            .put("/api/workshop/shift/62a4626bd8951db31e6ca14d/enroll/62a4617f33427f5d3fe48f55/canceled")
+            .set({authorization:authToken})
+            .end((err, res)=>{
+                let {error, message}= res.body;
+                error.should.be.equal("unauthorized");
+                message.should.be.equal("You do not have the right authority.");
+                done();
+            })
+    })
+    it('Successfully canceled participation', (done)=>{
+        const authToken = jwt.sign({role: "admin"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+        chai.request(server)
+            .put("/api/workshop/shift/62a465586e5066876d3155fc/enroll/62a4617f33427f5d3fe48f55/canceled")
+            .set({authorization:authToken})
+            .end((err, res)=>{
+                let {message, result}= res.body;
+                message.should.be.equal("Participation has been canceled.");
+                assert.deepEqual(result, {_id: "62a465586e5066876d3155fc", maximumParticipants: 2, participants: [],
+                    candidates: [
+                        {userId: "62a4617f33427f5d3fe48f55", shiftId: "62a465586e5066876d3155fc", status: "Rejected"},
+                        {userId:"62a464ceafbae637a6aad1f4", shiftId: "62a465586e5066876d3155fc", status: "Pending"}
+                    ]})
+                done();
+            })
+    })
+})
+describe('Reject user enrollment to shift', ()=>{
+    before(async ()=>{
+        const collection = await queryCommands.getShiftCollection();
+        const userCollect = await queryCommands.getUserCollection();
+        await collection.insertMany([emptyShift, fullShift, shiftWithDuplication])
+        await userCollect.insertOne(user12);
+    })
+    after(async ()=>{
+        const collection = await queryCommands.getShiftCollection();
+        const userCollect = await queryCommands.getUserCollection();
+        await collection.deleteOne({_id: new ObjectId("62a4607c4540f4612588a42f")});
+        await collection.deleteOne({_id: new ObjectId("62a4626bd8951db31e6ca14d")});
+        await collection.deleteOne({_id: new ObjectId("62a465586e5066876d3155fc")});
+        await userCollect.deleteOne(user12);
+    })
+
+    it('No token to reject enrollment', (done)=>{
+        chai.request(server)
+            .put("/api/workshop/shift/62a4626bd8951db31e6ca14d/enroll/62a4617f33427f5d3fe48f55/rejected")
+            .end((err, res)=>{
+                let {error, message}= res.body;
+                error.should.be.equal("unauthorized");
+                message.should.be.equal("You need to provide authorization for this endpoint!");
+                done();
+            })
+    })
+    it('Not the authorization to reject enrollment', (done)=>{
+        const authToken = jwt.sign({role: "user"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+        chai.request(server)
+            .put("/api/workshop/shift/62a4626bd8951db31e6ca14d/enroll/62a4617f33427f5d3fe48f55/rejected")
+            .set({authorization:authToken})
+            .end((err, res)=>{
+                let {error, message}= res.body;
+                error.should.be.equal("unauthorized");
+                message.should.be.equal("You do not have the right authority.");
+                done();
+            })
+    })
+
+    it('Successfully rejected enrollment', (done)=>{
+        const authToken = jwt.sign({role: "admin"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+        chai.request(server)
+            .put("/api/workshop/shift/62a465586e5066876d3155fc/enroll/62a464ceafbae637a6aad1f4/rejected")
+            .set({authorization:authToken})
+            .end((err, res)=>{
+                let {message, result}= res.body;
+                message.should.be.equal("User has been rejected from the workshop");
+                assert.deepEqual(result, [
+                    {userId: "62a4617f33427f5d3fe48f55", shiftId: "62a465586e5066876d3155fc", status: "Current"},
+                    {userId: "62a464ceafbae637a6aad1f4", shiftId: "62a465586e5066876d3155fc", status: "Rejected"}
+                ])
                 done();
             })
     })

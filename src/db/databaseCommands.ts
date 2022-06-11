@@ -328,8 +328,9 @@ export const queryCommands = {
         try {
             const collection = await this.getShiftCollection();
             const changeStatusQuery = {$set: {"candidates.$.status": status}};
+            const projection = {_id: 1, candidates: 1};
             const query = {_id: new ObjectId(shiftId),"candidates.userId": new ObjectId(userId)};
-            return await collection.updateOne(query, changeStatusQuery);
+            return await collection.findOneAndUpdate(query, changeStatusQuery, { returnDocument: 'after' });
         } catch (e){
             return null;
         }
