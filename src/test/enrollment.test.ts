@@ -113,3 +113,98 @@ describe('Enroll to workshop', ()=>{
         await collection.deleteMany({_id: new ObjectId("62a213d47782483d77ab0dc5")});
     })
 })
+const emptyShift = {_id: new ObjectId("62a4607c4540f4612588a42f"), maximumParticipants: 2, participants: [], candidates: [
+        {userId: new ObjectId("62a4617f33427f5d3fe48f55"), shiftId: new ObjectId("62a4607c4540f4612588a42f"), status: "Pending"},
+        {userId: new ObjectId("62a4607c4540f4612588a42f"), shiftId: new ObjectId("62a4607c4540f4612588a42f"), status: "Pending"}
+    ]};
+const fullShift = {_id: new ObjectId("62a4626bd8951db31e6ca14d"), maximumParticipants: 1, participants: [new ObjectId("62a4617f33427f5d3fe48f55")],
+    candidates: [
+        {userId: new ObjectId("62a4617f33427f5d3fe48f55"), shiftId: new ObjectId("62a4626bd8951db31e6ca14d"), status: "Current"},
+        {userId: new ObjectId("62a464ceafbae637a6aad1f4"), shiftId: new ObjectId("62a4626bd8951db31e6ca14d"), status: "Pending"}
+    ]};
+
+const shiftWithDuplication= {_id: new ObjectId("62a465586e5066876d3155fc"), maximumParticipants: 2, participants: [new ObjectId("62a4617f33427f5d3fe48f55")],
+    candidates: [
+        {userId: new ObjectId("62a4617f33427f5d3fe48f55"), shiftId: new ObjectId("62a465586e5066876d3155fc"), status: "Current"},
+        {userId: new ObjectId("62a464ceafbae637a6aad1f4"), shiftId: new ObjectId("62a465586e5066876d3155fc"), status: "Pending"}
+    ]};
+const user11 = {_id: new ObjectId("62a4607c4540f4612588a42f"), firstName: "Eline", lastName: "Sebastiaan", emailAddress: "email@example.com"};
+describe('Confirmation enrollment', ()=>{
+
+    before(async ()=>{
+        const collection = await queryCommands.getShiftCollection();
+        const userCollect = await queryCommands.getUserCollection();
+        await collection.insertMany([emptyShift, fullShift, shiftWithDuplication])
+        await userCollect.insertOne(user11);
+    })
+    after(async ()=>{
+        const collection = await queryCommands.getShiftCollection();
+        const userCollect = await queryCommands.getUserCollection();
+        await collection.deleteOne({_id: new ObjectId("62a4607c4540f4612588a42f")});
+        await collection.deleteOne({_id: new ObjectId("62a4626bd8951db31e6ca14d")});
+        await collection.deleteOne({_id: new ObjectId("62a465586e5066876d3155fc")});
+        await userCollect.deleteOne(user11);
+    })
+
+    it('No token', (done)=>{
+        chai.request(server)
+            .put("/api/workshop/shift/62a4626bd8951db31e6ca14d/enroll/62a4617f33427f5d3fe48f55/confirm")
+            .end((err, res)=>{
+                let {error, message}= res.body;
+                error.should.be.equal("unauthorized");
+                message.should.be.equal("You need to provide authorization for this endpoint!");
+                done();
+        })
+    })
+    it('Not the authorization', (done)=>{
+        const authToken = jwt.sign({role: "user"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+        chai.request(server)
+            .put("/api/workshop/shift/62a4626bd8951db31e6ca14d/enroll/62a4617f33427f5d3fe48f55/confirm")
+            .set({authorization:authToken})
+            .end((err, res)=>{
+                let {error, message}= res.body;
+                error.should.be.equal("unauthorized");
+                message.should.be.equal("You do not have the right authority.");
+                done();
+            })
+    })
+    it('Full shift, cannot add one more', (done)=>{
+        const authToken = jwt.sign({role: "admin"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+        chai.request(server)
+            .put("/api/workshop/shift/62a4626bd8951db31e6ca14d/enroll/62a464ceafbae637a6aad1f4/confirm")
+            .set({authorization:authToken})
+            .end((err, res)=>{
+                let {error, message}= res.body;
+                error.should.be.equal("limit_reached");
+                message.should.be.equal("maximum amount of participants reached.");
+                done();
+            })
+    })
+    it('Duplication', (done)=>{
+        const authToken = jwt.sign({role: "admin"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+        chai.request(server)
+            .put("/api/workshop/shift/62a465586e5066876d3155fc/enroll/62a4617f33427f5d3fe48f55/confirm")
+            .set({authorization:authToken})
+            .end((err, res)=>{
+                let {error, message}= res.body;
+                error.should.be.equal("already_participated");
+                message.should.be.equal("user has already been enrolled to this shift");
+                done();
+            })
+    })
+    it('Successfull confirmation', (done)=>{
+        const authToken = jwt.sign({role: "admin"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+        chai.request(server)
+            .put("/api/workshop/shift/62a4607c4540f4612588a42f/enroll/62a4607c4540f4612588a42f/confirm")
+            .set({authorization:authToken})
+            .end((err, res)=>{
+                let {message, result}= res.body;
+                message.should.be.equal("User has been confirmed to be part of this shift.");
+                assert.deepEqual(result, {_id: "62a4607c4540f4612588a42f", maximumParticipants: 2, participants: ["62a4607c4540f4612588a42f"], candidates: [
+                        {userId: "62a4617f33427f5d3fe48f55", shiftId: "62a4607c4540f4612588a42f", status: "Pending"},
+                        {userId: "62a4607c4540f4612588a42f", shiftId: "62a4607c4540f4612588a42f", status: "Current"}
+                    ]});
+                done();
+            })
+    })
+})

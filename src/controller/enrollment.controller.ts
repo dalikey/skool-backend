@@ -4,6 +4,8 @@ import {WorkshopShiftBody} from "../models/workshopShiftBody";
 import {ObjectId} from "mongodb";
 import time, {DateTime, Duration} from 'luxon';
 import nodemailer, {Transporter} from "nodemailer";
+import dotEnv from 'dotenv'
+dotEnv.config();
 let transporter: Transporter;
 
 if (process.env.SMTP_SERVER) {
@@ -62,14 +64,19 @@ const controller = {
     }
     ,
     async checkParticipationDuplication(req:any, res:any, next:any){
-        const userId = res.params.userId;
+        const userId = req.params.userId;
         const shiftId = req.params.shiftId;
-        const result = await queryCommands.checkParticipationOfUser(shiftId, userId);
-        if(result){
-            res.status(400).json({error: "already_participated", message: "user has already been enrolled to this shift"});
-        } else{
-            next();
+        try {
+            const result = await queryCommands.checkParticipationOfUser(shiftId, userId);
+            if(result){
+                res.status(400).json({error: "already_participated", message: "user has already been enrolled to this shift"});
+            } else{
+                next();
+            }
+        }catch (e){
+            res.status(400).json({error: "data_error", message: "retrieval has failed"});
         }
+
     }
     ,
     async enrollToShift(req: any, res: any){
@@ -114,14 +121,14 @@ const controller = {
         }
     },
     async confirmEnrollmentToShift(req:any, res:any){
-        const userId = res.params.userId;
+        const userId = req.params.userId;
         const shiftId = req.params.shiftId;
         const status = "Current"
         try {
-            //Adds participant to participant list.
-            const enroll = await queryCommands.confirmParticipation(shiftId, userId);
             //Changes status in candidateslist.
             const changeStatus = await queryCommands.changeStatusEnrollmentParticipant(shiftId, userId, status);
+            //Adds participant to participant list.
+            const enroll = await queryCommands.confirmParticipation(shiftId, userId);
             // Sends confirmation mail.
             if (process.env.SMTP_SERVER) {
                 const registration = await queryCommands.getUser(new ObjectId(userId));
@@ -133,7 +140,7 @@ const controller = {
                     Wij hopen u spoedig te zien op uw dienst.`
                 });
             }
-            res.status(201).json({message: "User has been confirmed to be part of this shift."})
+            res.status(201).json({message: "User has been confirmed to be part of this shift.", result: enroll.value})
         }catch (e){
             res.status(400).json({message: "Failure enrollment"});
         }
