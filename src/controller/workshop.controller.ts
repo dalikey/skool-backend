@@ -69,9 +69,20 @@ export async function createWorkshop(req: Request, res: Response) {
     res.status(201).send({ message: "Workshop successfully created."});
 }
 
+export async function deleteWorkshop(req: Request, res: Response){
+    const workshopId = req.params.workshopId;
+    await queryCommands.deleteWorkshop(workshopId);
+    res.status(200).send({message: "Deletion has completed"});
+}
 
+export async function updateWorkshop(req: Request, res: Response){
+    const workshopId = req.params.workshopId;
+    const newWorkshop = req.body;
+
+}
 export default {
     verifyInput,
     getAllWorkshop,
     createWorkshop,
+    deleteWorkshop
 };

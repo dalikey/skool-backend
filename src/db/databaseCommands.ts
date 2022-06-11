@@ -216,14 +216,13 @@ export const queryCommands = {
     },
     async updateCustomer(customerId:string, customer: CustomerBody){
        const collection = await this.getCustomerCollection();
-       const query = {_id: new ObjectId(customerId)};
+       const query = { _id: new ObjectId(customerId)};
        try {
-           return await collection.replaceOne(query, customer);
+           return await collection.replaceOne(query, {$set: customer});
         } catch (e) {
            return null;
         }
     },
-    //TODO Improve queries with joins
     async getAllCustomers(){
         const collection = await this.getCustomerCollection();
         try {
@@ -305,10 +304,19 @@ export const queryCommands = {
        }
     },
     async updateShift(shiftId:string, shift:any){
-       const collection = await this.getShiftCollection();
-       const query = {_id: new ObjectId(shiftId)};
        try {
-           return await collection.replaceOne(query, shift);
+           const collection = await this.getShiftCollection();
+           const query = {_id: new ObjectId(shiftId)};
+           const updateQuery = {$set:{workshopId: shift.workshopId, clientId: shift.clientId, location: shift.location, date: shift.date, availableUntil: shift.availableUntil,
+               maximumParticipants: shift.maximumParticipants,
+               extraInfo: shift.extraInfo,
+               level: shift.level,
+               targetAudience: shift.targetAudience,
+               timestamps: shift.timestamps,
+               tariff: shift.rate,
+               total_Amount: shift.totalTariff,
+               formOfTime: shift.formOfTime }};
+           return await collection.findOneAndUpdate(query, updateQuery);
        }catch (e) {
            return null;
        }
@@ -399,6 +407,14 @@ export const queryCommands = {
            return null;
        }
     },
+    async deleteEnrollment(shiftId: string, userId:string){
+       try {
+           const collection = await this.getShiftCollection();
+           return await collection.updateOne({_id: new ObjectId(shiftId)}, {$pull: {candidates: {userId: new ObjectId(userId)}}});
+       }catch (e) {
+           return null;
+       }
+    },
     //Workshops
     async createWorkshop(workshop:workshopInsert){
         const collection = await this.getWorkshopCollection();
@@ -407,8 +423,7 @@ export const queryCommands = {
         }catch (e){
             return null;
         }
-    }
-    ,
+    },
     async getAllWorkshops(filter: any){
         try {
             const collection = await this.getWorkshopCollection();
@@ -416,6 +431,15 @@ export const queryCommands = {
         }catch (e){
             return e;
         }
-    }
+    },
+    async deleteWorkshop(workshopId: string){
+       try {
+           const collect = await this.getWorkshopCollection();
+           return await collect.deleteOne({_id: new ObjectId(workshopId)});
+       }catch (e) {
+           return null;
+       }
+    },
+    async changeStatusWorkshop(workshopId:string, status:boolean){},
 
 }

@@ -92,7 +92,7 @@ const controller = {
     }
     ,
     async putStatusOnDone(req: any, res: any){
-        const userId = res.params.userId;
+        const userId = req.params.userId;
         const shiftId = req.params.shiftId;
         const status = "Rejected";
         await queryCommands.changeStatusEnrollmentParticipant(shiftId, userId, status);
@@ -170,9 +170,12 @@ const controller = {
     },
     async removeEnrollment(req:any, res:any){
         //Initialize variables
+        const userId = req.params.userId;
+        const shiftId = req.params.shiftId;
         //Remove participant
+        await queryCommands.cancelParticipation(shiftId, userId);
         //Remove candidate
-
+        await queryCommands.deleteEnrollment(shiftId, userId);
         res.status(201).json({message: "User has been rejected from the workshop"})
     }
     ,
