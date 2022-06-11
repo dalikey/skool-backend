@@ -328,7 +328,7 @@ export const queryCommands = {
         try {
             const collection = await this.getShiftCollection();
             const changeStatusQuery = {$set: {"candidates.$.status": status}};
-            const query = {_id: new ObjectId(shiftId),"candidates._id": new ObjectId(userId)};
+            const query = {_id: new ObjectId(shiftId),"candidates.userId": new ObjectId(userId)};
             return await collection.updateOne(query, changeStatusQuery);
         } catch (e){
             return null;
@@ -347,7 +347,7 @@ export const queryCommands = {
         try {
             const collection = await this.getShiftCollection();
             const pushQuery = {$push: {participants: new ObjectId(userId)}};
-            return await collection.updateOne({_id: new ObjectId(shiftId)}, pushQuery);
+            return await collection.findOneAndUpdate({_id: new ObjectId(shiftId)}, pushQuery, { returnDocument: 'after' });
         } catch (e){
             return null;
         }
@@ -382,9 +382,10 @@ export const queryCommands = {
     async checkParticipationOfUser(shiftId: string, userId:string){
         try {
             const collection = await this.getShiftCollection();
-            const filterEmbeddedObjectQuery = {userId: new ObjectId(userId), shiftId: new ObjectId(shiftId)};
+            const filterEmbeddedObjectQuery = new ObjectId(userId);
             return await collection.findOne({_id: new ObjectId(shiftId), participants: filterEmbeddedObjectQuery });
         } catch (e){
+            logger.info(e);
             return null;
         }
     },
