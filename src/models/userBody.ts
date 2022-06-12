@@ -82,9 +82,13 @@ export class User implements userBody {
         }
         try {
             // @ts-ignore
-            const number = phoneUtil.PhoneNumberUtil.getInstance().parseAndKeepRawInput(body.mobileNumber);
-            if (phoneUtil.PhoneNumberUtil.getInstance().isValidNumber(number)) {
+            if (body.mobileNumber.match(/(06)(\s|\-|)\d{8}|31(\s6|\-6|6)\d{8}/)) {
                 this.mobileNumber = body.mobileNumber;
+            } else {
+                const number = phoneUtil.PhoneNumberUtil.getInstance().parseAndKeepRawInput(body.mobileNumber);
+                if (phoneUtil.PhoneNumberUtil.getInstance().isValidNumber(number)) {
+                    this.mobileNumber = body.mobileNumber;
+                }
             }
         } catch (err) {
             this.rejected.push("mobileNumber")
