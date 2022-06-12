@@ -1,6 +1,6 @@
 import express from 'express';
-import workshopController, {getAllWorkshop} from '../controller/workshop.controller';
-import {controller} from '../controller/authorization.controller';
+import workshopController from '../controller/workshop.controller';
+import { controller } from '../controller/authorization.controller';
 
 const workshopRouter = express.Router();
 
@@ -9,23 +9,36 @@ const workshopRouter = express.Router();
 //     controller.validateToken,
 //     workshopController.getAllWorkshop
 // );
-//Gets all workshops
-workshopRouter.get('/api/workshop',
-    controller.validateToken,
-    workshopController.getAllWorkshop);
 
-//Deletes workshop - need to be tested.
-workshopRouter.get('/api/workshop/:workshopId/delete',
+//Gets all workshops
+workshopRouter.get(
+    '/api/workshop',
     controller.validateToken,
-    controller.validateOwnerRole,
-    workshopController.deleteWorkshop);
+    workshopController.getAllWorkshop
+);
 
 //Creates workshop
-workshopRouter.post('/api/workshop/add',
+workshopRouter.post(
+    '/api/workshop/add',
     controller.validateToken,
     controller.validateOwnerRole,
     // workshopController.handleFileInput,
     workshopController.verifyInput,
-    workshopController.createWorkshop);
+    workshopController.createWorkshop
+);
+
+//Update workshop - need to be tested.
+workshopRouter.put(
+    '/api/workshop/:workshopId',
+    controller.validateToken,
+    workshopController.updateWorkshop
+);
+
+//Deletes workshop - need to be tested.
+workshopRouter.delete(
+    '/api/workshop/:workshopId',
+    controller.validateToken,
+    workshopController.deleteWorkshop
+);
 
 export default workshopRouter;

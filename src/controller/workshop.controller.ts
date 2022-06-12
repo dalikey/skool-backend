@@ -84,5 +84,6 @@ export default {
     verifyInput,
     getAllWorkshop,
     createWorkshop,
-    deleteWorkshop
+    deleteWorkshop,
+    updateWorkshop
 };
