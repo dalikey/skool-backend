@@ -215,10 +215,11 @@ export const queryCommands = {
        }
     },
     async updateCustomer(customerId:string, customer: CustomerBody){
-       const collection = await this.getCustomerCollection();
-       const query = { _id: new ObjectId(customerId)};
+
        try {
-           return await collection.replaceOne(query, {$set: customer});
+           const collection = await this.getCustomerCollection();
+           const query = { _id: new ObjectId(customerId)};
+           return await collection.findOneAndUpdate(query, {$set: customer}, { returnDocument: 'after' });
         } catch (e) {
            return null;
         }
@@ -233,7 +234,7 @@ export const queryCommands = {
     },
     async getOneCustomer(customerId:string){
         const collection = await this.getCustomerCollection();
-        const query = {_id: customerId};
+        const query = {_id: new ObjectId(customerId)};
         try {
             return await collection.findOne(query);
         } catch (e) {
@@ -273,21 +274,20 @@ export const queryCommands = {
                     'foreignField': '_id',
                     'as': 'participants'
                 }
-            }, {
+            },{
                 '$lookup': {
                     'from': 'user',
-                    'localField': 'candidates',
+                    'localField': 'candidates.userId',
                     'foreignField': '_id',
-                    'as': 'candidates'
+                    'as': 'candidatesList'
                 }
             }
         ];
-        logger.info("Aggregation setup completed");
        try {
            logger.info("Retrieval from database started");
            const collection = await this.getShiftCollection();
-           logger.info("Aggregation setup");
-           return await collection.aggregate(agg).toArray();
+           const res = await collection.aggregate(agg).toArray();
+           return res;
        }catch (e){
            logger.info("Something went wrong with retrieval");
            logger.info(e);

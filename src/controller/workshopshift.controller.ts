@@ -2,7 +2,7 @@ import {queryCommands} from "../db/databaseCommands";
 import assert from "assert";
 import {WorkshopShiftBody} from "../models/workshopShiftBody";
 import {ObjectId} from "mongodb";
-import time, {DateTime, Duration} from 'luxon';
+import {DateTime} from 'luxon';
 import logger from 'js-logger'
 
 let controller = {
@@ -93,36 +93,38 @@ let controller = {
             logger.info("User retrieval for getAllShifts has started");
             const user = await queryCommands.getUser(new ObjectId(userId.id));
             logger.info(user);
-            logger.info("User retrieval for getAllShifts has ended");
             //Converts each workshop objectId-string to objectId
             if(user.workshopPreferences){
                 queryFilters = user.workshopPreferences;
             }
             logger.info("Queryset completed");
             //Database command
-            logger.info("Shift retrieval completed");
             const resultSet = await queryCommands.getAllShifts();
+            const shiftList = [];
             //Filter through preferences
             for (let i = 0; i < resultSet.length; i++) {
+                //Puts workshop
                 const code = resultSet[i].workshopId.toString();
                 //Checks if workshop is included in the queryFilters
                 if(resultSet[i].availableUntil > DateTime.now()){
+                    //Checks if workshop
                     if(queryFilters.includes(code) || queryFilters.length == 0){
+                        //Puts candidatesprofile in candidate of the corresponding shift
+                        const userList = resultSet[i].candidatesList;
+                        for (let j = 0; j < userList.length; j++) {
+                            resultSet[i].candidates[j].profile = userList[j];
+                        }
                         //Format results
                         resultSet[i].client = resultSet[i].client[0];
                         resultSet[i].workshop = resultSet[i].workshop[0];
                         delete resultSet[i].clientId;
                         delete resultSet[i].workshopId;
+                        shiftList.push(resultSet[i]);
                     }
-                    continue;
                 }
-
-                resultSet.splice(i, 1);
-                i--;
             }
             logger.info("Send result to set");
-            logger.info(resultSet);
-            res.status(200).json({result: resultSet});
+            res.status(200).json({result: shiftList});
         }catch (e) {
             logger.error("resultSet is not well retrieved");
             logger.error(e);
