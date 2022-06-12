@@ -284,12 +284,10 @@ export const queryCommands = {
             },
            {
                '$project': {
-                   'candidateUsers.emailAddress': 1,
-                   'candidateUsers.firstName': 1,
-                   'candidateUsers.lastName': 1,
-                   'participantUsers.emailAddress': 1,
-                   'participantUsers.firstName': 1,
-                   'participantUsers.lastName': 1
+                   'candidateUsers.password': 0,
+                   'candidateUsers.passwordResetToken': 0,
+                   'participantUsers.password': 0,
+                   'participantUsers.passwordResetToken': 0,
                }
            }
         ];

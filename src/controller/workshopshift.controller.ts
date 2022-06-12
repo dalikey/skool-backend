@@ -98,8 +98,10 @@ let controller = {
                 queryFilters = user.workshopPreferences;
             }
             logger.info("Queryset completed");
+
             //Database command
             const resultSet = await queryCommands.getAllShifts();
+            logger.debug(resultSet)
             const shiftList = [];
             //Filter through preferences
             for (let i = 0; i < resultSet.length; i++) {
@@ -110,7 +112,7 @@ let controller = {
                     //Checks if workshop
                     if(queryFilters.includes(code) || queryFilters.length == 0){
                         //Puts candidatesprofile in candidate of the corresponding shift
-                        const userList = resultSet[i].candidatesList;
+                        const userList = resultSet[i].candidateUsers;
                         for (let j = 0; j < userList.length; j++) {
                             resultSet[i].candidates[j].profile = userList[j];
                         }
