@@ -4,6 +4,12 @@ import jwt from "jsonwebtoken";
 import Logger from "js-logger";
 import { ObjectId } from "mongodb";
 import nodemailer, {Transporter} from 'nodemailer';
+import {User, userBody} from "../models/userBody";
+import assert from "assert";
+import {authorizationMethods} from "./authorization.controller";
+import {capitalRegex, digitRegex} from "./registration.controller";
+import fileUpload from "express-fileupload";
+
 
 let transporter: Transporter;
 if (process.env.SMTP_SERVER) {
@@ -19,15 +25,30 @@ if (process.env.SMTP_SERVER) {
 }
 
 
-export async function getUser(req: Request, res: Response, next: any) {
+export async function getUser(req: Request, res: Response) {
     // @ts-ignore
-    const user = await queryCommands.getUser(ObjectId(res.locals.decodedToken.id));
+    try {
+        assert (req.params.userId)
+        if (res.locals.decodedToken.role === 'admin' || res.locals.decodedToken.role === 'owner') {
+            const user = await queryCommands.getUser(new ObjectId(req.params.userId));
+            if (user) {
+                return res.send({result: user})
+            } else {
+                return res.status(404).send({error: "not_found"})
+            }
+        } else {
+            return res.status(403).send({error: "forbidden"})
+        }
+    } catch (err) {
+        const user = await queryCommands.getUser(new ObjectId(res.locals.decodedToken.id));
 
-    return res.send({result: user});
+        return res.send({result: user});
+    }
+
 }
 
 export async function getUsers(req: Request, res: Response) {
-    if (res.locals.decodedToken.role !== 'owner') {
+    if (res.locals.decodedToken.role !== 'owner' && res.locals.decodedToken.role !== 'admin') {
         return res.status(403).send({error: "forbidden", message: "You do not have permission for this endpoint"})
     }
 
@@ -78,7 +99,7 @@ export async function authorizeUser(req: Request, res: Response, next: any) {
 
 export async function activateUser(req: Request, res: Response) {
     // @ts-ignore
-    if (res.locals.decodedToken.role !== 'owner') {
+    if (res.locals.decodedToken.role !== 'owner' && res.locals.decodedToken.role !== 'admin') {
         return res.status(403).send({error: "forbidden", message: "You do not have permission for this endpoint"})
     }
 
@@ -112,7 +133,7 @@ export async function activateUser(req: Request, res: Response) {
 
 export async function deactivateUser(req: Request, res: Response) {
     // @ts-ignore
-    if (res.locals.decodedToken.role !== 'owner') {
+    if (res.locals.decodedToken.role !== 'owner' && res.locals.decodedToken.role !== 'admin') {
         return res.status(403).send({error: "forbidden", message: "You do not have permission for this endpoint"})
     }
 
@@ -130,6 +151,177 @@ export async function deactivateUser(req: Request, res: Response) {
     }
 }
 
+export async function editUser(req: Request, res: Response) {
+    if (res.locals.decodedToken.id !== req.params.userId && res.locals.decodedToken.role !== "owner") {
+        return res.status(403).send({error: "forbidden", message: "You do not have permission for this endpoint"});
+    }
+
+    const currentUser = await queryCommands.getUser(new ObjectId(req.params.userId));
+
+    if (!currentUser) {
+        return res.status(400).send({error: "not_found", message: "This user was not found!"})
+    }
+
+    if (req.headers["content-type"] === 'application/json') {
+
+        const ownerOnly = ["firstName", "lastName", "role"];
+
+        const userEdit: userBody = new User(req.body);
+
+        Logger.info('before pw')
+
+        if (res.locals.decodedToken.role !== "owner") {
+            const loginUser = await queryCommands.loginUser({emailAddress: currentUser.emailAddress});
+            try {
+                let password: string;
+                if (userEdit.passwordInfo.currentPassword) {
+                    password = userEdit.passwordInfo.currentPassword;
+                } else {
+                    // @ts-ignore
+                    password = userEdit.passwordInfo;
+                }
+                if (!await authorizationMethods.checkPassword(password, loginUser.password)) {
+                    return res.status(403).send({
+                        error: "forbidden",
+                        message: "You do not have permission for this endpoint"
+                    });
+                }
+            } catch (err) {
+                return res.status(401).send({
+                    error: "missing_password",
+                    message: "A password must be supplied to edit your profile!"
+                })
+            }
+        }
+
+        Logger.info('after pw')
+
+        let queryData: Object = {};
+
+        for (let key in userEdit) {
+            // @ts-ignore
+            if (userEdit[key] && key !== 'passwordInfo' && key !== 'rejected' && !ownerOnly.includes(key)) {
+                // @ts-ignore
+                queryData[key] = userEdit[key];
+            } else {
+                // @ts-ignore
+                if (res.locals.decodedToken.role === 'owner' && ownerOnly.includes(key) && userEdit[key] && key !== 'passwordInfo' && key !== 'rejected') {
+                    // @ts-ignore
+                    queryData[key] = userEdit[key];
+                }
+            }
+        }
 
 
-export default {getUser, activateUser, authorizeUser, deactivateUser, getUsers}
+        Logger.info(queryData)
+        try {
+            if (userEdit.passwordInfo.password && userEdit.passwordInfo.passwordConfirm) {
+                try {
+                    const password = userEdit.passwordInfo.password;
+                    const confirm = userEdit.passwordInfo.passwordConfirm;
+                    assert(password === confirm);
+                    assert(password.length >= 8);
+                    assert(password.match(digitRegex));
+                    assert(password.match(capitalRegex));
+                    // @ts-ignore
+                    queryData['password'] = await authorizationMethods.hashNewPassword(password);
+                } catch (err) {
+
+                }
+            }
+        } catch (err) {}
+
+        Logger.info('after pw check')
+
+        const updatedUser = await queryCommands.updateUser(new ObjectId(req.params.userId), queryData);
+
+        Logger.info(updatedUser)
+
+        return res.send({result: updatedUser, rejected: userEdit.rejected});
+
+    } else if (req.headers["content-type"]?.startsWith('multipart/form-data')) {
+        try {
+            if (res.locals.decodedToken.role !== "owner") {
+                const loginUser = await queryCommands.loginUser({emailAddress: currentUser.emailAddress});
+                try {
+                    if (!await authorizationMethods.checkPassword(req.body.currentPassword, loginUser.password)) {
+                        return res.status(403).send({
+                            error: "forbidden",
+                            message: "You do not have permission for this endpoint"
+                        });
+                    }
+                } catch (err) {
+                    return res.status(401).send({
+                        error: "missing_password",
+                        message: "A password must be supplied to edit your profile!"
+                    })
+                }
+            }
+            assert(req.files);
+
+            let profileData;
+            let VOGData;
+            let legitimatieFrontData;
+            let legitimatieBackData;
+
+            const profilePicture: fileUpload.UploadedFile | fileUpload.UploadedFile[]  = req.files.profilePicture;
+            if (profilePicture && "data" in profilePicture) {
+                profileData = profilePicture.data.toString('base64');
+            }
+            const VOG: fileUpload.UploadedFile | fileUpload.UploadedFile[] = req.files.VOG;
+            if (VOG && "data" in VOG) {
+                VOGData = VOG.data.toString('base64');
+            }
+            const legitimatieFront: fileUpload.UploadedFile | fileUpload.UploadedFile[] = req.files.legitimatieFront;
+            if (legitimatieFront && "data" in legitimatieFront) {
+                legitimatieFrontData = legitimatieFront.data.toString('base64');
+            }
+            const legitimatieBack: fileUpload.UploadedFile | fileUpload.UploadedFile[] = req.files.legitimatieBack;
+            if (legitimatieBack && "data" in legitimatieBack) {
+                legitimatieBackData = legitimatieBack.data.toString('base64')
+            }
+
+            const queryData = {};
+            if (profileData) {
+                // @ts-ignore
+                queryData['profilePicture'] = profileData;
+            }
+            if (VOGData) {
+                // @ts-ignore
+                queryData['VOG'] = VOGData;
+            }
+            if (legitimatieFrontData) {
+                // @ts-ignore
+                queryData['legitimatieFront'] = legitimatieFrontData;
+            }
+
+            if (legitimatieBackData) {
+                // @ts-ignore
+                queryData['legitimatieBack'] = legitimatieBackData;
+            }
+
+            await queryCommands.updateUser(new ObjectId(req.params.userId), queryData)
+            const updatedUser = await queryCommands.getUser(new ObjectId(req.params.userId));
+            res.send({result: updatedUser})
+        } catch (err) {
+            Logger.error(err);
+            res.status(400).send({error: "no_files", message: "Please provide files for uploading!"})
+        }
+    }
+}
+
+export async function deleteUser(req: Request, res: Response) {
+    if (res.locals.decodedToken.role !== "owner") {
+        return res.status(403).send({error: "forbidden", message: "You do not have permission for this endpoint"});
+    }
+
+    const success = await queryCommands.deleteUser(new ObjectId(req.params.userId));
+
+    if (success) {
+        return res.status(204).send()
+    } else {
+        return res.status(400).send()
+    }
+}
+
+export default { getUser, activateUser, authorizeUser, deactivateUser, getUsers, editUser, deleteUser }

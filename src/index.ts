@@ -6,6 +6,12 @@ import Logger from 'js-logger';
 import cors from 'cors';
 import registrationRouter from './routes/registration.routes';
 import userRouter from "./routes/user.routes";
+import workshopRouter from "./routes/workshop.routes";
+import customerRoutes from "./routes/customer.routes";
+import workshopShiftRoutes from "./routes/workshopShift.routes";
+// @ts-ignore
+import fileHandler from 'express-fileupload';
+import enrollRoutes from "./routes/enroll.routes";
 
 Logger.useDefaults();
 con.config();
@@ -13,8 +19,10 @@ const app = express();
 const port = process.env.PORT;
 
 app.use(bodyParser.json());
-app.use(cors());
 
+app.use(bodyParser.urlencoded())
+app.use(cors());
+app.use(fileHandler());
 //Catching errors
 app.use((err:any, req:any, res:any, next:any)=>{
     res.status(err.status).json({err});
@@ -32,8 +40,12 @@ app.listen(port, ()=>{
 
 
 
-
+app.use(customerRoutes);
 app.use(loginRouter);
 app.use(registrationRouter);
 app.use(userRouter);
+app.use(workshopShiftRoutes);
+app.use(enrollRoutes);
+app.use(workshopRouter);
+
 export default app;
