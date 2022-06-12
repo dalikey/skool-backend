@@ -3,9 +3,6 @@ import customerController from "../controller/customer.controller";
 import {authorizationMethods, controller} from "../controller/authorization.controller";
 const customerRoutes  = express.Router();
 
-
-
-//Add customer: TODO: Add customer post
 customerRoutes.post('/api/customer',
     controller.validateToken,
     controller.validateOwnerRole,
