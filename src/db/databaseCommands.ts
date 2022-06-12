@@ -215,10 +215,11 @@ export const queryCommands = {
        }
     },
     async updateCustomer(customerId:string, customer: CustomerBody){
-       const collection = await this.getCustomerCollection();
-       const query = { _id: new ObjectId(customerId)};
+
        try {
-           return await collection.replaceOne(query, {$set: customer});
+           const collection = await this.getCustomerCollection();
+           const query = { _id: new ObjectId(customerId)};
+           return await collection.findOneAndUpdate(query, {$set: customer}, { returnDocument: 'after' });
         } catch (e) {
            return null;
         }
@@ -233,7 +234,7 @@ export const queryCommands = {
     },
     async getOneCustomer(customerId:string){
         const collection = await this.getCustomerCollection();
-        const query = {_id: customerId};
+        const query = {_id: new ObjectId(customerId)};
         try {
             return await collection.findOne(query);
         } catch (e) {

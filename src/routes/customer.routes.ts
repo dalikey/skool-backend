@@ -11,15 +11,13 @@ customerRoutes.post('/api/customer',
     customerController.insertCustomer);
 
 //Deletes customer
-//TODO Test need to be made
-customerRoutes.delete('/api/customer/:customerId',
+customerRoutes.delete('/api/customer/:customerId/delete',
     controller.validateToken,
     controller.validateOwnerRole,
     customerController.deleteCustomer);
 
 //Update customer
-//TODO Test need to be made
-customerRoutes.put('/api/customer/:customerId',
+customerRoutes.put('/api/customer/:customerId/update',
     controller.validateToken,
     controller.validateOwnerRole,
     customerController.handleFileInput,
@@ -33,8 +31,7 @@ customerRoutes.get('/api/customer',
     customerController.getAllCustomers);
 
 //Get one customer
-//TODO Test need to be made
-customerRoutes.get('/api/customer/:customerId',
+customerRoutes.get('/api/customer/:customerId/getOne',
     controller.validateToken,
     customerController.getOneCustomer)
 
