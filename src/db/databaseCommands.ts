@@ -266,20 +266,6 @@ export const queryCommands = {
                     'foreignField': '_id',
                     'as': 'workshop'
                 }
-            }, {
-                '$lookup': {
-                    'from': 'user',
-                    'localField': 'participants',
-                    'foreignField': '_id',
-                    'as': 'participants'
-                }
-            }, {
-                '$lookup': {
-                    'from': 'user',
-                    'localField': 'candidates',
-                    'foreignField': '_id',
-                    'as': 'candidates'
-                }
             }
         ];
         logger.info("Aggregation setup completed");
