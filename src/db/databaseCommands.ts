@@ -382,8 +382,7 @@ export const queryCommands = {
     async checkEnrollmentOfUser(shiftId: string, userId:string){
         try {
             const collection = await this.getShiftCollection();
-            const filterEmbeddedObjectQuery = {userId: new ObjectId(userId), shiftId: new ObjectId(shiftId)};
-            return await collection.findOne({_id: new ObjectId(shiftId), candidates: filterEmbeddedObjectQuery });
+            return await collection.findOne({_id: new ObjectId(shiftId), 'candidates.userId': new ObjectId(userId) });
         } catch (e){
             return null;
         }
