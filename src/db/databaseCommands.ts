@@ -267,7 +267,31 @@ export const queryCommands = {
                     'foreignField': '_id',
                     'as': 'workshop'
                 }
-            }
+            }, {
+                '$lookup': {
+                    'from': 'user',
+                    'localField': 'participants.userId',
+                    'foreignField': '_id',
+                    'as': 'participantUsers'
+                }
+            },{
+                '$lookup': {
+                    'from': 'user',
+                    'localField': 'candidates.userId',
+                    'foreignField': '_id',
+                    'as': 'candidateUsers'
+                }
+            },
+           {
+               '$project': {
+                   'candidateUsers.emailAddress': 1,
+                   'candidateUsers.firstName': 1,
+                   'candidateUsers.lastName': 1,
+                   'participantUsers.emailAddress': 1,
+                   'participantUsers.firstName': 1,
+                   'participantUsers.lastName': 1
+               }
+           }
         ];
         logger.info("Aggregation setup completed");
        try {
