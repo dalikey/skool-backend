@@ -390,7 +390,9 @@ export const queryCommands = {
     async deleteUnknownParticipant(shiftId: string, ExternalStatus:string, ExternalUserBody: any){
         try {
             const collection = await this.getShiftCollection();
-            const deleteQuery = {$pull: {participants: { emailAddress: ExternalUserBody.emailAddress } } };
+            const newDelete = {$pull: {participants: {External_Status: ExternalStatus, emailAddress: ExternalUserBody.emailAddress} } } ;
+            const ll = { 'participants.emailAddress': ExternalUserBody.emailAddress };
+            const deleteQuery = {$pull: {participants: { emailAddress: ExternalUserBody.emailAddress }} };
             return await collection.updateOne({_id: new ObjectId(shiftId)}, deleteQuery);
         } catch (e) {
             return null;

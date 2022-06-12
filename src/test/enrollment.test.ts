@@ -25,6 +25,8 @@ const shiftWithDuplication= {_id: new ObjectId("62a465586e5066876d3155fc"), maxi
 const user11 = {_id: new ObjectId("62a4607c4540f4612588a42f"), firstName: "Eline", lastName: "Sebastiaan", emailAddress: "email@example.com"};
 const user12 = {_id: new ObjectId("62a464ceafbae637a6aad1f4"), firstName: "Eline", lastName: "Sebastiaan", emailAddress: "email@example.com"};
 const user13 = {_id: new ObjectId("62a4617f33427f5d3fe48f55"), firstName: "Eline", lastName: "Sebastiaan", emailAddress: "email@example.com"};
+const unknownUser = {Extern_Status: "Extern", firstName: "Thomas", lastName: "de Onbekende", emailAddress: "onbekend@unknownExample.who", phoneNumber: "06 45500123", tariff: 175.50, formOfHour: "Per dag"};
+
 describe('Enroll to workshop', ()=>{
     before(async ()=>{
         const collection = await queryCommands.getShiftCollection();
@@ -313,5 +315,107 @@ describe('Reject user enrollment to shift', ()=>{
                 ])
                 done();
             })
+    })
+})
+describe('Enroll unknown user to shift.', ()=>{
+    before(async ()=>{
+        const collection = await queryCommands.getShiftCollection();
+        await collection.insertOne({_id: new ObjectId("62a213d47782483d77ab0dc5"), participants: [unknownUser], maximumParticipants: 2, availableUntil: DateTime.now().minus({day: 1})});
+    })
+    after(async ()=>{
+        const collection = await queryCommands.getShiftCollection();
+        await collection.deleteOne({_id: new ObjectId("62a213d47782483d77ab0dc5")});
+    })
+    describe('Enrollment of unknown user', ()=>{
+        it('No token', (done)=>{
+            const authToken = jwt.sign({id: "6295e96d7f984a246108b36e", role: "user"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+            const shiftId = "62a20e41bce044ece60a1e3f"
+            chai.request(server).post(`/api/workshop/shift/${shiftId}/enroll/unknownUser`)
+                .send({motivation: "Ik zit"})
+                .end((err, res)=>{
+                    let {error, message} = res.body;
+                    error.should.be.equal("unauthorized");
+                    message.should.be.equal("You need to provide authorization for this endpoint!");
+                    done();
+                })
+        })
+
+        it('No authority', (done)=>{
+            const authToken = jwt.sign({id: "6295e96d7f984a246108b36e", role: "user"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+            const shiftId = "62a20e41bce044ece60a1e3f"
+            chai.request(server).post(`/api/workshop/shift/${shiftId}/enroll/unknownUser`)
+                .send({motivation: "Ik zit"})
+                .set({authorization: authToken})
+                .end((err, res)=>{
+                    let {error, message} = res.body;
+                    error.should.be.equal("unauthorized");
+                    message.should.be.equal("You do not have the right authority.");
+                    done();
+                })
+        })
+
+        it('Wrong inputvalidation', (done)=>{
+            const authToken = jwt.sign({id: "6295e96d7f984a246108b36e", role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+            const shiftId = "62a213d47782483d77ab0dc5"
+            chai.request(server).post(`/api/workshop/shift/${shiftId}/enroll/unknownUser`)
+                .send({
+                    firstName: "Thibaut",
+                    lastName: "Courtois",
+                    emailAddress: "Thibaut@example.esp",
+                })
+                .set({authorization: authToken})
+                .end((err, res)=>{
+                    let {error, message} = res.body;
+                    error.should.be.equal("input_error");
+                    message.should.be.equal("Missing inputfields");
+                    done();
+                })
+        })
+        it('Insertion of unknown user', (done)=>{
+            const authToken = jwt.sign({id: "6295e96d7f984a246108b36e", role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+            const shiftId = "62a213d47782483d77ab0dc5"
+            chai.request(server).post(`/api/workshop/shift/${shiftId}/enroll/unknownUser`)
+                .send({
+                    firstName: "Thibaut",
+                    lastName: "Courtois",
+                    emailAddress: "Thibaut@example.esp",
+                    phoneNumber: "0645502011",
+                    bankNumber: "testBankPlaceholder"
+                })
+                .set({authorization: authToken})
+                .end((err, res)=>{
+                    let {message} = res.body;
+                    message.should.be.equal("Unknown user successfully registered in shift.");
+                    done();
+                })
+        })
+    })
+    describe('Deletion of unknown user, the regular api call for participants. /api/workshop/shift/:shiftId/enroll/:userId/canceled', ()=>{
+        it('Wrong inputvalidation', (done)=>{
+            const authToken = jwt.sign({id: "6295e96d7f984a246108b36e", role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+            const shiftId = "62a20e41bce044ece60a1e3f"
+            const userId = 'Extern';
+            chai.request(server).put(`/api/workshop/shift/${shiftId}/enroll/${userId}/canceled`)
+                .set({authorization: authToken})
+                .end((err, res)=>{
+                    let {error, message} = res.body;
+                    error.should.be.equal("deletion_unknown_user_failed");
+                    message.should.be.equal("unknown user failed to delete");
+                    done();
+                })
+        })
+        it('Deletion of unknown user', (done)=>{
+            const authToken = jwt.sign({id: "6295e96d7f984a246108b36e", role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+            const shiftId = "62a213d47782483d77ab0dc5"
+            const userId = 'Extern';
+            chai.request(server).put(`/api/workshop/shift/${shiftId}/enroll/${userId}/canceled`)
+                .send({emailAddress: "onbekend@unknownExample.who"})
+                .set({authorization: authToken})
+                .end((err, res)=>{
+                    let {error, message} = res.body;
+                    message.should.be.equal("Participation unknown user has been removed.");
+                    done();
+                })
+        })
     })
 })

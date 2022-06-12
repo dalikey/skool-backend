@@ -107,8 +107,14 @@ const controller = {
             //If userId is external, it will delete unknown user
             if(userId == "Extern"){
                 const externalBody = req.body;
-                await queryCommands.deleteUnknownParticipant(shiftId, userId, externalBody);
-                res.status(201).json({message: "Participation unknown user has been removed."});
+                try {
+                    assert(externalBody.emailAddress);
+                    await queryCommands.deleteUnknownParticipant(shiftId, userId, externalBody);
+                    res.status(201).json({message: "Participation unknown user has been removed."});
+                }catch (e) {
+                    res.status(400).json({error: "deletion_unknown_user_failed", message: "unknown user failed to delete"});
+                }
+
             } else{
                 //Delete userId from participationlist.
                 await queryCommands.cancelParticipation(shiftId, userId);
@@ -189,11 +195,15 @@ const controller = {
            assert(typeof unknownUser.lastName == 'string');
            assert(typeof unknownUser.emailAddress == 'string');
            assert(typeof unknownUser.phoneNumber == 'string');
+           assert(typeof unknownUser.bankNumber == 'string');
         } catch (e) {
             return res.status(400).json({error: "input_error", message: "Missing inputfields"});
         }
         //Assigns Extern_Id
+        //Future: Adding bankaccount number
+        //Add date
         unknownUser.Extern_Status = "Extern";
+        unknownUser.date = DateTime.now();
         try {
             //Database command
             await queryCommands.enrollUnknownUser(unknownUser, shiftId);
