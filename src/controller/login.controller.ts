@@ -128,7 +128,6 @@ const loginController = {
                         if (err) { next({error: "token_generation_problem", message: err.message})};
                         delete getUser.password;
                         delete getUser.emailAddress;
-                        delete getUser._id;
                         getUser.token = token;
                         res.status(200).json({result: getUser});
                     });
