@@ -91,8 +91,8 @@ describe('A user can log in, with his registered account.', ()=>{
                     lastName: "Tester",
                     isActive: true,
                     role: "teacher",
-                    token: result.token
-                    _id:
+                    token: result.token,
+                    _id: "62a602896b08906faf697962"
                 })
                 done();
             })
