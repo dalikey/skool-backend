@@ -220,7 +220,7 @@ const workshopsShift2 = {
     breakTime: 0
 }
 
-const user = {_id: new ObjectId("62a39fa5dfb7a383d6edce09"), name: "TestBob", availableUntil: DateTime.now(), workshopPreferences: ["62a2434060f613b82112c12d", "62a242e04cf01cbac99d7d0f"]};
+const user = {_id: new ObjectId("62a39fa5dfb7a383d6edce09"), name: "TestBob", availableUntil: DateTime.now(), workshopPreferences: []};
 describe('Retrieve workshops', ()=>{
     before(async ()=>{
         const col = await queryCommands.getShiftCollection();

@@ -105,9 +105,11 @@ const customerController = {
         const customerID = req.params.customerId;
         const customer = req.body;
         //Convert image to base64 string
-        customer.logo = convertIntoBase64(customer.logo);
         //New object
-        const customerObject = {
+
+        //Updates customer
+        try {
+            const customerObject = {
             name: customer.name,
             contact: {
                 emailAddress:customer.emailAddress,
@@ -121,9 +123,12 @@ const customerController = {
             },
             logo:customer.logo,
         };
-        //Updates customer
-        const update = await queryCommands.updateCustomer(customerID, customerObject);
-        res.status(200).json({message: "update completed"});
+            const afterSet = await queryCommands.updateCustomer(customerID, customerObject);
+            res.status(200).json({message: "update completed", result: afterSet.value});
+        }catch (e) {
+            res.status(400).json({message: "update failed", errorMessage: e});
+        }
+
     }
     ,
     async getAllCustomers(req:any, res:any){
@@ -133,8 +138,17 @@ const customerController = {
     ,
     async getOneCustomer(req:any, res:any){
         const customerID = req.params.customerId;
-        const customerOne = await queryCommands.getOneCustomer(customerID);
-        res.status(200).json({result: customerOne});
+        try {
+            const customerOne = await queryCommands.getOneCustomer(customerID);
+            if(customerOne){
+                res.status(200).json({result: customerOne});
+            } else{
+                res.status(400).json({error: "not_found", message: "retrieval has failed"});
+            }
+        }catch (e) {
+            res.status(400).json({error: "retrieval_failure", message: "retrieval has failed"});
+        }
+
     }
 }
 
