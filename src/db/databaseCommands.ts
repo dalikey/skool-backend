@@ -441,6 +441,15 @@ export const queryCommands = {
             return e;
         }
     },
+    async updateWorkshop(workshopId:string, workshop: workshopInsert){
+        try {
+            const collection = await this.getWorkshopCollection();
+            const query = { _id: new ObjectId(workshopId)};
+            return await collection.findOneAndUpdate(query, {$set: workshop});
+         } catch (e) {
+            return null;
+         }
+     },
     async deleteWorkshop(workshopId: string){
        try {
            const collect = await this.getWorkshopCollection();
