@@ -103,8 +103,16 @@ let controller = {
     //This is meant to be for the admin or owner, to manage all shifts.
     async getAllShiftsForAdmin(req:any, res:any){
       try {
-          const resultset = await queryCommands.getAllShifts();
-          res.status(200).json({result: resultset})
+          let resultSet = await queryCommands.getAllShifts();
+          for (let i = 0; i < resultSet.length; i++) {
+              let userList = resultSet[i].candidateUsers;
+              for (let j = 0; j < userList.length; j++) {
+                  resultSet[i].candidates[j].profile = userList[j];
+              }
+              resultSet[i].client = resultSet[i].client[0];
+              resultSet[i].workshop = resultSet[i].workshop[0];
+          }
+          res.status(200).json({result: resultSet})
       }  catch (e) {
           return res.status(400).json({message: "retrieval_failure"});
       }
@@ -126,8 +134,13 @@ let controller = {
     ,
     async deleteShift(req:any, res:any){
         const shiftId = req.params.shiftId;
-        await queryCommands.deleteShift(shiftId);
-        res.status(200).json({message: "Successful deletion"});
+        try {
+            await queryCommands.deleteShift(shiftId);
+            res.status(200).json({message: "Successful deletion"});
+        }catch (e:any) {
+            res.status(400).json({error: "deletion_failed", message: e})
+        }
+
     }
 }
 function shiftFormat(shift:any){
@@ -137,18 +150,16 @@ function shiftFormat(shift:any){
     let duration = getHoursFromTimeStampList(shift.timestamps);
     //Database command
     // @ts-ignore
-    const isHourRate = decideFormOfRate(shift.hourRate);
-    if(isHourRate){
-        totalTariff = calculateFullRate(duration, shift.hourRate).toFixed(2);
-        formOfTime = "per uur";
-        rate = shift.hourRate.toFixed(2);
-        delete shift.dayRate;
-    } else{
+    if(shift.dayRate || shift.dayRate > 0){
         totalTariff = shift.dayRate.toFixed(2);
         formOfTime = "per dag";
         rate = shift.dayRate.toFixed(2);
-        delete shift.hourRate;
+    } else {
+        totalTariff = calculateFullRate(duration, shift.hourRate).toFixed(2);
+        formOfTime = "per uur";
+        rate = shift.hourRate.toFixed(2);
     }
+
     shift.workshopId = new ObjectId(shift.workshopId);
     shift.clientId = new ObjectId(shift.clientId);
     shift.date = DateTime.fromISO(shift.date);

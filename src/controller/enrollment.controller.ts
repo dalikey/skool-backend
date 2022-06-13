@@ -133,8 +133,14 @@ const controller = {
         try {
             //Changes status in candidateslist.
             const changeStatus = await queryCommands.changeStatusEnrollmentParticipant(shiftId, userId, status);
-            //Adds participant to participant list.
-            const enroll = await queryCommands.confirmParticipation(shiftId, userId);
+            //Gets right object
+            const listCandidates = await queryCommands.getCandidatesList(shiftId);
+            //Filters users
+            let user = listCandidates.filter((candidates: { userId: any; }) => candidates.userId == userId);
+            //Removes candidate from candidates list.
+            const removeCandidate = await queryCommands.deleteEnrollment(shiftId, userId);
+            //Adds participant to participant list. - need to be changed
+            const enroll = await queryCommands.confirmParticipation(shiftId, user[0]);
             // Sends confirmation mail.
             if (process.env.SMTP_SERVER) {
                 const registration = await queryCommands.getUser(new ObjectId(userId));

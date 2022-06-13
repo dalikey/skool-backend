@@ -199,9 +199,9 @@ describe('Confirmation enrollment', ()=>{
             .end((err, res)=>{
                 let {message, result}= res.body;
                 message.should.be.equal("User has been confirmed to be part of this shift.");
-                assert.deepEqual(result, {_id: "62a4607c4540f4612588a42f", maximumParticipants: 2, participants: ["62a4607c4540f4612588a42f"], candidates: [
-                        {userId: "62a4617f33427f5d3fe48f55", shiftId: "62a4607c4540f4612588a42f", status: "Pending"},
-                        {userId: "62a4607c4540f4612588a42f", shiftId: "62a4607c4540f4612588a42f", status: "Current"}
+                assert.deepEqual(result, {_id: "62a4607c4540f4612588a42f", maximumParticipants: 2,
+                    participants: [{userId: "62a4607c4540f4612588a42f", shiftId: "62a4607c4540f4612588a42f", status: "Current"}],
+                    candidates: [{userId: "62a4617f33427f5d3fe48f55", shiftId: "62a4607c4540f4612588a42f", status: "Pending"},
                     ]});
                 done();
             })
