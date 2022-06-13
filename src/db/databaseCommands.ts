@@ -332,11 +332,11 @@ export const queryCommands = {
     },
     async deleteShift(shiftId: string){
        const collection = await this.getShiftCollection();
-       const query = {_id:shiftId};
+       const query = {_id: new ObjectId(shiftId)};
        try {
            return await collection.deleteOne(query);
        } catch (e) {
-           return null;
+           return e;
        }
 
     },
@@ -361,10 +361,10 @@ export const queryCommands = {
            return null;
        }
     },
-    async confirmParticipation(shiftId: string, userId: string){
+    async confirmParticipation(shiftId: string, userCandidateObject: any){
         try {
             const collection = await this.getShiftCollection();
-            const pushQuery = {$push: {participants: new ObjectId(userId)}};
+            const pushQuery = {$push: {participants: userCandidateObject}};
             return await collection.findOneAndUpdate({_id: new ObjectId(shiftId)}, pushQuery, { returnDocument: 'after' });
         } catch (e){
             return null;
@@ -423,6 +423,16 @@ export const queryCommands = {
            return await collection.updateOne({_id: new ObjectId(shiftId)}, {$pull: {candidates: {userId: new ObjectId(userId)}}});
        }catch (e) {
            return null;
+       }
+    },
+    async getCandidatesList(shiftId: string){
+       try {
+           const col = await this.getShiftCollection();
+           const old = await col.findOne({_id: new ObjectId(shiftId)});
+           let obj = old.candidates;
+           return obj;
+       }catch (e) {
+            throw e;
        }
     },
     //Workshops

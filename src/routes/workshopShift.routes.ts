@@ -12,7 +12,7 @@ ShiftRoutes.post('/api/workshop/shift',
 
 //TODO Tests need to be written
 //Update shift
-ShiftRoutes.get('/api/workshop/shift/:shiftId/update',
+ShiftRoutes.put('/api/workshop/shift/:shiftId/update',
     controller.validateToken,
     controller.validateAdminRole,
     ShiftController.validateWorkshopShiftInput,
