@@ -124,7 +124,7 @@ describe('update workshop', ()=>{
             .send(updateWorkshop)
             .end((err, res)=>{
             let {message} = res.body;
-            message.should.be.equal("Hello");
+            message.should.be.equal("Update successfull");
             done()
         })
     })
