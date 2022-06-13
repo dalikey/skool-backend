@@ -35,52 +35,8 @@ let controller = {
     async insertShift(req:any, res:any){
         //Initialize variables
         const workshopShift = req.body;
-        // const resultshift = formatWorkShopShift(workshopShift);
-        let totalTariff;
-        let formOfTime;
-        let rate;
-        let duration = getHoursFromTimeStampList(workshopShift.timestamps);
-        //Database command
-        // @ts-ignore
-        const isHourRate = decideFormOfRate(workshopShift.hourRate);
-        if(isHourRate){
-           totalTariff = calculateFullRate(duration, workshopShift.hourRate).toFixed(2);
-           formOfTime = "per uur";
-           rate = workshopShift.hourRate.toFixed(2);
-           delete workshopShift.dayRate;
-        } else{
-            totalTariff = workshopShift.dayRate.toFixed(2);
-            formOfTime = "per dag";
-            rate = workshopShift.dayRate.toFixed(2);
-            delete workshopShift.hourRate;
-        }
-        workshopShift.workshopId = new ObjectId(workshopShift.workshopId);
-        workshopShift.clientId = new ObjectId(workshopShift.clientId);
-        workshopShift.date = DateTime.fromISO(workshopShift.date);
-        workshopShift.availableUntil = DateTime.fromISO(workshopShift.availableUntil);
-        const shiftObject: WorkshopShiftBody ={
-            workshopId: workshopShift.workshopId,
-            clientId:workshopShift.clientId,
-            location: {
-                address: workshopShift.location.address,
-                city: workshopShift.location.city,
-                postalCode: workshopShift.location.postalCode,
-                country: workshopShift.location.country
-            },
-            date: workshopShift.date,
-            availableUntil: workshopShift.availableUntil,
-            maximumParticipants: workshopShift.maximumParticipants,
-            extraInfo: workshopShift.extraInfo,
-            level: workshopShift.level,
-            targetAudience: workshopShift.targetAudience,
-            timestamps: workshopShift.timestamps,
-            tariff: rate,
-            total_Amount: totalTariff,
-            formOfTime: formOfTime,
-            participants: [],
-            candidates: []
-        };
-        const insert = await queryCommands.insertOneWorkshopShift(shiftObject);
+        const resultshift = shiftFormat(workshopShift);
+        const insert = await queryCommands.insertOneWorkshopShift(resultshift);
         //Sends status back
         res.status(200).json({message: "shift added"});
     }
