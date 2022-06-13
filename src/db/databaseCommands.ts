@@ -77,9 +77,20 @@ export const queryCommands = {
     async getUser(id: ObjectId) {
         const projection = {password: 0};
         Logger.info(projection);
-
+        // const aggr = [
+        //     {
+        //     '$lookup':{
+        //         'from': 'workshop',
+        //         'localField': 'workshopPreferences',
+        //         'foreignField': '_id',
+        //         'as': 'workshopPreferences'
+        //     }
+        //     }, {
+        //         $project:projection
+        //     }]
         try {
             const collection = await this.getUserCollection();
+            //const newQueryResult =await collection.aggregate(aggr).toArray();
             const queryResult =  await collection.findOne({_id: id}, {projection});
             Logger.info(queryResult);
             return queryResult;
@@ -473,6 +484,7 @@ export const queryCommands = {
         try {
             const collection = await this.getWorkshopCollection();
             const query = { _id: new ObjectId(workshopId)};
+
             return await collection.findOneAndUpdate(query, {$set: workshop});
          } catch (e) {
             return null;
