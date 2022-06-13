@@ -6,6 +6,7 @@ import server from '../index';
 import {queryCommands} from '../db/databaseCommands';
 import jwt from "jsonwebtoken";
 import dot from 'dotenv';
+import {ObjectId} from "mongodb";
 dot.config();
 
 chai.should();
@@ -14,6 +15,17 @@ const dummyWorkshop = {
     name: "Programmeren@1@1",
     content: "In deze workshop leren studenten de basis vaardigheden van het programmmeren. Het doel van deze cursus is om een applicatie te bouwen in java.",
     materials: ["Laptop", "Router", "Iphone"]};
+
+const dummyWorkshop2 = {
+    _id: new ObjectId("62a719a0d93898eb7ebab646"),
+    name: "Aron",
+    content: "Wees",
+    materials: ["delete", "delete"]};
+const updateWorkshop = {
+    name: "test",
+    content: "test",
+    materials: ["delete", "delete"],
+    _id: "62a719a0d93898eb7ebab646"};
 describe('Workshop creation',()=>{
     describe('Failed insert', ()=>{
         it('No token', (done)=>{
@@ -94,4 +106,26 @@ describe('Workshop creation',()=>{
              done();
          })
      })
+})
+
+describe('update workshop', ()=>{
+    before(async ()=>{
+        const collection = await queryCommands.getWorkshopCollection();
+        await collection.insertOne(dummyWorkshop2);
+    })
+    before(async ()=>{
+        const collection = await queryCommands.getWorkshopCollection();
+        await collection.deleteOne({_id: new ObjectId("62a719a0d93898eb7ebab646")});
+    })
+    it('Updated workshop', (done)=>{
+        const authToken = jwt.sign({role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+        chai.request(server).put('/api/workshop/62a719a0d93898eb7ebab646')
+            .set({authorization: authToken})
+            .send(updateWorkshop)
+            .end((err, res)=>{
+            let {message} = res.body;
+            message.should.be.equal("Hello");
+            done()
+        })
+    })
 })
