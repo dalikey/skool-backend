@@ -15,11 +15,13 @@ import {triggers} from "../models/templateMessageBody";
 let messageController = {
     inputValidation: (req: any, res: any, next:any)=>{
         const template = req.body;
+        const triggerList = triggers;
         try {
             assert(template.title, "Title is missing");
             assert(template.content,  "Content is missing");
             assert(template.trigger,  "Trigger is missing");
-            assert(triggers.includes(template.trigger), "Invalid trigger");
+            assert(triggerList.includes(template.trigger), "Invalid trigger");
+            next();
         }  catch (e:any){
             res.status(400).json({error: "input_template_message_error", message: e.message })
         }
@@ -33,7 +35,8 @@ let messageController = {
             trigger: template.trigger
         };
         try {
-            await queryCommands.insertTemplateMessage(insertBody);
+            const aa = await queryCommands.insertTemplateMessage(insertBody, insertBody.trigger);
+            res.status(200).json({message: "Insert template succeeded"});
         }catch (e) {
             res.status(400).json({error: "insert_failure", message: "insert could not"})
         }
@@ -48,7 +51,7 @@ let messageController = {
         }
         try {
             const getUpdatedTemplate = await queryCommands.updateTemplate(template, templateId);
-            res.status(200).json({result: "update_completed", message: getUpdatedTemplate});
+            res.status(200).json({message: "update_completed", result: getUpdatedTemplate.value});
         }catch (e:any) {
             res.status(400).json({error: "update_failure", message: e})
         }

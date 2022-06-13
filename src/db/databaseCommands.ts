@@ -481,7 +481,7 @@ export const queryCommands = {
             const collection = await this.getTempMessageCollecton();
             return await collection.findOneAndReplace({_id: new ObjectId(templateId)} ,newTemplateMessage, { returnDocument: 'after' });
         } catch (e) {
-            return e;
+            return null;
         }
     }
     ,

@@ -5,22 +5,23 @@ import messageController from "../controller/templateMessage.controller";
 const messageRouter  = express.Router();
 
 //Inserts new templateMessage - NEEDS TO BE TESTED
-messageRouter.post('/api/template',
+messageRouter.post('/api/templateMessage',
     controller.validateToken,
     controller.validateOwnerRole,
     templateMessage.inputValidation,
-    templateMessage.insertTemplate)
+    templateMessage.insertTemplate);
 
 //Update template message - NEEDS TO BE TESTED
-messageRouter.put('/api/template/:templateId',
+messageRouter.put('/api/templateMessage/:templateId',
     controller.validateToken,
     controller.validateOwnerRole,
     templateMessage.inputValidation,
     templateMessage.updateTemplate);
 
 //Deletes template message - NEEDS TO BE TESTED
-messageRouter.delete('/api/template/:templateId', controller.validateToken, controller.validateOwnerRole, templateMessage.deleteTemplate);
+messageRouter.delete('/api/templateMessage/:templateId', controller.validateToken, controller.validateOwnerRole, templateMessage.deleteTemplate);
 
 //Get all messages - NEEDS TO BE TESTED
-messageRouter.get('/api/template', controller.validateToken, controller.validateOwnerRole, messageController.getAllTemplates);
+messageRouter.get('/api/templateMessage', controller.validateToken, controller.validateOwnerRole, messageController.getAllTemplates);
+
 export default messageRouter;
