@@ -23,9 +23,6 @@ let controller = {
             assert(workshopShift.availableUntil);
             //Shift time and breaks
             assert(workshopShift.timestamps.length > 0);
-            assert((workshopShift.hourRate && !workshopShift.dayRate)|| (workshopShift.dayRate && !workshopShift.hourRate));
-            //assert(workshopShift.breakTimeInMinutes); Is optioneel, als clinten een dagtarief invoert.
-
             next();
         }catch (e){
             return res.status(400).json({error: "input_error", message: "Input is wrong"});
@@ -45,8 +42,8 @@ let controller = {
         try {
             const userId = res.locals.decodedToken;
             let queryFilters = [];
-            //Gets user
             logger.info("User retrieval for getAllShifts has started");
+            //Gets user
             const user = await queryCommands.getUser(new ObjectId(userId.id));
             logger.info(user);
             //Converts each workshop objectId-string to objectId
@@ -73,6 +70,10 @@ let controller = {
                             resultSet[i].candidates[j].profile = userList[j];
                         }
                         //Format results
+                        if(resultSet[i].formOfTime == "per uur"){
+                            resultSet[i].hourRate = user.hourRate;
+                            resultSet[i].total_Amount = calculateFullRate(getHoursFromTimeStampList(resultSet[i].timestamps), user.hourRate);
+                        }
                         resultSet[i].client = resultSet[i].client[0];
                         resultSet[i].workshop = resultSet[i].workshop[0];
                         delete resultSet[i].clientId;
@@ -123,12 +124,17 @@ let controller = {
         const shift = req.body;
         const workShift = shiftFormat(shift);
         //Database commands
-        const update = await queryCommands.updateShift(shiftId, workShift);
-        if(update){
-            res.status(200).json({message: "Update successfull"});
-        }else{
-            res.status(400).json({error: "update_failure" ,message: "Update failed"});
+        try {
+            const update = await queryCommands.updateShift(shiftId, workShift);
+            if(update){
+                res.status(200).json({message: "Update successfull"});
+            }else{
+                res.status(400).json({error: "update_failure" ,message: "Update failed"});
+            }
+        }catch (e) {
+            res.status(400).json({error: "database_update_failure" ,message: "Update failed"});
         }
+
 
     }
     ,
@@ -155,7 +161,7 @@ function shiftFormat(shift:any){
         formOfTime = "per dag";
         rate = shift.dayRate.toFixed(2);
     } else {
-        totalTariff = calculateFullRate(duration, shift.hourRate).toFixed(2);
+        totalTariff = null;
         formOfTime = "per uur";
         rate = shift.hourRate.toFixed(2);
     }

@@ -217,10 +217,51 @@ const workshopsShift2 = {
     endTime: "22:00",
     hourRate: 35.50,
     dayRate: undefined,
-    breakTime: 0
+    breakTime: 0,
+    participants: [{userId: new ObjectId("62972c50be7383812e25e9af"), status: "Current"}]
 }
+const full3Shift = {
+    "_id":new ObjectId("62a711a8f84510074750e6af"),
+    "clientId":"62a393e1f4b0c7d992b9a4fb",
+    "workshopId":"62a0b328073fb0335c7ca166",
+    "maximumParticipants":3,
+    "extraInfo":"",
+    "location":{
+        "address":"6 Langstraat",
+        "city":"Halsteren",
+        "postalCode":"4661 SE",
+        "country":"Nederland"},
+    "targetAudience":"School",
+    "level":"VWO","date":"2022-06-21T10:29:16.000Z",
+    "availableUntil":"2022-06-21T10:29:16.000Z",
+    "hourRate":0,
+    "dayRate":12,
+    "timestamps":[
+        {"startTime":"9:00","endTime":"10:40"},
+        {"endHour":"","startHour":"","startTime":"10:50","endTime":"12:30"},
+        {"endHour":"","startHour":"","startTime":"13:00","endTime":"14:40"}]};
 
-const user = {_id: new ObjectId("62a39fa5dfb7a383d6edce09"), name: "TestBob", availableUntil: DateTime.now(), workshopPreferences: []};
+const full2Shift = {
+    "_id":new ObjectId("62a711a8f84510074750e6af"),
+    "clientId":"62a393e1f4b0c7d992b9a4fb",
+    "workshopId":"62a0b328073fb0335c7ca166",
+    "maximumParticipants":2,
+    "extraInfo":"",
+    "location":{
+        "address":"6 Langstraat",
+        "city":"Halsteren",
+        "postalCode":"4661 SE",
+        "country":"Nederland"},
+    "targetAudience":"School",
+    "level":"VWO","date":"2022-06-21T10:29:16.000Z",
+    "availableUntil":"2022-06-21T10:29:16.000Z",
+    "hourRate":0,
+    "dayRate":12,
+    "timestamps":[
+        {"startTime":"9:00","endTime":"10:40"},
+        {"endHour":"","startHour":"","startTime":"10:50","endTime":"12:30"},
+        {"endHour":"","startHour":"","startTime":"13:00","endTime":"14:40"}]};
+const user = {_id: new ObjectId("62a39fa5dfb7a383d6edce09"), name: "TestBob", availableUntil: DateTime.now(), workshopPreferences: [], hourRate: 12.1};
 describe('Retrieve workshops', ()=>{
     before(async ()=>{
         const col = await queryCommands.getShiftCollection();
@@ -293,6 +334,31 @@ describe('Retrieve workshops', ()=>{
         })
     })
 })
+
+describe('Update shift', ()=>{
+    before(async ()=>{
+        const col = await queryCommands.getShiftCollection();
+        await col.insertOne(full2Shift);
+    })
+
+    after(async ()=>{
+        const col = await queryCommands.getShiftCollection();
+        await col.deleteOne({_id: new ObjectId("62a711a8f84510074750e6af")});
+    })
+
+    it('Successful update', (done)=>{
+        const authToken = jwt.sign({role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+        chai.request(server).put('/api/workshop/shift/62a711a8f84510074750e6af/update')
+            .set({authorization:authToken})
+            .send(full3Shift)
+            .end((err, res)=>{
+                let{message} = res.body;
+                message.should.be.equal("Update successfull");
+                done();
+        })
+    })
+})
+
 
 describe('Delete workshopshifts', ()=>{
     // before(async ()=>{
