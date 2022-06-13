@@ -119,7 +119,7 @@ describe('update workshop', ()=>{
     })
     it('Updated workshop', (done)=>{
         const authToken = jwt.sign({role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
-        chai.request(server).put('/api/workshop/62a719a0d93898eb7ebab646')
+        chai.request(server).put('/api/workshop/62a719a0d93898eb7ebab646/update')
             .set({authorization: authToken})
             .send(updateWorkshop)
             .end((err, res)=>{
