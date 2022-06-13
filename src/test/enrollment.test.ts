@@ -25,7 +25,7 @@ const shiftWithDuplication= {_id: new ObjectId("62a465586e5066876d3155fc"), maxi
 const user11 = {_id: new ObjectId("62a4607c4540f4612588a42f"), firstName: "Eline", lastName: "Sebastiaan", emailAddress: "email@example.com"};
 const user12 = {_id: new ObjectId("62a464ceafbae637a6aad1f4"), firstName: "Eline", lastName: "Sebastiaan", emailAddress: "email@example.com"};
 const user13 = {_id: new ObjectId("62a4617f33427f5d3fe48f55"), firstName: "Eline", lastName: "Sebastiaan", emailAddress: "email@example.com"};
-const unknownUser = {Extern_Status: "Extern", firstName: "Thomas", lastName: "de Onbekende", emailAddress: "onbekend@unknownExample.who", phoneNumber: "06 45500123", tariff: 175.50, formOfHour: "Per dag"};
+const unknownUser = {Extern_Status: "62a785fdb79ef526486a055f", firstName: "Thomas", lastName: "de Onbekende", emailAddress: "onbekend@unknownExample.who", phoneNumber: "06 45500123", tariff: 175.50, formOfHour: "Per dag"};
 
 describe('Enroll to workshop', ()=>{
     before(async ()=>{
@@ -253,11 +253,6 @@ describe('Cancel user participation to shift', ()=>{
             .end((err, res)=>{
                 let {message, result}= res.body;
                 message.should.be.equal("Participation has been canceled.");
-                assert.deepEqual(result, {_id: "62a465586e5066876d3155fc", maximumParticipants: 2, participants: [],
-                    candidates: [
-                        {userId: "62a4617f33427f5d3fe48f55", shiftId: "62a465586e5066876d3155fc", status: "Rejected"},
-                        {userId:"62a464ceafbae637a6aad1f4", shiftId: "62a465586e5066876d3155fc", status: "Pending"}
-                    ]})
                 done();
             })
     })
@@ -391,29 +386,16 @@ describe('Enroll unknown user to shift.', ()=>{
         })
     })
     describe('Deletion of unknown user, the regular api call for participants. /api/workshop/shift/:shiftId/enroll/:userId/canceled', ()=>{
-        it('Wrong inputvalidation', (done)=>{
-            const authToken = jwt.sign({id: "6295e96d7f984a246108b36e", role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
-            const shiftId = "62a20e41bce044ece60a1e3f"
-            const userId = 'Extern';
-            chai.request(server).put(`/api/workshop/shift/${shiftId}/enroll/${userId}/canceled`)
-                .set({authorization: authToken})
-                .end((err, res)=>{
-                    let {error, message} = res.body;
-                    error.should.be.equal("deletion_unknown_user_failed");
-                    message.should.be.equal("unknown user failed to delete");
-                    done();
-                })
-        })
         it('Deletion of unknown user', (done)=>{
-            const authToken = jwt.sign({id: "6295e96d7f984a246108b36e", role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+            const authToken = jwt.sign({id: "62a785fdb79ef526486a055f", role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
             const shiftId = "62a213d47782483d77ab0dc5"
-            const userId = 'Extern';
+            const userId = "62a785fdb79ef526486a055f";
             chai.request(server).put(`/api/workshop/shift/${shiftId}/enroll/${userId}/canceled`)
                 .send({emailAddress: "onbekend@unknownExample.who"})
                 .set({authorization: authToken})
                 .end((err, res)=>{
                     let {error, message} = res.body;
-                    message.should.be.equal("Participation unknown user has been removed.");
+                    message.should.be.equal("Participation has been canceled.");
                     done();
                 })
         })

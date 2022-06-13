@@ -358,6 +358,17 @@ export const queryCommands = {
             return null;
         }
     },
+    //Enrollments and participation
+    async changeStatusInParticipation(shiftId:string, userId:string, status: string){
+        try {
+            const collection = await this.getShiftCollection();
+            const changeStatusQuery = {$set: {"participants.$.status": status}};
+            const query = {_id: new ObjectId(shiftId),"participants.userId": new ObjectId(userId)};
+            return await collection.findOneAndUpdate(query, changeStatusQuery, { returnDocument: 'after' });
+        } catch (e){
+            return null;
+        }
+    },
     async enrollToShift(shiftId: string, enrollmentObject: any){
        try {
            const collection = await this.getShiftCollection();
@@ -379,7 +390,7 @@ export const queryCommands = {
     async cancelParticipation(shiftId:string, userId:string){
       try {
           const collection = await this.getShiftCollection();
-          const deleteQuery = {$pull: {participants: { $in: [new ObjectId(userId)] } } };
+          const deleteQuery = {$pull: {participants: { $in: { userId: [new ObjectId(userId)]} } } };
           return await collection.updateOne({_id: new ObjectId(shiftId)}, deleteQuery);
       } catch (e) {
           return null;

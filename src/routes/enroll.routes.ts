@@ -49,7 +49,6 @@ enrollRoutes.put('/api/workshop/shift/:shiftId/enroll/:userId/enroll/delete',
     enrollController.removeEnrollment
 )
 
-//TODO tests need to be made
 enrollRoutes.post('/api/workshop/shift/:shiftId/enroll/unknownUser',
     controller.validateToken,
     controller.validateAdminRole,

@@ -94,8 +94,8 @@ const controller = {
     async putStatusOnDone(req: any, res: any){
         const userId = req.params.userId;
         const shiftId = req.params.shiftId;
-        const status = "Rejected";
-        await queryCommands.changeStatusEnrollmentParticipant(shiftId, userId, status);
+        const status = "Done";
+        await queryCommands.changeStatusInParticipation(shiftId, userId, status);
         res.status(201).json({message: "User has completed the shift"});
     },
     async cancelParticipation(req: any, res:any){
@@ -103,25 +103,10 @@ const controller = {
         const shiftId = req.params.shiftId;
         const status = "Rejected";
         try {
-            //needs to check if userId is external or not
-            //If userId is external, it will delete unknown user
-            if(userId == "Extern"){
-                const externalBody = req.body;
-                try {
-                    assert(externalBody.emailAddress);
-                    await queryCommands.deleteUnknownParticipant(shiftId, userId, externalBody);
-                    res.status(201).json({message: "Participation unknown user has been removed."});
-                }catch (e) {
-                    res.status(400).json({error: "deletion_unknown_user_failed", message: "unknown user failed to delete"});
-                }
-
-            } else{
-                //Delete userId from participationlist.
-                await queryCommands.cancelParticipation(shiftId, userId);
-                //Change status in candidatelist to rejected.
-                const resultset = await queryCommands.changeStatusEnrollmentParticipant(shiftId, userId, status);
-                res.status(201).json({message: "Participation has been canceled.", result: resultset.value});
-            }
+            //Delete userId from participationlist.
+            await queryCommands.cancelParticipation(shiftId, userId);
+            //Change status in candidatelist to rejected.
+            res.status(201).json({message: "Participation has been canceled."});
         } catch (e){
             res.status(400).json({error: "participation_change_error", message: "Problems with change in participants"});
         }
@@ -207,8 +192,8 @@ const controller = {
         //Assigns Extern_Id
         //Future: Adding bankaccount number
         //Add date
-        unknownUser.Extern_Status = "Extern";
-        unknownUser.date = DateTime.now();
+        unknownUser.userId = new ObjectId();
+        unknownUser.enrollDate = DateTime.now();
         try {
             //Database command
             await queryCommands.enrollUnknownUser(unknownUser, shiftId);
