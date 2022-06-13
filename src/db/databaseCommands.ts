@@ -418,8 +418,8 @@ export const queryCommands = {
     async checkParticipationOfUser(shiftId: string, userId:string){
         try {
             const collection = await this.getShiftCollection();
-            const filterEmbeddedObjectQuery = new ObjectId(userId);
-            return await collection.findOne({_id: new ObjectId(shiftId), participants: filterEmbeddedObjectQuery });
+            const filterEmbeddedObjectQuery = { userId: new ObjectId(userId)};
+            return await collection.findOne({_id: new ObjectId(shiftId), 'participants.userId': new ObjectId(userId)});
         } catch (e){
             logger.info(e);
             return null;

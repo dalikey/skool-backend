@@ -127,16 +127,16 @@ const controller = {
             //Adds participant to participant list. - need to be changed
             const enroll = await queryCommands.confirmParticipation(shiftId, user[0]);
             // Sends confirmation mail.
-            if (process.env.SMTP_SERVER) {
-                const registration = await queryCommands.getUser(new ObjectId(userId));
-                const info = await transporter.sendMail({
-                    from: process.env.SMTP_USERNAME,
-                    to: registration.emailAddress,
-                    subject: `Gebruiker ${registration.firstName} ${registration.lastName} is definitief ingeschreven.`,
-                    text: `Beste ${registration.firstName} ${registration.lastName},\nU bent officieel ingeschreven voor de workshop.\n
-                    Wij hopen u spoedig te zien op uw dienst.`
-                });
-            }
+            // if (process.env.SMTP_SERVER) {
+            //     const registration = await queryCommands.getUser(new ObjectId(userId));
+            //     const info = await transporter.sendMail({
+            //         from: process.env.SMTP_USERNAME,
+            //         to: registration.emailAddress,
+            //         subject: `Gebruiker ${registration.firstName} ${registration.lastName} is definitief ingeschreven.`,
+            //         text: `Beste ${registration.firstName} ${registration.lastName},\nU bent officieel ingeschreven voor de workshop.\n
+            //         Wij hopen u spoedig te zien op uw dienst.`
+            //     });
+            // }
             res.status(201).json({message: "User has been confirmed to be part of this shift.", result: enroll.value})
         }catch (e){
             res.status(400).json({message: "Failure enrollment"});
@@ -150,16 +150,16 @@ const controller = {
             //Changes status in candidateslist.
             const enrollmentStatus = await queryCommands.changeStatusEnrollmentParticipant(shiftId, userId, status);
             // Sends confirmation mail.
-            if (process.env.SMTP_SERVER) {
-                const registration = await queryCommands.getUser(new ObjectId(userId));
-                const info = await transporter.sendMail({
-                    from: process.env.SMTP_USERNAME,
-                    to: registration.emailAddress,
-                    subject: `Gebruiker ${registration.firstName} ${registration.lastName}, de inschrijving is afgekeurd.`,
-                    text: `Beste ${registration.firstName} ${registration.lastName},\nU bent officieel geweigerd voor deze workshop.\n
-                    Wij hopen u spoedig te zien in de toekomst.`
-                });
-            }
+            // if (process.env.SMTP_SERVER) {
+            //     const registration = await queryCommands.getUser(new ObjectId(userId));
+            //     const info = await transporter.sendMail({
+            //         from: process.env.SMTP_USERNAME,
+            //         to: registration.emailAddress,
+            //         subject: `Gebruiker ${registration.firstName} ${registration.lastName}, de inschrijving is afgekeurd.`,
+            //         text: `Beste ${registration.firstName} ${registration.lastName},\nU bent officieel geweigerd voor deze workshop.\n
+            //         Wij hopen u spoedig te zien in de toekomst.`
+            //     });
+            // }
             res.status(201).json({message: "User has been rejected from the workshop", result: enrollmentStatus.value.candidates})
         }catch (e){
             res.status(400).json({message: "Failed database action"});
@@ -169,11 +169,26 @@ const controller = {
         //Initialize variables
         const userId = req.params.userId;
         const shiftId = req.params.shiftId;
-        //Remove participant
-        await queryCommands.cancelParticipation(shiftId, userId);
-        //Remove candidate
-        await queryCommands.deleteEnrollment(shiftId, userId);
-        res.status(201).json({message: "User has been rejected from the workshop"})
+        try {
+            //Remove participant
+            await queryCommands.cancelParticipation(shiftId, userId);
+            if (process.env.SMTP_SERVER) {
+                const registration = await queryCommands.getUser(new ObjectId(userId));
+                const info = await transporter.sendMail({
+                    from: process.env.SMTP_USERNAME,
+                    to: registration.emailAddress,
+                    subject: `Gebruiker ${registration.firstName} ${registration.lastName}, de inschrijving is verwijderd.`,
+                    text: `Beste ${registration.firstName} ${registration.lastName},\nU bent officieel afgemeld voor deze workshop.\n
+                    Wij hopen u spoedig te zien in de toekomst.`
+                });
+            }
+            //Remove candidate
+            await queryCommands.deleteEnrollment(shiftId, userId);
+            res.status(201).json({message: "User has been removed from the workshop"})
+        }catch (e) {
+            res.status(400).json({error: "enrollment_change_error", message: "Problems with removal of participant"});
+        }
+
     }
     ,
     async addUnknownUserToParticipantList(req:any, res:any){
@@ -200,6 +215,25 @@ const controller = {
             res.status(201).json({message: "Unknown user successfully registered in shift."});
         }catch (e){
             res.status(400).json({error: "database_error", message: "Enrollment of unknown user went wrong."});
+        }
+
+    },
+    async checkCancelationTime(req:any, res: any, next:any){
+        //Initialize variables
+        const userId = req.params.userId;
+        const shiftId = req.params.shiftId;
+        try {
+            //Remove participant
+            const shift = await queryCommands.getOneShift(shiftId);
+            let shiftDate = shift.date;
+            let now = DateTime.now().plus({hour: 48});
+            if(now < shiftDate){
+                next();
+            } else{
+                res.status(400).json({error: "resign_shift_failure", message: "Cannot remove shift, if the difference in time is less then 48 hours"});
+            }
+        }catch (e) {
+            res.status(400).json({error: "enrollment_change_error", message: "Problems with removal of participant"});
         }
 
     }

@@ -17,7 +17,18 @@ const emptyShift = {_id: new ObjectId("62a4607c4540f4612588a42f"), maximumPartic
     ]};
 const fullShift = {_id: new ObjectId("62a4626bd8951db31e6ca14d"), maximumParticipants: 1, participants: [new ObjectId("62a4617f33427f5d3fe48f55")],
     candidates: [{userId: new ObjectId("62a4617f33427f5d3fe48f55"), shiftId: new ObjectId("62a4626bd8951db31e6ca14d"), status: "Current"},  {userId: new ObjectId("62a464ceafbae637a6aad1f4"), shiftId: new ObjectId("62a4626bd8951db31e6ca14d"), status: "Pending"}]};
-const shiftWithDuplication= {_id: new ObjectId("62a465586e5066876d3155fc"), maximumParticipants: 2, participants: [new ObjectId("62a4617f33427f5d3fe48f55")],
+const shiftWithDuplication= {_id: new ObjectId("62a465586e5066876d3155fc"), maximumParticipants: 2, participants: [{userId: new ObjectId("62a4617f33427f5d3fe48f55")}],
+    candidates: [
+        {userId: new ObjectId("62a4617f33427f5d3fe48f55"), shiftId: new ObjectId("62a465586e5066876d3155fc"), status: "Current"},
+        {userId: new ObjectId("62a464ceafbae637a6aad1f4"), shiftId: new ObjectId("62a465586e5066876d3155fc"), status: "Pending"}
+    ]};
+
+const shiftWithRightTime = {_id: new ObjectId("62a79511aa3c79aec3e0ac7f"), maximumParticipants: 2,date: DateTime.now().plus({hour:50}), participants: [{userId: new ObjectId("62a4617f33427f5d3fe48f55")}],
+    candidates: [
+        {userId: new ObjectId("62a4617f33427f5d3fe48f55"), shiftId: new ObjectId("62a465586e5066876d3155fc"), status: "Current"},
+        {userId: new ObjectId("62a464ceafbae637a6aad1f4"), shiftId: new ObjectId("62a465586e5066876d3155fc"), status: "Pending"}
+    ]};
+const shiftExpireTime= {_id: new ObjectId("62a795186fc817c048e11d4d"), maximumParticipants: 2,date: DateTime.now().plus({hour:47}), participants: [{userId: new ObjectId("62a4617f33427f5d3fe48f55")}],
     candidates: [
         {userId: new ObjectId("62a4617f33427f5d3fe48f55"), shiftId: new ObjectId("62a465586e5066876d3155fc"), status: "Current"},
         {userId: new ObjectId("62a464ceafbae637a6aad1f4"), shiftId: new ObjectId("62a465586e5066876d3155fc"), status: "Pending"}
@@ -211,7 +222,7 @@ describe('Cancel user participation to shift', ()=>{
     before(async ()=>{
         const collection = await queryCommands.getShiftCollection();
         const userCollect = await queryCommands.getUserCollection();
-        await collection.insertMany([emptyShift, fullShift, shiftWithDuplication])
+        await collection.insertMany([emptyShift, fullShift, shiftWithDuplication, shiftWithRightTime, shiftExpireTime])
         await userCollect.insertOne(user13);
     })
     after(async ()=>{
@@ -220,6 +231,8 @@ describe('Cancel user participation to shift', ()=>{
         await collection.deleteOne({_id: new ObjectId("62a4607c4540f4612588a42f")});
         await collection.deleteOne({_id: new ObjectId("62a4626bd8951db31e6ca14d")});
         await collection.deleteOne({_id: new ObjectId("62a465586e5066876d3155fc")});
+        await collection.deleteOne({_id: new ObjectId("62a79511aa3c79aec3e0ac7f")});
+        await collection.deleteOne({_id: new ObjectId("62a795186fc817c048e11d4d")});
         await userCollect.deleteOne(user13);
     })
 
@@ -246,13 +259,37 @@ describe('Cancel user participation to shift', ()=>{
             })
     })
     it('Successfully canceled participation', (done)=>{
-        const authToken = jwt.sign({role: "admin"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+        const authToken = jwt.sign({role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
         chai.request(server)
             .put("/api/workshop/shift/62a465586e5066876d3155fc/enroll/62a4617f33427f5d3fe48f55/canceled")
             .set({authorization:authToken})
             .end((err, res)=>{
                 let {message, result}= res.body;
                 message.should.be.equal("Participation has been canceled.");
+                done();
+            })
+    })
+
+    it('Successfully canceled own participation', (done)=>{
+        const authToken = jwt.sign({role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+        chai.request(server)
+            .put("/api/workshop/shift/62a79511aa3c79aec3e0ac7f/resign/62a4617f33427f5d3fe48f55/cancelled")
+            .set({authorization:authToken})
+            .end((err, res)=>{
+                let {message, result}= res.body;
+                message.should.be.equal("Participation has been canceled.");
+                done();
+            })
+    })
+
+    it('unSuccessfully canceled own participation', (done)=>{
+        const authToken = jwt.sign({role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+        chai.request(server)
+            .put("/api/workshop/shift/62a795186fc817c048e11d4d/resign/62a4617f33427f5d3fe48f55/cancelled")
+            .set({authorization:authToken})
+            .end((err, res)=>{
+                let {message, result}= res.body;
+                message.should.be.equal("Cannot remove shift, if the difference in time is less then 48 hours");
                 done();
             })
     })

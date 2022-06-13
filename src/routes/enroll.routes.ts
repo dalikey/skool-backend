@@ -22,13 +22,18 @@ enrollRoutes.put('/api/workshop/shift/:shiftId/enroll/:userId/confirm',
     enrollController.confirmEnrollmentToShift
     )
 
-//Puts status on rejected and removes user from participationlist.
+//Removes user from participation. Without restrictions
 enrollRoutes.put('/api/workshop/shift/:shiftId/enroll/:userId/canceled',
     controller.validateToken,
-    controller.validateAdminRole,
-    //Removes user from participationlist and puts status to rejected.
+    controller.validateOwnerRole,
     enrollController.cancelParticipation
     )
+//Remove enrollment, till 48 hours before shiftdate. meant for admin and users.
+enrollRoutes.put('/api/workshop/shift/:shiftId/resign/:userId/cancelled',
+    controller.validateToken,
+    enrollController.checkCancelationTime,
+    enrollController.cancelParticipation
+)
 //Puts status on rejected if enrollments is rejected, changes user in candidateslist.
 enrollRoutes.put('/api/workshop/shift/:shiftId/enroll/:userId/rejected',
     controller.validateToken,
@@ -48,10 +53,12 @@ enrollRoutes.put('/api/workshop/shift/:shiftId/enroll/:userId/enroll/delete',
     //Removes enrollments and its participation
     enrollController.removeEnrollment
 )
-
+//Input unknown user
 enrollRoutes.post('/api/workshop/shift/:shiftId/enroll/unknownUser',
     controller.validateToken,
     controller.validateAdminRole,
     enrollController.addUnknownUserToParticipantList
 )
+
+
 export default enrollRoutes;
