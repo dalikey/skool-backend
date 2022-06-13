@@ -26,7 +26,7 @@ describe('Template creation', ()=>{
     })
     after(async ()=>{
         const col = await queryCommands.getTempMessageCollecton();
-        await col.deleteMany([{title: new ObjectId("6295e96d7f984a246108b36e")}]);
+        await col.deleteOne({_id: new ObjectId("6295e96d7f984a246108b36e")});
     })
 })
 //
