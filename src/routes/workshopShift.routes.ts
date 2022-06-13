@@ -10,7 +10,6 @@ ShiftRoutes.post('/api/workshop/shift',
     ShiftController.validateWorkshopShiftInput,
     ShiftController.insertShift)
 
-//TODO Tests need to be written
 //Update shift
 ShiftRoutes.put('/api/workshop/shift/:shiftId/update',
     controller.validateToken,
