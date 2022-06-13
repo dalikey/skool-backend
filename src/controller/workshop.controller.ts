@@ -68,6 +68,7 @@ export async function createWorkshop(req: Request, res: Response) {
         name: newWorkshop.name,
         content: newWorkshop.content,
         materials: newWorkshop.materials,
+        isActive: true,
     };
     //Database command
     const insert = await queryCommands.createWorkshop(work);
