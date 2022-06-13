@@ -9,6 +9,7 @@ import {CustomerBody} from "../models/customerBody";
 import {workshopInsert} from "../models/workshopBody";
 import {WorkshopShiftBody} from "../models/workshopShiftBody";
 import logger from "js-logger";
+import {insertTemplateMessage} from "../models/templateMessageBody";
 
 conf.config();
 
@@ -24,6 +25,7 @@ const user: string = "user";
 const shifts: string = "shift";
 const customer: string = "client";
 const workshop: string = "workshop";
+const templateMessage: string = "template_message"
 //Client
 const client = new MongoClient(mongoDBUrl);
 //Connection
@@ -56,6 +58,11 @@ export const queryCommands = {
     async getShiftCollection(){
        connection = await this.connectDB();
        return connection.db(skoolWorkshop).collection(shifts);
+    },
+    //Template message collection
+    async getTempMessageCollecton(){
+       connection = await this.connectDB();
+       return connection.db(skoolWorkshop).collection(templateMessage);
     }
     ,
     //Workshop collection
@@ -215,7 +222,6 @@ export const queryCommands = {
        }
     },
     async updateCustomer(customerId:string, customer: CustomerBody){
-
        try {
            const collection = await this.getCustomerCollection();
            const query = { _id: new ObjectId(customerId)};
@@ -460,5 +466,39 @@ export const queryCommands = {
        }
     },
     async changeStatusWorkshop(workshopId:string, status:boolean){},
-
+    //Template message// Trigger values are unique
+    async insertTemplateMessage(templateMessage: insertTemplateMessage, triggerValue:string){
+       try {
+           const collection = await this.getTempMessageCollecton();
+           return await collection.replaceOne({trigger: triggerValue} ,templateMessage, {upsert: true} );
+       } catch (e) {
+           return e;
+       }
+    }
+    ,
+    async updateTemplate(newTemplateMessage: insertTemplateMessage, templateId: string){
+        try {
+            const collection = await this.getTempMessageCollecton();
+            return await collection.findOneAndReplace({_id: new ObjectId(templateId)} ,newTemplateMessage, { returnDocument: 'after' });
+        } catch (e) {
+            return e;
+        }
+    }
+    ,
+    async deleteTemplate(templateId:string){
+        try {
+            const collection = await this.getTempMessageCollecton();
+            return await collection.deleteOne({_id: new ObjectId(templateId)});
+        } catch (e) {
+            return e;
+        }
+    },
+    async getAllTemplates(){
+       try {
+           const collection = await this.getTempMessageCollecton();
+           return await collection.find({}).toArray();
+       }catch (e) {
+           return e;
+       }
+    }
 }
