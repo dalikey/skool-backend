@@ -88,7 +88,8 @@ export async function updateWorkshop(req: Request, res: Response) {
     const workshop: workshopInsert = {
         name: newWorkshop.name,
         content: newWorkshop.content,
-        materials: newWorkshop.materials
+        materials: newWorkshop.materials,
+        isActive: newWorkshop.isActive
     }
     try {
         const update = await queryCommands.updateWorkshop(workshopId, workshop);
