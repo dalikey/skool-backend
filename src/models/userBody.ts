@@ -20,6 +20,7 @@ export type userBody = {
     role: "user" | "admin" | "owner" | undefined
     levelPreferences: string | undefined
     contractType: "freelancer" | "full-time" | undefined
+    hourRate: number | undefined
 
     location: locationBody | undefined
     paymentInfo: paymentBody | undefined
@@ -40,6 +41,12 @@ export class User implements userBody {
             this.countryOfOrigin = body.countryOfOrigin;
         } catch (err) {
             this.rejected.push('countryOfOrigin')
+        }
+        try{
+            assert(body.hourRate);
+            this.hourRate = body.hourRate;
+        } catch (err) {
+            this.rejected.push('hourRate')
         }
         try {
             // @ts-ignore
@@ -155,6 +162,7 @@ export class User implements userBody {
     role: "user" | "owner" | "admin" | undefined
     levelPreferences: string | undefined
     contractType: "freelancer" | "full-time" | undefined
+    hourRate: number| undefined
 
 }
 

@@ -4,6 +4,7 @@ import {WorkshopShiftBody} from "../models/workshopShiftBody";
 import {ObjectId} from "mongodb";
 import {DateTime} from 'luxon';
 import logger from 'js-logger'
+import Logger from "js-logger";
 
 let controller = {
     validateWorkshopShiftInput:(req:any, res:any, next:any)=>{
@@ -70,10 +71,14 @@ let controller = {
                             resultSet[i].candidates[j].profile = userList[j];
                         }
                         //Format results
-                        if(resultSet[i].formOfTime == "per uur"){
+                        if(!resultSet[i].dayRate || resultSet[i].dayRate === 0){
+                            Logger.info(user.hourRate);
                             resultSet[i].hourRate = user.hourRate;
                             resultSet[i].total_Amount = calculateFullRate(getHoursFromTimeStampList(resultSet[i].timestamps), user.hourRate);
+                        } else {
+                            resultSet[i].total_Amount = resultSet[i].dayRate
                         }
+                        logger.info(resultSet[i].total_Amount)
                         resultSet[i].client = resultSet[i].client[0];
                         resultSet[i].workshop = resultSet[i].workshop[0];
                         delete resultSet[i].clientId;
@@ -183,7 +188,7 @@ function shiftFormat(shift:any){
     return shiftObject;
 }
 function calculateFullRate(hoursWork: number, hourRate: number) {
-    return hoursWork * hourRate;
+    return Number(hoursWork * hourRate).toFixed(2);
 }
 
 function decideFormOfRate(hourRate: number) {
@@ -201,6 +206,7 @@ function getHoursFromTimeStampList(timeStampsList: any){
         // @ts-ignore
         hours += durationHours;
     }
+    logger.info("hours: " + hours)
     return hours;
 }
 
