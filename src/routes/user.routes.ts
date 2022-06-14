@@ -4,37 +4,37 @@ import {authorizationMethods, controller} from "../controller/authorization.cont
 const userRouter  = express.Router();
 
 userRouter.get('/api/user/@me',
-    controller.validateToken,
+    userController.authorizeUser,
     userController.getUser,
 );
 
 userRouter.get('/api/user/:userId',
-    controller.validateToken,
+    userController.authorizeUser,
     userController.getUser)
 
 userRouter.post('/api/user/:userId/activate',
-    controller.validateToken,
+    userController.authorizeUser,
     userController.activateUser
 );
 
 userRouter.post('/api/user/:userId/deactivate',
-    controller.validateToken,
+    userController.authorizeUser,
     userController.deactivateUser
 );
 
 
 userRouter.get('/api/user',
-    controller.validateToken,
+    userController.authorizeUser,
     userController.getUsers
 );
 
 userRouter.put('/api/user/:userId',
-    controller.validateToken,
+    userController.authorizeUser,
     userController.editUser
 );
 
 userRouter.delete('/api/user/:userId',
-    controller.validateToken,
+    userController.authorizeUser,
     userController.deleteUser)
 
 
