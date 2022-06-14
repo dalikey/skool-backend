@@ -201,7 +201,7 @@ const controller = {
                      content = content.replace("{functie}", `Workshop ${workshop.name}`);
                      content = content.replace('{klant}', client.name);
                      content = content.replace('{date}', `${enroll.value.date}`);
-                     content = content.replace('{arrivalTime}', enroll.value.date);
+                     content = content.replace('{arrivalTime}', `${DateTime.fromISO(enroll.value.timestamps[0].startTime).toISOTime().toString()}`);
                      content = content.replace('{startTime}', `${enroll.value.timestamps[0].startTime}`);
                      content = content.replace('{endTime}', `${enroll.value.timestamps[enroll.value.timestamps.length - 1].endTime}`)
                  }
