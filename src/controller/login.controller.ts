@@ -89,7 +89,7 @@ const loginController = {
             const storeData = await queryCommands.storeSecretKeyPR(req.body.emailAddress, generateToken, SECRET_KEY);
             //Link of password change page and sends token in the path parameter.
             const link = `${process.env.FRONTEND_URI}/vergeten_wachtwoord/${generateToken}`;
-            if(process.env.SMTP_SERVER){
+            if(process.env.SMTP_PROVIDER && process.env.SMTP_USERNAME && process.env.SMTP_PASSWORD){
                 let template = await mailMethods.retrieveMailTemplate(triggerValues.passwordForgot);
                 let title= `Hallo ${user.firstName} ${user.lastName},\n\nHier is uw wachtwoordherstel link.\nKlik de link hieronder om een nieuw wachtwoord in te voeren. \nLet op! De link is maar 10 minuten geldig\nLink: ${link}\n\nMet vriendelijke groet,\nSkool Workshops`;
                 let content= `Hier is uw wachtwoord reset link.`;

@@ -109,7 +109,7 @@ export async function activateUser(req: Request, res: Response) {
     try {
         const result = await queryCommands.approveUser(new ObjectId(userId), true);
         if (result.modifiedCount == 1) {
-            if (process.env.SMTP_SERVER) {
+            if (process.env.SMTP_PROVIDER && process.env.SMTP_USERNAME && process.env.SMTP_PASSWORD) {
                 const user = await queryCommands.getUser(new ObjectId(userId));
                 const name = `${user.firstName} ${user.lastName}`;
                 //Gets right mail.

@@ -88,11 +88,11 @@ const controller = {
         try {
             const enroll = await queryCommands.enrollToShift(WshiftId, enrollmentObject);
 
-            if(process.env.SMTP_SERVER){
+            if(process.env.SMTP_PROVIDER && process.env.SMTP_USERNAME && process.env.SMTP_PASSWORD){
                 const template = await mailMethods.retrieveMailTemplate(triggerValues.shiftEnrollRequest);
                 const registration = await queryCommands.getUser(new ObjectId(userId));
                 let title = `Gebruiker ${registration.firstName} ${registration.lastName}, Inschrijving ontvangen.`;
-                let content = `Beste ${registration.firstName} ${registration.lastName},\nU heeft uzelf laten inschrijven voor deze workshop.\n
+                let content = `Beste ${registration.firstName} ${registration.lastName},\nU heeft u zelf laten inschrijven voor deze workshop.\n
                      Wij hopen u spoedig te zien in de toekomst.`
                 if(template){
                     let workshop = await queryCommands.getOneWorkshop(enroll.value.workshopId);
@@ -129,7 +129,7 @@ const controller = {
             const template = await mailMethods.retrieveMailTemplate(triggerValues.shiftCancellation);
             const unknownEmail = req.body.emailAddress;
             // Sends confirmation mail.
-            if (process.env.SMTP_SERVER && template) {
+            if (process.env.SMTP_PROVIDER && process.env.SMTP_USERNAME && process.env.SMTP_PASSWORD && template) {
                 //Retrieve template
                 let title = `De inschrijving geannuleerd`;
                 let content = `U bent officieel verwijdert voor deze workshop.\n
@@ -173,7 +173,7 @@ const controller = {
             //Adds participant to participant list.
             const enroll = await queryCommands.confirmParticipation(shiftId, user[0]);
             //Sends confirmation mail.
-            if (process.env.SMTP_SERVER) {
+            if (process.env.SMTP_PROVIDER && process.env.SMTP_USERNAME && process.env.SMTP_PASSWORD) {
                  const registration = await queryCommands.getUser(new ObjectId(userId));
                  //Get template mail
                  const template = await mailMethods.retrieveMailTemplate(triggerValues.shiftConfirmation);
@@ -217,7 +217,7 @@ const controller = {
             //Changes status in candidateslist.
             const enrollmentStatus = await queryCommands.changeStatusEnrollmentParticipant(shiftId, userId, status);
             // Sends confirmation mail.
-            if (process.env.SMTP_SERVER) {
+            if (process.env.SMTP_PROVIDER && process.env.SMTP_USERNAME && process.env.SMTP_PASSWORD) {
                  const registration = await queryCommands.getUser(new ObjectId(userId));
                  //Retrieve template
                  const template = await mailMethods.retrieveMailTemplate(triggerValues.shiftRejection);
