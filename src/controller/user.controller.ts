@@ -123,13 +123,8 @@ export async function activateUser(req: Request, res: Response) {
                     htmlContent.content = htmlContent.content.replace('{name}', name);
                     htmlContent.content = htmlContent.content.replace('{url}', `${process.env.FRONTEND_URI}/sign-in`);
                 }
-                const info = await transporter.sendMail({
-                    from: process.env.SMTP_USERNAME,
-                    to: user.emailAddress,
-                    subject: htmlContent.title,
-                    text: htmlContent.content
-                })
-                Logger.info(info);
+                const sendMail = await mailMethods.sendMail(htmlContent.title, htmlContent.content,  user.emailAddress);
+                Logger.info(sendMail);
             }
 
             return res.send({success: true})

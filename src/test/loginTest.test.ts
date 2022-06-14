@@ -13,12 +13,10 @@ const locate= {street_Hnr: "teststreet 111", city: "The Hague", postalcode: "111
 const dummyUser = {_id: new ObjectId("62a602896b08906faf697962"), firstName: "Test", lastName:"Tester", emailAddress: "test@example.com", isActive: true, password: "$2b$09$Yz8.GAGr6qgKDbr1cT/li.26.JvNta5QGfDPMYDgRoC0UAuzvKYda", role: "teacher", contractType: "freelancer", dateOfBirth: "1977-01-01", placeOfBirth: "The Hague", location: locate};
 const nonActivatedUser = {firstName: "Prototype", lastName:"Tester", emailAddress: "test@invalid.com", isActive: false,password: "$2b$09$Yz8.GAGr6qgKDbr1cT/li.26.JvNta5QGfDPMYDgRoC0UAuzvKYda", role: "teacher", contractType: "freelancer", dateOfBirth: "1976-01-02", placeOfBirth: "The Hague", location: locate};
 describe('A user can log in, with his registered account.', ()=>{
-    before((done)=>[
-       queryCommands.getUserCollection().then(collection =>{
-           collection.insertMany([dummyUser, nonActivatedUser]);
-           done();
-       })
-    ]);
+    before(async ()=>{
+        const collection = await queryCommands.getUserCollection();
+        await collection.insertMany([dummyUser, nonActivatedUser]);
+    })
     describe('Failed login', ()=>{
         it('Empty password field, gives error', (done)=>{
             chai.request(server).post('/api/auth/login').send({

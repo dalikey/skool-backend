@@ -104,12 +104,7 @@ const controller = {
                     content = content.replace('{functie}', `Workshop docent ${workshop.name}`);
                     content = content.replace('{date}', enroll.value.date);
                 }
-                const info = await transporter.sendMail({
-                    from: process.env.SMTP_USERNAME,
-                    to: registration.emailAddress,
-                    subject: title,
-                    text: content
-                });
+                await mailMethods.sendMail(title, content, registration.emailAddress);
             }
             res.status(201).json({message: "user has send enrollment."})
         }catch (e){
@@ -131,15 +126,16 @@ const controller = {
         try {
             //Delete userId from participationlist.
             const shift = await queryCommands.cancelParticipation(shiftId, userId);
+            const template = await mailMethods.retrieveMailTemplate(triggerValues.shiftCancellation);
+            const unknownEmail = req.body.emailAddress;
             // Sends confirmation mail.
-            if (process.env.SMTP_SERVER) {
-                const registration = await queryCommands.getUser(new ObjectId(userId));
+            if (process.env.SMTP_SERVER && template) {
                 //Retrieve template
-                const template = await mailMethods.retrieveMailTemplate(triggerValues.shiftCancellation);
-                let title = `Gebruiker ${registration.firstName} ${registration.lastName}, de inschrijving geannuleerd`;
-                let content = `Beste ${registration.firstName} ${registration.lastName},\nU bent officieel verwijdert voor deze workshop.\n
+                let title = `De inschrijving geannuleerd`;
+                let content = `U bent officieel verwijdert voor deze workshop.\n
                      Wij hopen u spoedig te zien in de toekomst.`
                 if(template){
+                    const registration = await queryCommands.getUser(new ObjectId(userId));
                     let workshop = await queryCommands.getOneWorkshop(shift.value.workshopId);
                     let client = await queryCommands.getOneCustomer(shift.value.clientId);
                     title = template.title;
@@ -149,13 +145,10 @@ const controller = {
                     content = content.replace('{functie}', `Workshop docent ${workshop.name}`);
                     content = content.replace('{klant}', client.name);
                     content = content.replace('{date}', shift.value.date);
+                    await mailMethods.sendMail(title, content, registration.emailAddress);
+                } else if(unknownEmail){
+                    await mailMethods.sendMail(title, content, req.body.emailAddress);
                 }
-                const info = await transporter.sendMail({
-                    from: process.env.SMTP_USERNAME,
-                    to: registration.emailAddress,
-                    subject: title,
-                    text: content
-                });
             }
 
             //Change status in candidatelist to rejected.
@@ -204,13 +197,12 @@ const controller = {
                      content = content.replace('{arrivalTime}', `${DateTime.fromISO(enroll.value.timestamps[0].startTime).toISOTime().toString()}`);
                      content = content.replace('{startTime}', `${enroll.value.timestamps[0].startTime}`);
                      content = content.replace('{endTime}', `${enroll.value.timestamps[enroll.value.timestamps.length - 1].endTime}`)
+                     content = content.replace('{tarrif}', `${enroll.value.total_Amount}`);
+                     content = content.replace('{targetAudience}', `${enroll.value.targetAudience}`);
+                     content = content.replace('{workshopInfo}', workshop.description);
+                     //
                  }
-                 const info = await transporter.sendMail({
-                     from: process.env.SMTP_USERNAME,
-                     to: registration.emailAddress,
-                     subject: title,
-                     text: content
-                 });
+                 await mailMethods.sendMail(title, content, registration.emailAddress);
              }
             res.status(201).json({message: "User has been confirmed to be part of this shift.", result: enroll.value})
         }catch (e){
@@ -244,12 +236,13 @@ const controller = {
                     content = content.replace('{klant}', client.name);
                     content = content.replace('{date}', enrollmentStatus.value.date);
                 }
-                 const info = await transporter.sendMail({
-                    from: process.env.SMTP_USERNAME,
-                     to: registration.emailAddress,
-                     subject: title,
-                     text: content
-                 });
+                await mailMethods.sendMail(title, content, registration.emailAddress);
+                 // const info = await transporter.sendMail({
+                 //    from: process.env.SMTP_USERNAME,
+                 //     to: registration.emailAddress,
+                 //     subject: title,
+                 //     text: content
+                 // });
             }
             res.status(201).json({message: "User has been rejected from the workshop", result: enrollmentStatus.value.candidates})
         }catch (e){

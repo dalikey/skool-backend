@@ -1,19 +1,32 @@
 import {queryCommands} from '../db/databaseCommands';
 import assert from "assert";
-import {triggers} from "../models/templateMessageBody";
+import {triggers, triggerValues} from "../models/templateMessageBody";
+import nodemailer, {Transporter} from "nodemailer";
+import dotEnv from 'dotenv'
+dotEnv.config();
+let transporter: Transporter;
 
+if (process.env.SMTP_SERVER) {
+    transporter = nodemailer.createTransport({
+        service: process.env.SMTP_PROVIDER,
+        // host: process.env.SMTP_SERVER,
+        // port: 465,
+        // secure: true, // true for 465, false for other ports
+        auth: {
+            user: process.env.SMTP_USERNAME, // generated ethereal user
+            pass: process.env.SMTP_PASSWORD, // generated ethereal password
+        },
+    });
+}
 let messageController = {
 
     async testMail(req: any, res: any){
-        const triggerValue = req.body.trigger;
-        console.log(triggerValue);
-        const template = await mailMethods.retrieveMailTemplate(triggerValue);
-
+        const template = await mailMethods.retrieveMailTemplate(triggerValues.registrationAccept);
         console.log(template);
         if (template) {
             let  html = template.content;
-            html = html.replace('No', "Xins");
-            console.log(html);
+            const result = await mailMethods.sendMail("No step back", html, "Xin20Wang@outlook.com");
+            console.log(result);
             res.status(200).json({result: html});
         } else{
             res.status(400).json({error: "Error"});
@@ -90,6 +103,19 @@ export const mailMethods =
                 return null;
             }
 
+        },
+        async sendMail(title: string, content:string , emailAddress:string){
+            try {
+                // create reusable transporter object using the default SMTP transport
+                return await transporter.sendMail({
+                    from: process.env.SMTP_USERNAME,
+                    to: emailAddress,
+                    subject: title,
+                    html: content
+                });
+            } catch (e){
+                return e;
+            }
         }
     }
 export default messageController;

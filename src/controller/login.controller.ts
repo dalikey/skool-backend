@@ -101,13 +101,13 @@ const loginController = {
                     content = content.replace('{name}', `${user.firstName} ${user.lastName}`);
                     content = content.replace("{url}", link);
                 }
-
-                const info = await transporter.sendMail({
-                    from: process.env.SMTP_USERNAME,
-                    to: user.emailAddress,
-                    subject: title,
-                    text: content
-                });
+                await mailMethods.sendMail(title, content, user.emailAddress);
+                // const info = await transporter.sendMail({
+                //     from: process.env.SMTP_USERNAME,
+                //     to: user.emailAddress,
+                //     subject: title,
+                //     text: content
+                // });
             }
             res.status(200).json({success: true});
         } else{
