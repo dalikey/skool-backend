@@ -206,7 +206,6 @@ function getHoursFromTimeStampList(timeStampsList: any){
         // @ts-ignore
         hours += durationHours;
     }
-    logger.info("hours: " + hours)
     return hours;
 }
 
