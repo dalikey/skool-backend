@@ -265,33 +265,43 @@ export async function editUser(req: Request, res: Response) {
                 }
             }
             assert(req.files);
-
             let profileData;
             let VOGData;
             let legitimatieFrontData;
             let legitimatieBackData;
-            const queryData = {};
+
             const profilePicture: fileUpload.UploadedFile | fileUpload.UploadedFile[]  = req.files.profilePicture;
             if (profilePicture && "data" in profilePicture) {
                 profileData = profilePicture.data.toString('base64');
-                // @ts-ignore
-                queryData['profilePicture'] = profileData;
             }
             const VOG: fileUpload.UploadedFile | fileUpload.UploadedFile[] = req.files.VOG;
             if (VOG && "data" in VOG) {
                 VOGData = VOG.data.toString('base64');
-                // @ts-ignore
-                queryData['VOG'] = VOGData;
             }
             const legitimatieFront: fileUpload.UploadedFile | fileUpload.UploadedFile[] = req.files.legitimatieFront;
             if (legitimatieFront && "data" in legitimatieFront) {
                 legitimatieFrontData = legitimatieFront.data.toString('base64');
-                // @ts-ignore
-                queryData['legitimatieFront'] = legitimatieFrontData;
             }
             const legitimatieBack: fileUpload.UploadedFile | fileUpload.UploadedFile[] = req.files.legitimatieBack;
             if (legitimatieBack && "data" in legitimatieBack) {
-                legitimatieBackData = legitimatieBack.data.toString('base64');
+                legitimatieBackData = legitimatieBack.data.toString('base64')
+            }
+
+            const queryData = {};
+            if (profileData) {
+                // @ts-ignore
+                queryData['profilePicture'] = profileData;
+            }
+            if (VOGData) {
+                // @ts-ignore
+                queryData['VOG'] = VOGData;
+            }
+            if (legitimatieFrontData) {
+                // @ts-ignore
+                queryData['legitimatieFront'] = legitimatieFrontData;
+            }
+
+            if (legitimatieBackData) {
                 // @ts-ignore
                 queryData['legitimatieBack'] = legitimatieBackData;
             }
