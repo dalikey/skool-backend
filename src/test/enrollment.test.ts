@@ -417,7 +417,7 @@ describe('Enroll unknown user to shift.', ()=>{
                     lastName: "Courtois",
                     emailAddress: "Thibaut@example.esp",
                     phoneNumber: "0645502011",
-                    bankNumber: "testBankPlaceholder"
+                    hourRate: 99.89
                 })
                 .set({authorization: authToken})
                 .end((err, res)=>{

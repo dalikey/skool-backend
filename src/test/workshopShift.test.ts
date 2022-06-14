@@ -184,15 +184,14 @@ const workshopsShift = {
     targetAudience: "WO",
     level: "WO",
     location:{
-        address: "teststraat 1",
+        address: "teststraat CAVIA",
         postalCode: "3000VN",
         city: "Haarlem",
         country: "Nederland"
     },
     date: dateDummy,
     availableUntil: availableD,
-    startTime: "18:00",
-    endTime: "22:00",
+    timestamps: [{startTime: "19:29", endTime: "23:31"}],
     hourRate: 35.50,
     dayRate: undefined,
     breakTime: 0
@@ -206,15 +205,14 @@ const workshopsShift2 = {
     targetAudience: "WO",
     level: "WO",
     location:{
-        address: "teststraat 1",
+        address: "teststraat CLOWN",
         postalCode: "3000VN",
         city: "Haarlem",
         country: "Nederland"
     },
     date: DateTime.now().plus({day:2}),
     availableUntil: DateTime.now().plus({day:5}),
-    startTime: "18:00",
-    endTime: "22:00",
+    timestamps: [{startTime: "19:29", endTime: "23:31"}],
     hourRate: 35.50,
     dayRate: undefined,
     breakTime: 0,
@@ -238,8 +236,8 @@ const full3Shift = {
     "dayRate":12,
     "timestamps":[
         {"startTime":"9:00","endTime":"10:40"},
-        {"endHour":"","startHour":"","startTime":"10:50","endTime":"12:30"},
-        {"endHour":"","startHour":"","startTime":"13:00","endTime":"14:40"}]};
+        {"startTime":"10:50","endTime":"12:30"},
+        {"startTime":"13:00","endTime":"14:40"}]};
 
 const full2Shift = {
     "_id":new ObjectId("62a711a8f84510074750e6af"),
@@ -259,8 +257,8 @@ const full2Shift = {
     "dayRate":12,
     "timestamps":[
         {"startTime":"9:00","endTime":"10:40"},
-        {"endHour":"","startHour":"","startTime":"10:50","endTime":"12:30"},
-        {"endHour":"","startHour":"","startTime":"13:00","endTime":"14:40"}]};
+        {"startTime":"10:50","endTime":"12:30"},
+        {"startTime":"13:00","endTime":"14:40"}]};
 const user = {_id: new ObjectId("62a39fa5dfb7a383d6edce09"), name: "TestBob", availableUntil: DateTime.now(), workshopPreferences: [], hourRate: 12.1};
 describe('Retrieve workshops', ()=>{
     before(async ()=>{
@@ -317,15 +315,19 @@ describe('Retrieve workshops', ()=>{
                 targetAudience: "WO",
                 level: "WO",
                 location:{
-                    address: "teststraat 1",
+                    address: "teststraat CAVIA",
                     postalCode: "3000VN",
                     city: "Haarlem",
                     country: "Nederland"
                 },
                 date: dateDummy,
                 availableUntil: availableD,
-                startTime: "18:00",
-                endTime: "22:00",
+                "timestamps": [
+                    {
+                        "endTime": "23:31",
+                        "startTime": "19:29"
+                    }
+                ],
                 hourRate: 35.50,
                 dayRate: null,
                 breakTime: 0

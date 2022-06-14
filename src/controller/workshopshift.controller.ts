@@ -64,6 +64,7 @@ let controller = {
                 //Checks if workshop is included in the queryFilters
                 if(resultSet[i].availableUntil > DateTime.now()){
                     //Checks if workshop
+                    const shift = resultSet[i];
                     if(queryFilters.includes(code) || queryFilters.length == 0){
                         //Puts candidatesprofile in candidate of the corresponding shift
                         const userList = resultSet[i].candidateUsers;
@@ -168,13 +169,13 @@ function shiftFormat(shift:any){
     const shiftObject: WorkshopShiftBody ={
         workshopId: shift.workshopId,
         clientId:shift.clientId,
-        dayRate: shift.dayRate,
         location: {
             address: shift.location.address,
             city: shift.location.city,
             postalCode: shift.location.postalCode,
             country: shift.location.country
         },
+        dayRate: shift.dayRate,
         date: shift.date,
         availableUntil: shift.availableUntil,
         maximumParticipants: shift.maximumParticipants,
