@@ -96,7 +96,7 @@ export const queryCommands = {
         try {
             const collection = await this.getUserCollection();
             const newQueryResult =await collection.aggregate(aggr).toArray();
-            return newQueryResult;
+            return newQueryResult[0];
         } catch (err: any) {
             return {status: 500, error: err.message}
         }

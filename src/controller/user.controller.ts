@@ -42,8 +42,7 @@ export async function getUser(req: Request, res: Response) {
             return res.status(403).send({error: "forbidden"})
         }
     } catch (err) {
-        const userArray = await queryCommands.getUser(new ObjectId(res.locals.decodedToken.id));
-        let user = userArray[0];
+        const user = await queryCommands.getUser(new ObjectId(res.locals.decodedToken.id));
         return res.send({result: user});
     }
 
@@ -163,8 +162,7 @@ export async function editUser(req: Request, res: Response) {
         return res.status(403).send({error: "forbidden", message: "You do not have permission for this endpoint"});
     }
 
-    const userArray = await queryCommands.getUser(new ObjectId(req.params.userId));
-    const currentUser = userArray[0];
+    const currentUser = await queryCommands.getUser(new ObjectId(req.params.userId));
     if (!currentUser) {
         return res.status(400).send({error: "not_found", message: "This user was not found!"})
     }

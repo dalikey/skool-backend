@@ -46,10 +46,10 @@ let controller = {
             logger.info("User retrieval for getAllShifts has started");
             //Gets user
             const user = await queryCommands.getUser(new ObjectId(userId.id));
-            logger.info(user[0]);
+            logger.info(user);
             //Converts each workshop objectId-string to objectId
-            if(user[0].workshopPreferences){
-                queryFilters = user[0].workshopPreferences;
+            if(user.workshopPreferences){
+                queryFilters = user.workshopPreferences;
             }
 
             //Database command
@@ -77,9 +77,9 @@ let controller = {
                     }
                     //Format results
                     if(!shifts[i].dayRate || shifts[i].dayRate === 0){
-                        Logger.info(user[0].hourRate);
-                        shifts[i].hourRate = user[0].hourRate;
-                        shifts[i].total_Amount = calculateFullRate(getHoursFromTimeStampList(shifts[i].timestamps), user[0].hourRate);
+                        Logger.info(user.hourRate);
+                        shifts[i].hourRate = user.hourRate;
+                        shifts[i].total_Amount = calculateFullRate(getHoursFromTimeStampList(shifts[i].timestamps), user.hourRate);
                     } else {
                         shifts[i].total_Amount = shifts[i].dayRate
                     }
