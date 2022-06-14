@@ -155,16 +155,6 @@ function shiftFormat(shift:any){
     let rate;
     let duration = getHoursFromTimeStampList(shift.timestamps);
     //Database command
-    // @ts-ignore
-    if(shift.dayRate || shift.dayRate > 0){
-        totalTariff = shift.dayRate.toFixed(2);
-        formOfTime = "per dag";
-        rate = shift.dayRate.toFixed(2);
-    } else {
-        totalTariff = null;
-        formOfTime = "per uur";
-        rate = shift.hourRate.toFixed(2);
-    }
 
     shift.workshopId = new ObjectId(shift.workshopId);
     shift.clientId = new ObjectId(shift.clientId);
@@ -173,6 +163,7 @@ function shiftFormat(shift:any){
     const shiftObject: WorkshopShiftBody ={
         workshopId: shift.workshopId,
         clientId:shift.clientId,
+        dayRate: shift.dayRate,
         location: {
             address: shift.location.address,
             city: shift.location.city,
@@ -186,9 +177,6 @@ function shiftFormat(shift:any){
         level: shift.level,
         targetAudience: shift.targetAudience,
         timestamps: shift.timestamps,
-        tariff: rate,
-        total_Amount: totalTariff,
-        formOfTime: formOfTime,
         participants: shift.participants || [],
         candidates: shift.candidates || []
     };
