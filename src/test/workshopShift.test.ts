@@ -361,16 +361,40 @@ describe('Update shift', ()=>{
 
 
 describe('Delete workshopshifts', ()=>{
-    // before(async ()=>{
-    //     // const collection = await queryCommands.getShiftCollection();
-    //     // await collection.insertMany([workshopsShift, workshopsShift2]);
-    // })
+     before(async ()=>{
+          const collection = await queryCommands.getShiftCollection();
+          await collection.insertMany([workshopsShift]);
+     })
+    before(async ()=>{
+        const collection = await queryCommands.getShiftCollection();
+        await collection.deleteOne({_id: new ObjectId("62a242ff67ffdef340ff0c95")});
+    })
 
     it('No token', (done)=>{
-        chai.request(server).delete('/api/workshop/shift/nr4/delete').end((err, res)=>{
+        chai.request(server).delete('/api/workshop/shift/62a242ff67ffdef340ff0c95/delete').end((err, res)=>{
             let {error, message} = res.body;
             error.should.be.equal("unauthorized");
             message.should.be.equal('You need to provide authorization for this endpoint!');
+            done();
+        })
+    })
+    it('Forbidden', (done)=>{
+        const authToken = jwt.sign({role: "user"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+        chai.request(server).delete('/api/workshop/shift/62a242ff67ffdef340ff0c95/delete').set('authorization', authToken).end((err, res)=>{
+            let {error, message} = res.body;
+
+
+            error.should.be.equal("unauthorized");
+            done();
+        })
+    })
+    it('Success', (done)=>{
+        const authToken = jwt.sign({role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+        chai.request(server).delete('/api/workshop/shift/62a242ff67ffdef340ff0c95/delete').set('authorization', authToken).end((err, res)=>{
+            let {error, message} = res.body;
+
+
+            message.should.be.equal("Successful deletion");
             done();
         })
     })
