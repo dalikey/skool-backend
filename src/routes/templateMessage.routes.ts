@@ -4,27 +4,27 @@ import {authorizationMethods, controller} from "../controller/authorization.cont
 import messageController from "../controller/templateMessage.controller";
 const messageRouter  = express.Router();
 
-//Inserts new templateMessage - NEEDS TO BE TESTED
+//Inserts new templateMessage
 messageRouter.post('/api/templateMessage',
     controller.validateToken,
     controller.validateOwnerRole,
     templateMessage.inputValidation,
     templateMessage.insertTemplate);
 
-//Update template message - NEEDS TO BE TESTED
+//Update template message
 messageRouter.put('/api/templateMessage/:templateId/update',
     controller.validateToken,
     controller.validateOwnerRole,
     templateMessage.inputValidation,
     templateMessage.updateTemplate);
 
-//Deletes template message - NEEDS TO BE TESTED
+//Deletes template message
 messageRouter.delete('/api/templateMessage/:templateId/delete',
     controller.validateToken,
     controller.validateOwnerRole,
     templateMessage.deleteTemplate);
 
-//Get all messages - NEEDS TO BE TESTED
+//Get all messages
 messageRouter.get('/api/templateMessage',
     controller.validateToken,
     controller.validateOwnerRole,
