@@ -1,39 +1,40 @@
 import express from "express";
 import userController from "../controller/user.controller";
+import {authorizationMethods, controller} from "../controller/authorization.controller";
 const userRouter  = express.Router();
 
 userRouter.get('/api/user/@me',
-    userController.authorizeUser,
+    controller.validateToken,
     userController.getUser,
 );
 
 userRouter.get('/api/user/:userId',
-    userController.authorizeUser,
+    controller.validateToken,
     userController.getUser)
 
 userRouter.post('/api/user/:userId/activate',
-    userController.authorizeUser,
+    controller.validateToken,
     userController.activateUser
 );
 
 userRouter.post('/api/user/:userId/deactivate',
-    userController.authorizeUser,
+    controller.validateToken,
     userController.deactivateUser
 );
 
 
 userRouter.get('/api/user',
-    userController.authorizeUser,
+    controller.validateToken,
     userController.getUsers
 );
 
 userRouter.put('/api/user/:userId',
-    userController.authorizeUser,
+    controller.validateToken,
     userController.editUser
 );
 
 userRouter.delete('/api/user/:userId',
-    userController.authorizeUser,
+    controller.validateToken,
     userController.deleteUser)
 
 

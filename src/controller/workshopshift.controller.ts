@@ -46,47 +46,50 @@ let controller = {
             logger.info("User retrieval for getAllShifts has started");
             //Gets user
             const user = await queryCommands.getUser(new ObjectId(userId.id));
-            logger.info(user);
+            logger.info(user[0]);
             //Converts each workshop objectId-string to objectId
-            if(user.workshopPreferences){
-                queryFilters = user.workshopPreferences;
+            if(user[0].workshopPreferences){
+                queryFilters = user[0].workshopPreferences;
             }
-            logger.info("Queryset completed");
 
             //Database command
-            const resultSet = await queryCommands.getAllShifts();
-            logger.debug(resultSet)
+            let shifts = await queryCommands.getAllShifts();
+
+            //Shift2 filter through time
+            // @ts-ignore
+            shifts = shifts.filter( v => v.availableUntil > DateTime.now());
+
+            //Filter through full candidates
+            // @ts-ignore
+            shifts = shifts.filter(shift => shift.maximumParticipants > shift.participants.length);
+
             const shiftList = [];
             //Filter through preferences
-            for (let i = 0; i < resultSet.length; i++) {
+            for (let i = 0; i < shifts.length; i++) {
                 //Puts workshop
-                const code = resultSet[i].workshopId.toString();
+                const workshop = shifts[i].workshop[0];
                 //Checks if workshop is included in the queryFilters
-                if(resultSet[i].availableUntil > DateTime.now()){
-                    //Checks if workshop
-                    const shift = resultSet[i];
-                    if(queryFilters.includes(code) || queryFilters.length == 0){
-                        //Puts candidatesprofile in candidate of the corresponding shift
-                        const userList = resultSet[i].candidateUsers;
-                        for (let j = 0; j < userList.length; j++) {
-                            resultSet[i].candidates[j].profile = userList[j];
-                        }
-                        //Format results
-                        if(!resultSet[i].dayRate || resultSet[i].dayRate === 0){
-                            Logger.info(user.hourRate);
-                            resultSet[i].hourRate = user.hourRate;
-                            resultSet[i].total_Amount = calculateFullRate(getHoursFromTimeStampList(resultSet[i].timestamps), user.hourRate);
-                        } else {
-                            resultSet[i].total_Amount = resultSet[i].dayRate
-                        }
-                        logger.info(resultSet[i].total_Amount)
-                        resultSet[i].client = resultSet[i].client[0];
-                        resultSet[i].workshop = resultSet[i].workshop[0];
-                        delete resultSet[i].clientId;
-                        delete resultSet[i].workshopId;
-                        shiftList.push(resultSet[i]);
+                if(queryFilters.includes(workshop) || queryFilters.length == 0){
+                    //Puts candidatesprofile in candidate of the corresponding shift
+                    const userList = shifts[i].candidateUsers;
+                    for (let j = 0; j < userList.length; j++) {
+                        shifts[i].candidates[j].profile = userList[j];
                     }
-                }
+                    //Format results
+                    if(!shifts[i].dayRate || shifts[i].dayRate === 0){
+                        Logger.info(user[0].hourRate);
+                        shifts[i].hourRate = user[0].hourRate;
+                        shifts[i].total_Amount = calculateFullRate(getHoursFromTimeStampList(shifts[i].timestamps), user[0].hourRate);
+                    } else {
+                        shifts[i].total_Amount = shifts[i].dayRate
+                    }
+                    logger.info(shifts[i].total_Amount)
+                    shifts[i].client = shifts[i].client[0];
+                    shifts[i].workshop = shifts[i].workshop[0];
+                    delete shifts[i].clientId;
+                    delete shifts[i].workshopId;
+                    shiftList.push(shifts[i]);
+                    }
             }
             logger.info("Send result to set");
             res.status(200).json({result: shiftList});

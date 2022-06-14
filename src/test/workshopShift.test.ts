@@ -264,6 +264,8 @@ describe('Retrieve workshops', ()=>{
     before(async ()=>{
         const col = await queryCommands.getShiftCollection();
         const col2 = await queryCommands.getUserCollection();
+        await col.deleteMany({_id: {$in: [new ObjectId("62a24334ede1fac86edd1701"), new ObjectId("62a242ff67ffdef340ff0c95")]}});
+        await col2.deleteOne({_id: new ObjectId("62a39fa5dfb7a383d6edce09")});
         await col.insertMany([workshopsShift2, workshopsShift]);
         await col2.insertOne(user);
     })

@@ -77,23 +77,26 @@ export const queryCommands = {
     async getUser(id: ObjectId) {
         const projection = {password: 0};
         Logger.info(projection);
-        // const aggr = [
-        //     {
-        //     '$lookup':{
-        //         'from': 'workshop',
-        //         'localField': 'workshopPreferences',
-        //         'foreignField': '_id',
-        //         'as': 'workshopPreferences'
-        //     }
-        //     }, {
-        //         $project:projection
-        //     }]
+        const aggr = [
+            {
+                '$lookup':{
+                    'from': 'workshop',
+                    'localField': 'workshopPreferences',
+                    'foreignField': '_id',
+                    'as': 'workshopPreferences'
+                }
+            }, {
+                $project:projection
+            },
+            {
+                "$match": {
+                    "_id": id
+                }
+            }]
         try {
             const collection = await this.getUserCollection();
-            //const newQueryResult =await collection.aggregate(aggr).toArray();
-            const queryResult =  await collection.findOne({_id: id}, {projection});
-            Logger.info(queryResult);
-            return queryResult;
+            const newQueryResult =await collection.aggregate(aggr).toArray();
+            return newQueryResult;
         } catch (err: any) {
             return {status: 500, error: err.message}
         }
@@ -206,10 +209,7 @@ export const queryCommands = {
         try {
             const query = await collection.deleteOne({"_id": userId});
             Logger.info(query)
-            if (query.deletedCount === 0) {
-                return false;
-            }
-            return true
+            return query.deletedCount !== 0;
         } catch (err) {
             return false;
         }
