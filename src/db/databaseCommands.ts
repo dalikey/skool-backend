@@ -384,7 +384,7 @@ export const queryCommands = {
        try {
            const collection = await this.getShiftCollection();
            const pushQuery = {$push: {candidates: enrollmentObject}};
-           return await collection.updateOne({_id: new ObjectId(shiftId)}, pushQuery);
+           return await collection.findOneAndUpdate({_id: new ObjectId(shiftId)}, pushQuery, { returnDocument: 'after' });
        } catch (e){
            return null;
        }
@@ -402,7 +402,7 @@ export const queryCommands = {
       try {
           const collection = await this.getShiftCollection();
           const deleteQuery = {$pull: {participants: { $in: { userId: [new ObjectId(userId)]} } } };
-          return await collection.updateOne({_id: new ObjectId(shiftId)}, deleteQuery);
+          return await collection.findOneAndUpdate({_id: new ObjectId(shiftId)}, deleteQuery, { returnDocument: 'after' });
       } catch (e) {
           return null;
       }
@@ -498,6 +498,14 @@ export const queryCommands = {
            return null;
        }
     },
+    async getOneWorkshop(workshopId:string){
+      try {
+          const collect = await this.getWorkshopCollection();
+          return await collect.findOne({_id: new ObjectId(workshopId)});
+      } catch (e) {
+          return e;
+      }
+    },
     async changeStatusWorkshop(workshopId:string, status:boolean){},
     //Template message// Trigger values are unique
     async insertTemplateMessage(templateMessage: insertTemplateMessage, triggerValue:string){
@@ -531,6 +539,15 @@ export const queryCommands = {
            const collection = await this.getTempMessageCollecton();
            return await collection.find({}).toArray();
        }catch (e) {
+           return e;
+       }
+    }
+    ,
+    async getOneTemplate(triggerValue:string){
+       try {
+           const collect = await this.getTempMessageCollecton();
+           return await collect.findOne({trigger: triggerValue});
+       } catch (e) {
            return e;
        }
     }

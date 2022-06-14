@@ -12,16 +12,23 @@ messageRouter.post('/api/templateMessage',
     templateMessage.insertTemplate);
 
 //Update template message - NEEDS TO BE TESTED
-messageRouter.put('/api/templateMessage/:templateId',
+messageRouter.put('/api/templateMessage/:templateId/update',
     controller.validateToken,
     controller.validateOwnerRole,
     templateMessage.inputValidation,
     templateMessage.updateTemplate);
 
 //Deletes template message - NEEDS TO BE TESTED
-messageRouter.delete('/api/templateMessage/:templateId', controller.validateToken, controller.validateOwnerRole, templateMessage.deleteTemplate);
+messageRouter.delete('/api/templateMessage/:templateId/delete',
+    controller.validateToken,
+    controller.validateOwnerRole,
+    templateMessage.deleteTemplate);
 
 //Get all messages - NEEDS TO BE TESTED
-messageRouter.get('/api/templateMessage', controller.validateToken, controller.validateOwnerRole, messageController.getAllTemplates);
+messageRouter.get('/api/templateMessage',
+    controller.validateToken,
+    controller.validateOwnerRole,
+    messageController.getAllTemplates);
 
+messageRouter.post('/api/templateMessage/test', messageController.testMail);
 export default messageRouter;

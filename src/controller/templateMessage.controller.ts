@@ -1,18 +1,25 @@
-
-import {Request, Response} from 'express';
 import {queryCommands} from '../db/databaseCommands';
-import jwt from "jsonwebtoken";
-import Logger from "js-logger";
-import { ObjectId } from "mongodb";
-import nodemailer, {Transporter} from 'nodemailer';
-import {User, userBody} from "../models/userBody";
 import assert from "assert";
-import {authorizationMethods} from "./authorization.controller";
-import {capitalRegex, digitRegex} from "./registration.controller";
-import fileUpload from "express-fileupload";
 import {triggers} from "../models/templateMessageBody";
 
 let messageController = {
+
+    async testMail(req: any, res: any){
+        const triggerValue = req.body.trigger;
+        console.log(triggerValue);
+        const template = await mailMethods.retrieveMailTemplate(triggerValue);
+
+        console.log(template);
+        if (template) {
+            let  html = template.content;
+            html = html.replace('No', "Xins");
+            console.log(html);
+            res.status(200).json({result: html});
+        } else{
+            res.status(400).json({error: "Error"});
+        }
+    },
+
     inputValidation: (req: any, res: any, next:any)=>{
         const template = req.body;
         const triggerList = triggers;
@@ -74,5 +81,15 @@ let messageController = {
         }
     }
 }
+export const mailMethods =
+    {
+        async retrieveMailTemplate(triggerValue:string){
+            try {
+                return queryCommands.getOneTemplate(triggerValue);
+            }catch (e) {
+                return null;
+            }
 
+        }
+    }
 export default messageController;

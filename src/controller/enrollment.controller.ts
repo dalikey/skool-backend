@@ -5,6 +5,8 @@ import {ObjectId} from "mongodb";
 import time, {DateTime, Duration} from 'luxon';
 import nodemailer, {Transporter} from "nodemailer";
 import dotEnv from 'dotenv'
+import {mailMethods} from "./templateMessage.controller";
+import {triggerValues} from "../models/templateMessageBody";
 dotEnv.config();
 let transporter: Transporter;
 
@@ -85,6 +87,30 @@ const controller = {
         const enrollmentObject = { userId: new ObjectId(userId), shiftId: new ObjectId(WshiftId), enrollDate: DateTime.now(), status: "Pending", motivation: req.body.motivation};
         try {
             const enroll = await queryCommands.enrollToShift(WshiftId, enrollmentObject);
+
+            if(process.env.SMTP_SERVER){
+                const template = await mailMethods.retrieveMailTemplate(triggerValues.shiftEnrollRequest);
+                const registration = await queryCommands.getUser(new ObjectId(userId));
+                let title = `Gebruiker ${registration.firstName} ${registration.lastName}, Inschrijving ontvangen.`;
+                let content = `Beste ${registration.firstName} ${registration.lastName},\nU heeft uzelf laten inschrijven voor deze workshop.\n
+                     Wij hopen u spoedig te zien in de toekomst.`
+                if(template){
+                    let workshop = await queryCommands.getOneWorkshop(enroll.value.workshopId);
+                    title = template.title;
+                    content = template.content;
+                    //Format
+                    title = title.replace('{name}', `${registration.firstName} ${registration.lastName}`);
+                    title = title.replace('{workshop}', `${workshop.name}`);
+                    content = content.replace('{functie}', `Workshop docent ${workshop.name}`);
+                    content = content.replace('{date}', enroll.value.date);
+                }
+                const info = await transporter.sendMail({
+                    from: process.env.SMTP_USERNAME,
+                    to: registration.emailAddress,
+                    subject: title,
+                    text: content
+                });
+            }
             res.status(201).json({message: "user has send enrollment."})
         }catch (e){
             res.status(400).json({message: "Failure enrollment"});
@@ -104,7 +130,34 @@ const controller = {
         const status = "Rejected";
         try {
             //Delete userId from participationlist.
-            await queryCommands.cancelParticipation(shiftId, userId);
+            const shift = await queryCommands.cancelParticipation(shiftId, userId);
+            // Sends confirmation mail.
+            if (process.env.SMTP_SERVER) {
+                const registration = await queryCommands.getUser(new ObjectId(userId));
+                //Retrieve template
+                const template = await mailMethods.retrieveMailTemplate(triggerValues.shiftCancellation);
+                let title = `Gebruiker ${registration.firstName} ${registration.lastName}, de inschrijving geannuleerd`;
+                let content = `Beste ${registration.firstName} ${registration.lastName},\nU bent officieel verwijdert voor deze workshop.\n
+                     Wij hopen u spoedig te zien in de toekomst.`
+                if(template){
+                    let workshop = await queryCommands.getOneWorkshop(shift.value.workshopId);
+                    let client = await queryCommands.getOneCustomer(shift.value.clientId);
+                    title = template.title;
+                    content = template.content;
+                    //Format
+                    title = title.replace('{name}', `${registration.firstName} ${registration.lastName}`);
+                    content = content.replace('{functie}', `Workshop docent ${workshop.name}`);
+                    content = content.replace('{klant}', client.name);
+                    content = content.replace('{date}', shift.value.date);
+                }
+                const info = await transporter.sendMail({
+                    from: process.env.SMTP_USERNAME,
+                    to: registration.emailAddress,
+                    subject: title,
+                    text: content
+                });
+            }
+
             //Change status in candidatelist to rejected.
             res.status(201).json({message: "Participation has been canceled."});
         } catch (e){
@@ -118,25 +171,47 @@ const controller = {
         try {
             //Changes status in candidateslist.
             const changeStatus = await queryCommands.changeStatusEnrollmentParticipant(shiftId, userId, status);
-            //Gets right object
+            //List
             const listCandidates = await queryCommands.getCandidatesList(shiftId);
             //Filters users
             let user = listCandidates.filter((candidates: { userId: any; }) => candidates.userId == userId);
             //Removes candidate from candidates list.
             const removeCandidate = await queryCommands.deleteEnrollment(shiftId, userId);
-            //Adds participant to participant list. - need to be changed
+            //Adds participant to participant list.
             const enroll = await queryCommands.confirmParticipation(shiftId, user[0]);
-            // Sends confirmation mail.
-            // if (process.env.SMTP_SERVER) {
-            //     const registration = await queryCommands.getUser(new ObjectId(userId));
-            //     const info = await transporter.sendMail({
-            //         from: process.env.SMTP_USERNAME,
-            //         to: registration.emailAddress,
-            //         subject: `Gebruiker ${registration.firstName} ${registration.lastName} is definitief ingeschreven.`,
-            //         text: `Beste ${registration.firstName} ${registration.lastName},\nU bent officieel ingeschreven voor de workshop.\n
-            //         Wij hopen u spoedig te zien op uw dienst.`
-            //     });
-            // }
+            //Sends confirmation mail.
+            if (process.env.SMTP_SERVER) {
+                 const registration = await queryCommands.getUser(new ObjectId(userId));
+                 //Get template mail
+                 const template = await mailMethods.retrieveMailTemplate(triggerValues.shiftConfirmation);
+                 let content  = `Beste ${registration.firstName} ${registration.lastName},\nU bent officieel ingeschreven voor de workshop.\n
+                     Wij hopen u spoedig te zien op uw dienst.`;
+                 let title = `Gebruiker ${registration.firstName} ${registration.lastName} is definitief ingeschreven.`;
+                 //Checks if template found
+                 if(template){
+                     //Get workshop
+                     let workshop = await  queryCommands.getOneWorkshop(enroll.value.workshopId);
+                     //Get client
+                     let client = await queryCommands.getOneCustomer(enroll.value.clientId);
+                     title = template.title;
+                     content = template.content;
+                     //Formats string
+                     title = title.replace("{name}", `${registration.firstName} ${registration.lastName}`);
+                     content = content.replace("{name}", `${registration.firstName} ${registration.lastName}`);
+                     content = content.replace("{functie}", `Workshop ${workshop.name}`);
+                     content = content.replace('{klant}', client.name);
+                     content = content.replace('{date}', `${enroll.value.date}`);
+                     content = content.replace('{arrivalTime}', enroll.value.date);
+                     content = content.replace('{startTime}', `${enroll.value.timestamps[0].startTime}`);
+                     content = content.replace('{endTime}', `${enroll.value.timestamps[enroll.value.timestamps.length - 1].endTime}`)
+                 }
+                 const info = await transporter.sendMail({
+                     from: process.env.SMTP_USERNAME,
+                     to: registration.emailAddress,
+                     subject: title,
+                     text: content
+                 });
+             }
             res.status(201).json({message: "User has been confirmed to be part of this shift.", result: enroll.value})
         }catch (e){
             res.status(400).json({message: "Failure enrollment"});
@@ -150,16 +225,32 @@ const controller = {
             //Changes status in candidateslist.
             const enrollmentStatus = await queryCommands.changeStatusEnrollmentParticipant(shiftId, userId, status);
             // Sends confirmation mail.
-            // if (process.env.SMTP_SERVER) {
-            //     const registration = await queryCommands.getUser(new ObjectId(userId));
-            //     const info = await transporter.sendMail({
-            //         from: process.env.SMTP_USERNAME,
-            //         to: registration.emailAddress,
-            //         subject: `Gebruiker ${registration.firstName} ${registration.lastName}, de inschrijving is afgekeurd.`,
-            //         text: `Beste ${registration.firstName} ${registration.lastName},\nU bent officieel geweigerd voor deze workshop.\n
-            //         Wij hopen u spoedig te zien in de toekomst.`
-            //     });
-            // }
+            if (process.env.SMTP_SERVER) {
+                 const registration = await queryCommands.getUser(new ObjectId(userId));
+                 //Retrieve template
+                 const template = await mailMethods.retrieveMailTemplate(triggerValues.shiftRejection);
+                 let title = `Gebruiker ${registration.firstName} ${registration.lastName}, de inschrijving is afgekeurd.`;
+                 let content = `Beste ${registration.firstName} ${registration.lastName},\nU bent officieel geweigerd voor deze workshop.\n
+                     Wij hopen u spoedig te zien in de toekomst.`
+
+                if(template){
+                    let workshop = await queryCommands.getOneWorkshop(enrollmentStatus.value.workshopId);
+                    let client = await queryCommands.getOneCustomer(enrollmentStatus.value.clientId);
+                    title = template.title;
+                    content = template.content;
+                    //Format
+                    title = title.replace('{name}', `${registration.firstName} ${registration.lastName}`);
+                    content = content.replace('{functie}', `Workshop docent ${workshop.name}`);
+                    content = content.replace('{klant}', client.name);
+                    content = content.replace('{date}', enrollmentStatus.value.date);
+                }
+                 const info = await transporter.sendMail({
+                    from: process.env.SMTP_USERNAME,
+                     to: registration.emailAddress,
+                     subject: title,
+                     text: content
+                 });
+            }
             res.status(201).json({message: "User has been rejected from the workshop", result: enrollmentStatus.value.candidates})
         }catch (e){
             res.status(400).json({message: "Failed database action"});
@@ -172,16 +263,6 @@ const controller = {
         try {
             //Remove participant
             await queryCommands.cancelParticipation(shiftId, userId);
-            if (process.env.SMTP_SERVER) {
-                const registration = await queryCommands.getUser(new ObjectId(userId));
-                const info = await transporter.sendMail({
-                    from: process.env.SMTP_USERNAME,
-                    to: registration.emailAddress,
-                    subject: `Gebruiker ${registration.firstName} ${registration.lastName}, de inschrijving is verwijderd.`,
-                    text: `Beste ${registration.firstName} ${registration.lastName},\nU bent officieel afgemeld voor deze workshop.\n
-                    Wij hopen u spoedig te zien in de toekomst.`
-                });
-            }
             //Remove candidate
             await queryCommands.deleteEnrollment(shiftId, userId);
             res.status(201).json({message: "User has been removed from the workshop"})

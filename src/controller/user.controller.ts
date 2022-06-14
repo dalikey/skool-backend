@@ -9,6 +9,8 @@ import assert from "assert";
 import {authorizationMethods} from "./authorization.controller";
 import {capitalRegex, digitRegex} from "./registration.controller";
 import fileUpload from "express-fileupload";
+import {mailMethods} from "./templateMessage.controller";
+import {triggerValues} from "../models/templateMessageBody";
 
 
 let transporter: Transporter;
@@ -107,15 +109,25 @@ export async function activateUser(req: Request, res: Response) {
     try {
         const result = await queryCommands.approveUser(new ObjectId(userId), true);
         if (result.modifiedCount == 1) {
-
-            const user = await queryCommands.getUser(new ObjectId(userId));
-            const name = `${user.firstName} ${user.lastName}`;
             if (process.env.SMTP_SERVER) {
+                const user = await queryCommands.getUser(new ObjectId(userId));
+                const name = `${user.firstName} ${user.lastName}`;
+                //Gets right mail.
+                let htmlContent = await mailMethods.retrieveMailTemplate(triggerValues.registrationAccept);
+                //if html is undefined, it fall back to the default mail.
+                if(!htmlContent){
+                    htmlContent.content = `Beste ${name},\n\nU kunt nu inloggen op de website door ${process.env.FRONTEND_URI}/sign-in te bezoeken.\n\nMet vriendelijke groet\n\nSkool Workshops`;
+                    htmlContent.title = `${name}, Uw Skool Werknemer account is geaccepteerd`
+                } else{
+                    //Format mail html with proper customization
+                    htmlContent.content = htmlContent.content.replace('{name}', name);
+                    htmlContent.content = htmlContent.content.replace('{url}', `${process.env.FRONTEND_URI}/sign-in`);
+                }
                 const info = await transporter.sendMail({
                     from: process.env.SMTP_USERNAME,
                     to: user.emailAddress,
-                    subject: `${name}, Uw Skool Werknemer account is geaccepteerd`,
-                    text: `Beste ${name},\n\nU kunt nu inloggen op de website door ${process.env.FRONTEND_URI}/sign-in te bezoeken.\n\nMet vriendelijke groet\n\nSkool Workshops`
+                    subject: htmlContent.title,
+                    text: htmlContent.content
                 })
                 Logger.info(info);
             }

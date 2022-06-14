@@ -36,14 +36,17 @@ const shiftExpireTime= {_id: new ObjectId("62a795186fc817c048e11d4d"), maximumPa
 const user11 = {_id: new ObjectId("62a4607c4540f4612588a42f"), firstName: "Eline", lastName: "Sebastiaan", emailAddress: "email@example.com"};
 const user12 = {_id: new ObjectId("62a464ceafbae637a6aad1f4"), firstName: "Eline", lastName: "Sebastiaan", emailAddress: "email@example.com"};
 const user13 = {_id: new ObjectId("62a4617f33427f5d3fe48f55"), firstName: "Eline", lastName: "Sebastiaan", emailAddress: "email@example.com"};
+const user14 = {_id: new ObjectId("62a2270f89fbb3801d3c1e95"), firstName: "Eline", lastName: "Sebastiaan", emailAddress: "email@example.com"};
 const unknownUser = {Extern_Status: "62a785fdb79ef526486a055f", firstName: "Thomas", lastName: "de Onbekende", emailAddress: "onbekend@unknownExample.who", phoneNumber: "06 45500123", tariff: 175.50, formOfHour: "Per dag"};
 
 describe('Enroll to workshop', ()=>{
     before(async ()=>{
         const collection = await queryCommands.getShiftCollection();
+        const user =await  queryCommands.getUserCollection();
         const pushQuery = {$push: {candidates: {userId: new ObjectId("6299f064aa4cd598e78e59bb"), shiftId: new ObjectId("62a20e41bce044ece60a1e3f")}}};
         await collection.insertOne({_id: new ObjectId("62a20e41bce044ece60a1e3f"), participants: [], maximumParticipants: 1, availableUntil: DateTime.now().plus({day: 1})});
         await collection.insertOne({_id: new ObjectId("62a213d47782483d77ab0dc5"), participants: [], maximumParticipants: 1, availableUntil: DateTime.now().minus({day: 1})});
+        await user.insertOne(user14);
         await collection.updateOne({_id: new ObjectId("62a20e41bce044ece60a1e3f")}, pushQuery);
     })
 
@@ -133,10 +136,12 @@ describe('Enroll to workshop', ()=>{
 
     after(async ()=>{
         const collection = await queryCommands.getShiftCollection();
+        const user = await  queryCommands.getUserCollection();
         const query = { $pull: { candidates: { userId: new ObjectId("6295e96d7f984a246108b36e") } } };
         await collection.updateMany({_id: new ObjectId("62a1cd10eef1665408244fe9")}, query);
         await collection.deleteMany({_id: new ObjectId("62a20e41bce044ece60a1e3f")});
         await collection.deleteMany({_id: new ObjectId("62a213d47782483d77ab0dc5")});
+        await user.deleteOne({_id: new ObjectId("62a2270f89fbb3801d3c1e95")});
     })
 })
 describe('Confirmation enrollment', ()=>{
