@@ -8,6 +8,8 @@ import dotEnv from 'dotenv'
 import {mailMethods} from "./templateMessage.controller";
 import {triggerValues} from "../models/templateMessageBody";
 import {getHoursFromTimeStampList} from "./workshopshift.controller";
+import jwt from "jsonwebtoken";
+import logger from "js-logger";
 dotEnv.config();
 let transporter: Transporter;
 
@@ -92,20 +94,23 @@ const controller = {
             if(process.env.SMTP_PROVIDER && process.env.SMTP_USERNAME && process.env.SMTP_PASSWORD){
                 const template = await mailMethods.retrieveMailTemplate(triggerValues.shiftEnrollRequest);
                 const registration = await queryCommands.getUser(new ObjectId(userId));
-                let title = `Gebruiker ${registration.firstName} ${registration.lastName}, Inschrijving ontvangen.`;
-                let content = `Beste ${registration.firstName} ${registration.lastName},\nU heeft uzelf laten inschrijven voor deze workshop.\n
+                let defaultTitle = `Gebruiker ${registration.firstName} ${registration.lastName}, Inschrijving ontvangen.`;
+                let defaultContent = `Beste ${registration.firstName} ${registration.lastName},\nU heeft uzelf laten inschrijven voor deze workshop.\n
                      Wij hopen u spoedig te zien in de toekomst.`
                 if(template){
                     let workshop = await queryCommands.getOneWorkshop(enroll.value.workshopId);
-                    title = template.title;
-                    content = template.content;
+                    let title = template.title;
+                    let content = template.content;
                     //Format
-                    title = title.replace('{name}', `${registration.firstName} ${registration.lastName}`);
-                    title = title.replace('{workshop}', `${workshop.name}`);
-                    content = content.replace('{functie}', `Workshop docent ${workshop.name}`);
-                    content = content.replace('{date}', enroll.value.date);
+                    title = title.replaceAll('{name}', `${registration.firstName} ${registration.lastName}`);
+                    title = title.replaceAll('{workshop}', `${workshop.name}`);
+                    content = content.replaceAll('{functie}', `Workshop docent ${workshop.name}`);
+                    content = content.replaceAll('{date}', enroll.value.date);
+                    await mailMethods.sendMail(title, content, registration.emailAddress);
+                } else{
+                    await mailMethods.sendMail(defaultTitle, defaultContent, registration.emailAddress);
                 }
-                await mailMethods.sendMail(title, content, registration.emailAddress);
+
             }
             res.status(201).json({message: "user has send enrollment."})
         }catch (e){
@@ -123,7 +128,7 @@ const controller = {
     async cancelParticipation(req: any, res:any){
         const userId = req.params.userId;
         const shiftId = req.params.shiftId;
-        const status = "Rejected";
+
         try {
             //Delete userId from participationlist.
             const shift = await queryCommands.cancelParticipation(shiftId, userId);
@@ -132,27 +137,26 @@ const controller = {
             // Sends confirmation mail.
             if (process.env.SMTP_PROVIDER && process.env.SMTP_USERNAME && process.env.SMTP_PASSWORD && template) {
                 //Retrieve template
-                let title = `De inschrijving geannuleerd`;
-                let content = `U bent officieel verwijdert voor deze workshop.\n
-                     Wij hopen u spoedig te zien in de toekomst.`
                 if(template){
                     const registration = await queryCommands.getUser(new ObjectId(userId));
                     let workshop = await queryCommands.getOneWorkshop(shift.value.workshopId);
                     let client = await queryCommands.getOneCustomer(shift.value.clientId);
-                    title = template.title;
-                    content = template.content;
+                    let title = template.title;
+                    let content = template.content;
                     //Format
-                    title = title.replace('{name}', `${registration.firstName} ${registration.lastName}`);
-                    content = content.replace('{functie}', `Workshop docent ${workshop.name}`);
-                    content = content.replace('{klant}', client.name);
-                    content = content.replace('{date}', shift.value.date);
+                    title = title.replaceAll('{name}', `${registration.firstName} ${registration.lastName}`);
+                    content = content.replaceAll('{functie}', `Workshop docent ${workshop.name}`);
+                    content = content.replaceAll('{klant}', client.name);
+                    content = content.replaceAll('{date}', shift.value.date);
                     await mailMethods.sendMail(title, content, registration.emailAddress);
                 } else if(unknownEmail){
-                    await mailMethods.sendMail(title, content, req.body.emailAddress);
+                    let defaultTitle = `De inschrijving geannuleerd`;
+                    let defaultContent = `U bent officieel verwijdert voor deze workshop.\n
+                     Wij hopen u spoedig te zien in de toekomst.`
+                    await mailMethods.sendMail(defaultTitle, defaultContent, req.body.emailAddress);
                 }
             }
 
-            //Change status in candidatelist to rejected.
             res.status(201).json({message: "Participation has been canceled."});
         } catch (e){
             res.status(400).json({error: "participation_change_error", message: "Problems with change in participants"});
@@ -164,46 +168,19 @@ const controller = {
         const status = "Current"
         try {
             //Changes status in candidateslist.
-            const changeStatus = await queryCommands.changeStatusEnrollmentParticipant(shiftId, userId, status);
+            await queryCommands.changeStatusEnrollmentParticipant(shiftId, userId, status);
             //List
             const listCandidates = await queryCommands.getCandidatesList(shiftId);
             //Filters users
             let user = listCandidates.filter((candidates: { userId: any; }) => candidates.userId == userId);
             //Removes candidate from candidates list.
-            const removeCandidate = await queryCommands.deleteEnrollment(shiftId, userId);
+            await queryCommands.deleteEnrollment(shiftId, userId);
             //Adds participant to participant list.
             const enroll = await queryCommands.confirmParticipation(shiftId, user[0]);
             //Sends confirmation mail.
             if (process.env.SMTP_PROVIDER && process.env.SMTP_USERNAME && process.env.SMTP_PASSWORD) {
-                 const registration = await queryCommands.getUser(new ObjectId(userId));
-                 //Get template mail
-                 const template = await mailMethods.retrieveMailTemplate(triggerValues.shiftConfirmation);
-                 let content  = `Beste ${registration.firstName} ${registration.lastName},\nU bent officieel ingeschreven voor de workshop.\n
-                     Wij hopen u spoedig te zien op uw dienst.`;
-                 let title = `Gebruiker ${registration.firstName} ${registration.lastName} is definitief ingeschreven.`;
-                 //Checks if template found
-                 if(template){
-                     //Get workshop
-                     let workshop = await  queryCommands.getOneWorkshop(enroll.value.workshopId);
-                     //Get client
-                     let client = await queryCommands.getOneCustomer(enroll.value.clientId);
-                     title = template.title;
-                     content = template.content;
-                     //Formats string
-                     title = title.replace("{name}", `${registration.firstName} ${registration.lastName}`);
-                     content = content.replace("{name}", `${registration.firstName} ${registration.lastName}`);
-                     content = content.replace("{functie}", `Workshop ${workshop.name}`);
-                     content = content.replace('{klant}', client.name);
-                     content = content.replace('{date}', `${enroll.value.date}`);
-                     content = content.replace('{arrivalTime}', `${DateTime.fromISO(enroll.value.timestamps[0].startTime).toISOTime().toString()}`);
-                     content = content.replace('{startTime}', `${enroll.value.timestamps[0].startTime}`);
-                     content = content.replace('{endTime}', `${enroll.value.timestamps[enroll.value.timestamps.length - 1].endTime}`)
-                     content = content.replace('{tarrif}', `${enroll.value.total_Amount}`);
-                     content = content.replace('{targetAudience}', `${enroll.value.targetAudience}`);
-                     content = content.replace('{workshopInfo}', workshop.description);
-                     //
-                 }
-                 await mailMethods.sendMail(title, content, registration.emailAddress);
+                const registration = await queryCommands.getUser(new ObjectId(userId));
+                await formatConfirmationMail(registration.emailAddress, shiftId, registration.firstName, registration.lastName);
              }
             res.status(201).json({message: "User has been confirmed to be part of this shift.", result: enroll.value})
         }catch (e){
@@ -220,30 +197,8 @@ const controller = {
             // Sends confirmation mail.
             if (process.env.SMTP_PROVIDER && process.env.SMTP_USERNAME && process.env.SMTP_PASSWORD) {
                  const registration = await queryCommands.getUser(new ObjectId(userId));
-                 //Retrieve template
-                 const template = await mailMethods.retrieveMailTemplate(triggerValues.shiftRejection);
-                 let title = `Gebruiker ${registration.firstName} ${registration.lastName}, de inschrijving is afgekeurd.`;
-                 let content = `Beste ${registration.firstName} ${registration.lastName},\nU bent officieel geweigerd voor deze workshop.\n
-                     Wij hopen u spoedig te zien in de toekomst.`
 
-                if(template){
-                    let workshop = await queryCommands.getOneWorkshop(enrollmentStatus.value.workshopId);
-                    let client = await queryCommands.getOneCustomer(enrollmentStatus.value.clientId);
-                    title = template.title;
-                    content = template.content;
-                    //Format
-                    title = title.replace('{name}', `${registration.firstName} ${registration.lastName}`);
-                    content = content.replace('{functie}', `Workshop docent ${workshop.name}`);
-                    content = content.replace('{klant}', client.name);
-                    content = content.replace('{date}', enrollmentStatus.value.date);
-                }
-                await mailMethods.sendMail(title, content, registration.emailAddress);
-                 // const info = await transporter.sendMail({
-                 //    from: process.env.SMTP_USERNAME,
-                 //     to: registration.emailAddress,
-                 //     subject: title,
-                 //     text: content
-                 // });
+                await formatRejectionEnrollment(shiftId, registration.emailAddress, registration.firstName, registration.lastName);
             }
             res.status(201).json({message: "User has been rejected from the workshop", result: enrollmentStatus.value.candidates})
         }catch (e){
@@ -313,58 +268,209 @@ const controller = {
         }
 
     },
+    inputValidateInviteAction:(req:any, res:any, next:any)=>{
+        const user = req.body;
+        try {
+            if(req.body.userId == "Unknown"){
+                assert(user.firstName);
+                assert(user.lastName);
+                assert(user.phoneNumber);
+                assert(user.tarriff);
+                assert(user.emailAddress);
+            }
+            next()
+        }catch (e) {
+            res.status(400).json({error: "input_failure", message: "Not all input fields are filled in."})
+        }
+    }
+    ,
     async sendInvitationToUser(req:any, res: any){
         //Initialize user
         const user = req.body;
         //Initialize shiftId
-        const shiftId = req.params;
-        // gets shift based on shiftId
-        const shift = await queryCommands.getOneShift(shiftId);
-        //Gets hours from timestamps
-        const workHours = getHoursFromTimeStampList(shift.timestamps);
-        //Checks if user is known or unknown
-        if(user.userId != "Unknown"){
-            //If it is known, it will retrieve user and its data/ firstName, lastName, tarriff
-            const retrievedUser = await queryCommands.getUser(new ObjectId(user.userId));
-            user.firstName = retrievedUser.firstName;
-            user.lastName = retrievedUser.lastName;
-            user.phoneNumber = retrievedUser.phoneNumber;
-            user.tarriff = retrievedUser.hourRate * workHours;
-            user.emailAddress = retrievedUser.emailAddress;
-            user.link = "";
-        } else {
-            //If it is unknown, it will
-            user.userId = new ObjectId();
-            user.link = "";
-
-        }
-        user.status = "Pending";
-        user.date = DateTime.now();
-        //Insert into request objectArray
-
-        //Retrieve template.
-        const template = await queryCommands.getOneTemplate("SHIFT_ENROLL_INVITATION");
-
-        //Sends mail.
-        if (process.env.SMTP_PROVIDER && process.env.SMTP_USERNAME && process.env.SMTP_PASSWORD){
-            if (template){
-                let title = template.title;
-                let content = template.content;
-                //format mail. Make mail
-                //Generate random token.
-
-
-                const result = await mailMethods.sendMail(title, content, user.emailAddress);
-                res.status(200).json({emailResult: result});
+        const shiftId = req.params.shiftId;
+        try {
+            // gets shift based on shiftId
+            const shift = await queryCommands.getOneShift(shiftId);
+            //Gets hours from timestamps
+            // const workHours = getHoursFromTimeStampList(shift.timestamps);
+            //Checks if user is known or unknown
+            if(user.userId != "Unknown"){
+                //If it is known, it will retrieve user and its data/ firstName, lastName, tarriff
+                const retrievedUser = await queryCommands.getUser(new ObjectId(user.userId));
+                user.firstName = retrievedUser.firstName;
+                user.lastName = retrievedUser.lastName;
+                user.phoneNumber = retrievedUser.phoneNumber;
+                user.tarriff = retrievedUser.hourRate;
+                user.emailAddress = retrievedUser.emailAddress;
+            } else {
+                //If it is unknown, it will
+                user.userId = new ObjectId();
             }
-            res.status(400).json({message: "No template made"});
-        } else {
-            res.status(400).json({message: "No connection"});
+            //Generate random token.
+            // @ts-ignore
+            let token = jwt.sign({role: "user"}, process.env.APP_SECRET, {expiresIn: "1d"});
+            user.status = "Pending";
+            user.date = DateTime.now();
+            //Puts token in user object.
+            user.token = token;
+            //Insert into request objectArray
+            await queryCommands.insertInvitationToRequestArray(shiftId, user);
+            //Retrieve template.
+            const template = await queryCommands.getOneTemplate(triggerValues.shiftInvitation);
+            //Sends mail.
+            if (process.env.SMTP_PROVIDER && process.env.SMTP_USERNAME && process.env.SMTP_PASSWORD){
+                if (template){
+                    let title = template.title;
+                    let content = template.content;
+                    let workshop = await queryCommands.getOneWorkshop(shift.workshopId);
+                    let klant = await queryCommands.getOneCustomer(shift.clientId);
+                    //format mail. Make mail
+                    title = title.replaceAll('{functie}', `${workshop.name}`);
+                    content = content.replaceAll('{name}', `${user.firstName} ${user.lastName}`);
+                    content = content.replaceAll('{date}', `${shift.date}`);
+                    content = content.replaceAll('{tarrif}', `${shift.tarriff}`);
+                    content = content.replaceAll('{startTime}', `${shift.timestamps[0].startTime}`);
+                    content = content.replaceAll('{functie}', `docent ${workshop.name}`);
+                    content = content.replaceAll('{klant}', klant.name);
+                    content = content.replace('{Invitation_link}', `${process.env.API_URI}/api/workshop/shift/${shiftId}/accepted/${user.userId}/enroll/${token}/invitation`);
+                    //Sends mail
+                    const result = await mailMethods.sendMail(title, content, user.emailAddress);
+                }
+            }
+            return res.status(200).json();
+        }catch (e) {
+            res.status(400).json({error: "invitation has failed", message: e})
         }
 
-
-        //Send mail
+    }
+    ,
+    async acceptInvitation(req:any, res:any){
+        const shiftId = req.params.shiftId;
+        const userId = req.params.userId;
+        const token = req.params.token;
+        logger.info(token);
+        try {
+            //Pull out invitation
+            const returningShift = await queryCommands.pullOutInvitation(shiftId, userId);
+            logger.info(returningShift.value.invitations);
+            let invitations = returningShift.value.invitations;
+            // @ts-ignore
+            invitations = invitations.filter(user => user.userId == userId);
+            let user = invitations[0];
+            user.status = "Current";
+            //Check if token is present. To prevent duplication
+            assert(user.token == token);
+            //Put the new object in the participation
+            await queryCommands.confirmParticipation(shiftId, user);
+            await formatConfirmationMail(user.emailAddress, shiftId, user.firstName, user.lastName);
+            res.status(200).json({message: "Invited user has accepted shift"});
+        }catch (e:any) {
+            res.status(400).json({error: "acceptance_error", message: "something went wrong with accepting participation", stack: e.message})
+        }
+    },
+    async rejectInvitation(req:any, res:any){
+        const shiftId = req.params.shiftId;
+        const userId = req.params.userId;
+        const token = req.params.token;
+        try {
+            const returningShift = await queryCommands.pullOutInvitation(shiftId, userId);
+            let invitations = returningShift.value.invitations;
+            // @ts-ignore
+            invitations = invitations.filter(user => user.userId == userId);
+            let user = invitations[0];
+            //Check if token is present. To prevent duplication
+            assert(user.token == token);
+            res.status(200).json({message: "Invited user has rejected shift"});
+        } catch (e:any) {
+            res.status(400).json({error: "acceptance_error", message: "something went wrong with accepting participation", stack: e.message});
+        }
     }
 }
 
+export async function formatConfirmationMail(emailAddress:string, shiftId:string, firstName: string, lastName:string) {
+    try {
+        const template = await queryCommands.getOneTemplate(triggerValues.shiftConfirmation);
+        const shift = await queryCommands.getOneShift(shiftId);
+        const workshop = await queryCommands.getOneWorkshop(shift.workshopId);
+        const client =await queryCommands.getOneCustomer(shift.clientId);
+        if(template){
+            let title = template.title;
+            let content = template.content;
+
+            title = title.replaceAll("{name}", `${firstName} ${lastName}`);
+
+            content = content.replaceAll("{name}", `${firstName} ${lastName}`);
+            content = content.replaceAll("{functie}", `Workshop ${workshop.name}`);
+            content = content.replaceAll('{klant}', client.name);
+            content = content.replaceAll('{date}', `${shift.date}`);
+            content = content.replaceAll('{arrivalTime}', `${shift.timestamps[0].startTime}`);
+            content = content.replaceAll('{startTime}', `${shift.timestamps[0].startTime}`);
+            content = content.replaceAll('{endTime}', `${shift.timestamps[shift.timestamps.length - 1].endTime}`)
+            content = content.replaceAll('{tarrif}', `${shift.total_Amount}`);
+            content = content.replaceAll('{targetAudience}', `${shift.targetAudience}`);
+            content = content.replaceAll('{workshopInfo}', workshop.description);
+
+            mailMethods.sendMail(title, content, emailAddress);
+        } else{
+            let content  = `Beste ${firstName} ${lastName},\nU bent officieel ingeschreven voor de workshop.\n
+                     Wij hopen u spoedig te zien op uw dienst.`;
+            let title = `Gebruiker ${firstName} ${lastName} is definitief ingeschreven.`;
+            await mailMethods.sendMail(title, content, emailAddress);
+        }
+    }catch (e) {
+        return e;
+    }
+}
+
+export async function formatRejectionEnrollment(shiftId:string, emailAddress:string, firstName:string, lastName:string) {
+    //Retrieve template
+    try {
+        const template = await mailMethods.retrieveMailTemplate(triggerValues.shiftRejection);
+        const shift = await queryCommands.getOneShift(shiftId);
+        if(template){
+            let workshop = await queryCommands.getOneWorkshop(shift.workshopId);
+            let client = await queryCommands.getOneCustomer(shift.clientId);
+            let title = template.title;
+            let content = template.content;
+            //Format
+            title = title.replaceAll('{name}', `${firstName} ${lastName}`);
+            content = content.replaceAll('{functie}', `Workshop docent ${workshop.name}`);
+            content = content.replaceAll('{klant}', client.name);
+            content = content.replaceAll('{date}', shift.date);
+            await mailMethods.sendMail(title, content, emailAddress);
+        } else {
+            let defaulttitle = `Gebruiker ${firstName} ${lastName}, de inschrijving is afgekeurd.`;
+            let defaultcontent = `Beste ${firstName} ${lastName},\nU bent officieel geweigerd voor deze workshop.\n
+                     Wij hopen u spoedig te zien in de toekomst.`
+            await mailMethods.sendMail(defaulttitle, defaultcontent, emailAddress);
+        }
+    }catch (e) {
+        return e;
+    }
+
+}
+
+export async function acceptedMail(shiftId:string, emailAddress:string, firstName:string, lastName:string) {
+
+}
+
+export async function cancelMail(shiftId:string, emailAddress:string, firstName:string, lastName:string){
+
+}
+
+export async function enrollMentRequest(shiftId:string, emailAddress:string, firstName:string, lastName:string) {
+
+}
+export async function passwordForgot(emailAddress:string){
+
+}
+
+export async function registerReject() {
+
+}
+
+export async function registerAccepted(){
+
+}
 export default controller;

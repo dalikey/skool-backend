@@ -5,6 +5,7 @@ import { queryCommands } from '../db/databaseCommands';
 import { registrationBody } from '../models/registrationBody';
 import nodemailer, {Transporter} from "nodemailer";
 import {mailMethods} from "./templateMessage.controller";
+import {triggerValues} from "../models/templateMessageBody";
 
 export const emailRegex = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/g;
 export const capitalRegex = /[A-Z]+/;
@@ -62,17 +63,21 @@ export async function registerUser(req: Request, res: Response, next: any) {
         res.status(400).send({error: "input_invalid", message: "The data you sent was not correctly formatted!"});
     }
     if (process.env.SMTP_SERVER) {
-        let content;
-        let title;
-        await mailMethods.sendMail(`Gebruiker ${registration.firstName} ${registration.lastName} geregistreerd.`, `Accepteer/Weiger ${registration.firstName} ${registration.lastName} door ${process.env.FRONTEND_URI}/admin te bezoeken! `, "clinten.pique@duck-in.space");
-        // const info = await transporter.sendMail({
-        //     from: process.env.SMTP_USERNAME,
-        //     to: "clinten.pique@duck-in.space",
-        //     subject: `Gebruiker ${registration.firstName} ${registration.lastName} geregistreerd.`,
-        //     text: `Accepteer/Weiger ${registration.firstName} ${registration.lastName} door ${process.env.FRONTEND_URI}/admin te bezoeken! `
-        // })
+
+        let template = await queryCommands.getOneTemplate(triggerValues.registrationRequest);
+        if(template){
+            let content = template.content;
+            let title = template.title;
+            title = title.replaceAll('{name}', `${registration.firstName} ${registration.lastName}`);
+            content = content.replaceAll('{name}', `${registration.firstName} ${registration.lastName}`);
+            await mailMethods.sendMail(title, content, registration.emailAddress);
+        } else {
+            // @ts-ignore
+            await mailMethods.sendMail(`Gebruiker ${registration.firstName} ${registration.lastName} geregistreerd.`, `Accepteer/Weiger ${registration.firstName} ${registration.lastName} door ${process.env.FRONTEND_URI}/admin te bezoeken! `, process.env.SMTP_USERNAME);
+        }
+
     }
-        res.status(204).send();
+    res.status(204).send();
 }
 
 export default {verifyInput: verifyInput, hashPashword: hashPashword, registerUser: registerUser}

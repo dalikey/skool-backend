@@ -321,12 +321,13 @@ export const queryCommands = {
        }
     },
     async getOneShift(shiftId: string){
-       const collection = await this.getShiftCollection();
+
        try {
+           const collection = await this.getShiftCollection();
            const filter = {_id: new ObjectId(shiftId)};
            return await collection.findOne(filter);
        }catch (e) {
-           return null;
+           return e;
        }
     },
     async updateShift(shiftId:string, shift:any){
@@ -464,7 +465,7 @@ export const queryCommands = {
        }
     },
     async insertInvitationToRequestArray(shiftId: string,invitation: any){
-       const query = { $push : {invitation: {requests: invitation}}};
+       const query = { $push : {invitations: invitation}};
        const filter = { _id: new ObjectId(shiftId)};
        const returnFilter = {}
        try {
@@ -476,10 +477,10 @@ export const queryCommands = {
     },
     async pullOutInvitation(shiftId: string, userId: string){
        try {
-           const query = { $pull: {invitation: { userId: new ObjectId(userId)}}};
+           const query = { $pull: {invitations: {userId: new ObjectId(userId)}}};
            const filter = {_id: new ObjectId(shiftId)};
            const collection = await queryCommands.getShiftCollection();
-           return await collection.findOneAndUpdate(filter, query, { returnDocument: 'after' });
+           return await collection.findOneAndUpdate(filter, query);
        }catch (e) {
            return null
        }

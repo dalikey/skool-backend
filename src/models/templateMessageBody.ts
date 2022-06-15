@@ -14,14 +14,26 @@ export interface templateMessage {
 }
 
 // TRIGGER VALUES
-export const triggers = ["REGISTRATION_ACCEPT", "ENROLLMENT_ACCEPT", "REGISTRATION_REJECT", "PASSWORD_FORGOT", "SHIFT_ENROLL_REQUEST","SHIFT_ENROLL_CONFIRMATION" ,"SHIFT_ENROLL_REJECT", "SHIFT_ENROLL_INVITATION", "SHIFT_ENROLL_CANCELLATION"];
+export const triggers = [
+    "REGISTRATION_ACCEPT",
+    "ENROLLMENT_ACCEPT",
+    "REGISTRATION_REJECT",
+    "REGISTRATION_REQUEST",
+    "PASSWORD_FORGOT",
+    "SHIFT_ENROLL_REQUEST",
+    "SHIFT_ENROLL_CONFIRMATION" ,
+    "SHIFT_ENROLL_REJECT",
+    "SHIFT_ENROLL_INVITATION",
+    "SHIFT_ENROLL_CANCELLATION"];
 export const triggerValues = {
     registrationAccept:"REGISTRATION_ACCEPT",
     registrationEnrollReject:"REGISTRATION_REJECT",
+    registrationRequest: "REGISTRATION_REQUEST",
     passwordForgot:"PASSWORD_FORGOT",
     shiftEnrollRequest: "SHIFT_ENROLL_REQUEST",
     shiftConfirmation: "SHIFT_ENROLL_CONFIRMATION",
     shiftRejection:"SHIFT_ENROLL_REJECT",
     shiftInvitation:"SHIFT_ENROLL_INVITATION",
-    shiftCancellation: "SHIFT_ENROLL_CANCELLATION"
+    shiftCancellation: "SHIFT_ENROLL_CANCELLATION",
+
 }
