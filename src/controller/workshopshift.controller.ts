@@ -43,7 +43,8 @@ let controller = {
     },
 
     async getEnrolledShifts(req: Request, res: Response) {
-        const userId = res.locals.decodedToken._id;
+        const userId = res.locals.decodedToken.id;
+        logger.info(userId)
         const resultSet = await queryCommands.getAllEnrolledShifts(new ObjectId(userId));
         for(let i = 0; i< resultSet.length; i++) {
             resultSet[i].client = resultSet[i].client[0];

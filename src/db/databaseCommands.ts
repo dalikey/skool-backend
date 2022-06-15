@@ -69,7 +69,6 @@ export const queryCommands = {
     //Database commands
     async getUser(id: ObjectId) {
         const projection = {password: 0};
-        Logger.info(projection);
 
         try {
             const collection = await this.getUserCollection();
