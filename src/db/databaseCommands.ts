@@ -76,7 +76,6 @@ export const queryCommands = {
     //Database commands
     async getUser(id: ObjectId) {
         const projection = {password: 0};
-        Logger.info(projection);
         const aggr = [
             {
                 '$lookup':{
@@ -268,8 +267,69 @@ export const queryCommands = {
         }
     },
     async getAllShifts(){
+        logger.info("Aggregation setup");
+        const agg = [
+            {
+                '$lookup': {
+                    'from': 'client',
+                    'localField': 'clientId',
+                    'foreignField': '_id',
+                    'as': 'client'
+                }
+            }, {
+                '$lookup': {
+                    'from': 'workshop',
+                    'localField': 'workshopId',
+                    'foreignField': '_id',
+                    'as': 'workshop'
+                }
+            }, {
+                '$lookup': {
+                    'from': 'user',
+                    'localField': 'participants.userId',
+                    'foreignField': '_id',
+                    'as': 'participantUsers'
+                }
+            },{
+                '$lookup': {
+                    'from': 'user',
+                    'localField': 'candidates.userId',
+                    'foreignField': '_id',
+                    'as': 'candidateUsers'
+                }
+            },
+            {
+                '$project': {
+                    'candidateUsers.password': 0,
+                    'candidateUsers.passwordResetToken': 0,
+                    'participantUsers.password': 0,
+                    'participantUsers.passwordResetToken': 0,
+                }
+            }
+        ];
+        logger.info("Aggregation setup completed");
+        try {
+            logger.info("Retrieval from database started");
+            const collection = await this.getShiftCollection();
+            logger.info("Aggregation setup");
+            return await collection.aggregate(agg).toArray();
+        }catch (e){
+            logger.info("Something went wrong with retrieval");
+            logger.info(e);
+            return null;
+        }
+    },
+    async getAllEnrolledShifts(user_id: ObjectId){
        logger.info("Aggregation setup");
        const agg = [
+            {
+                '$match': {
+                    "$or": [
+                        {"participants.userId": user_id},
+                        {"candidates.userId": user_id}
+                        ]
+                }
+            },
             {
                 '$lookup': {
                     'from': 'client',
@@ -484,7 +544,6 @@ export const queryCommands = {
         try {
             const collection = await this.getWorkshopCollection();
             const query = { _id: new ObjectId(workshopId)};
-
             return await collection.findOneAndUpdate(query, {$set: workshop});
          } catch (e) {
             return null;
