@@ -168,7 +168,6 @@ export async function editUser(req: Request, res: Response) {
     }
 
     if (req.headers["content-type"] === 'application/json') {
-
         const ownerOnly = ["firstName", "lastName", "role", "hourRate"];
 
         const userEdit: userBody = new User(req.body);
