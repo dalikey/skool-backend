@@ -200,7 +200,7 @@ function decideFormOfRate(hourRate: number) {
 
 }
 
-function getHoursFromTimeStampList(timeStampsList: any){
+export function getHoursFromTimeStampList(timeStampsList: any){
     let hours = 0;
     for (const timeObject of timeStampsList) {
         let start  =DateTime.fromISO(timeObject.startTime);

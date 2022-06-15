@@ -463,6 +463,27 @@ export const queryCommands = {
             throw e;
        }
     },
+    async insertInvitationToRequestArray(shiftId: string,invitation: any){
+       const query = { $push : {invitation: {requests: invitation}}};
+       const filter = { _id: new ObjectId(shiftId)};
+       const returnFilter = {}
+       try {
+         const collection = await this.getShiftCollection();
+         return await collection.findOneAndUpdate(filter, query, { returnDocument: 'after' });
+       } catch (e) {
+
+       }
+    },
+    async pullOutInvitation(shiftId: string, userId: string){
+       try {
+           const query = { $pull: {invitation: { userId: new ObjectId(userId)}}};
+           const filter = {_id: new ObjectId(shiftId)};
+           const collection = await queryCommands.getShiftCollection();
+           return await collection.findOneAndUpdate(filter, query, { returnDocument: 'after' });
+       }catch (e) {
+           return null
+       }
+    },
     //Workshops
     async createWorkshop(workshop:workshopInsert){
         const collection = await this.getWorkshopCollection();

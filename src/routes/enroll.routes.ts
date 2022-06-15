@@ -60,5 +60,10 @@ enrollRoutes.post('/api/workshop/shift/:shiftId/enroll/unknownUser',
     enrollController.addUnknownUserToParticipantList
 )
 
+//Sends invitation to user to enroll to the shift
+enrollRoutes.put('/api/workshop/shift/:shiftId/enroll/invitation',
+    controller.validateToken,
+    controller.validateOwnerRole);
+
 
 export default enrollRoutes;

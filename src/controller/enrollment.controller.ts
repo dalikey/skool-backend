@@ -7,6 +7,7 @@ import nodemailer, {Transporter} from "nodemailer";
 import dotEnv from 'dotenv'
 import {mailMethods} from "./templateMessage.controller";
 import {triggerValues} from "../models/templateMessageBody";
+import {getHoursFromTimeStampList} from "./workshopshift.controller";
 dotEnv.config();
 let transporter: Transporter;
 
@@ -311,6 +312,58 @@ const controller = {
             res.status(400).json({error: "enrollment_change_error", message: "Problems with removal of participant"});
         }
 
+    },
+    async sendInvitationToUser(req:any, res: any){
+        //Initialize user
+        const user = req.body;
+        //Initialize shiftId
+        const shiftId = req.params;
+        // gets shift based on shiftId
+        const shift = await queryCommands.getOneShift(shiftId);
+        //Gets hours from timestamps
+        const workHours = getHoursFromTimeStampList(shift.timestamps);
+        //Checks if user is known or unknown
+        if(user.userId != "Unknown"){
+            //If it is known, it will retrieve user and its data/ firstName, lastName, tarriff
+            const retrievedUser = await queryCommands.getUser(new ObjectId(user.userId));
+            user.firstName = retrievedUser.firstName;
+            user.lastName = retrievedUser.lastName;
+            user.phoneNumber = retrievedUser.phoneNumber;
+            user.tarriff = retrievedUser.hourRate * workHours;
+            user.emailAddress = retrievedUser.emailAddress;
+            user.link = "";
+        } else {
+            //If it is unknown, it will
+            user.userId = new ObjectId();
+            user.link = "";
+
+        }
+        user.status = "Pending";
+        user.date = DateTime.now();
+        //Insert into request objectArray
+
+        //Retrieve template.
+        const template = await queryCommands.getOneTemplate("SHIFT_ENROLL_INVITATION");
+
+        //Sends mail.
+        if (process.env.SMTP_PROVIDER && process.env.SMTP_USERNAME && process.env.SMTP_PASSWORD){
+            if (template){
+                let title = template.title;
+                let content = template.content;
+                //format mail. Make mail
+                //Generate random token.
+
+
+                const result = await mailMethods.sendMail(title, content, user.emailAddress);
+                res.status(200).json({emailResult: result});
+            }
+            res.status(400).json({message: "No template made"});
+        } else {
+            res.status(400).json({message: "No connection"});
+        }
+
+
+        //Send mail
     }
 }
 
