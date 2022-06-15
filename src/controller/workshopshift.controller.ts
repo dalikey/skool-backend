@@ -4,6 +4,7 @@ import {WorkshopShiftBody} from "../models/workshopShiftBody";
 import {ObjectId} from "mongodb";
 import {DateTime} from 'luxon';
 import logger from 'js-logger'
+import {Request, Response} from "express";
 
 let controller = {
     validateWorkshopShiftInput:(req:any, res:any, next:any)=>{
@@ -39,7 +40,20 @@ let controller = {
         const insert = await queryCommands.insertOneWorkshopShift(resultshift);
         //Sends status back
         res.status(200).json({message: "shift added"});
+    },
+
+    async getEnrolledShifts(req: Request, res: Response) {
+        const userId = res.locals.decodedToken._id;
+        const resultSet = await queryCommands.getAllEnrolledShifts(new ObjectId(userId));
+        for(let i = 0; i< resultSet.length; i++) {
+            resultSet[i].client = resultSet[i].client[0];
+            resultSet[i].workshop = resultSet[i].workshop[0];
+            delete resultSet[i].clientId;
+            delete resultSet[i].workshopId;
+        }
+        return res.send({result: resultSet})
     }
+
     ,
     async getAllShifts(req:any, res:any){
         try {
