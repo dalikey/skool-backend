@@ -301,7 +301,7 @@ const controller = {
             //Gets hours from timestamps
             // const workHours = getHoursFromTimeStampList(shift.timestamps);
             //Checks if user is known or unknown
-            if(user.userId != "Unknown"){
+            if(user.userId != "" || user.userId != undefined){
                 //If it is known, it will retrieve user and its data/ firstName, lastName, tarriff
                 const retrievedUser = await queryCommands.getUser(new ObjectId(user.userId));
                 user.firstName = retrievedUser.firstName;
