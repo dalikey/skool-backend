@@ -281,7 +281,7 @@ const controller = {
                 assert(user.firstName);
                 assert(user.lastName);
                 assert(user.phoneNumber);
-                assert(user.tarriff);
+                assert(user.hourRate);
                 assert(user.emailAddress);
             }
             next()
