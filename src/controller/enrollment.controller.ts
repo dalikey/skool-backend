@@ -134,7 +134,12 @@ const controller = {
             const shift = await queryCommands.cancelParticipation(shiftId, userId);
             const template = await mailMethods.retrieveMailTemplate(triggerValues.shiftCancellation);
             const registration = await queryCommands.getUser(new ObjectId(userId));
-            let emailAddress = req.body.emailAddress || registration.emailAddress;
+            let emailAddress = req.body.emailAddress;
+
+            if(registration){
+                emailAddress = registration.emailAddress;
+            }
+
             // Sends confirmation mail.
             if (process.env.SMTP_PROVIDER && process.env.SMTP_USERNAME && process.env.SMTP_PASSWORD && template) {
                 //Retrieve template
@@ -301,7 +306,7 @@ const controller = {
             //Gets hours from timestamps
             // const workHours = getHoursFromTimeStampList(shift.timestamps);
             //Checks if user is known or unknown
-            if(user.userId != "" || user.userId != undefined){
+            if(user.userId != ""){
                 //If it is known, it will retrieve user and its data/ firstName, lastName, tarriff
                 const retrievedUser = await queryCommands.getUser(new ObjectId(user.userId));
                 user.firstName = retrievedUser.firstName;
@@ -315,6 +320,7 @@ const controller = {
             }
             //Check if duplication exist
             let userExist = await queryCommands.checkDuplicationInvitation(shiftId, user.emailAddress);
+
             if(userExist){
                 return res.status(400).json({error: "invitation_duplication", message: "user has already been invited"});
             }
@@ -360,7 +366,6 @@ const controller = {
         const shiftId = req.params.shiftId;
         const userId = req.params.userId;
         const token = req.params.token;
-        logger.info(token);
         try {
             //Pull out invitation
             const returningShift = await queryCommands.pullOutInvitation(shiftId, userId);
@@ -375,8 +380,7 @@ const controller = {
             //Put the new object in the participation
             await queryCommands.confirmParticipation(shiftId, user);
             await formatConfirmationMail(user.emailAddress, shiftId, user.firstName, user.lastName);
-            res.status(200).json({message: "Invited user has accepted shift"});
-            res.redirect(process.env.FRONTEND_URI);
+            res.status(301).redirect(process.env.FRONTEND_URI);
         }catch (e:any) {
             res.status(400).json({error: "acceptance_error", message: "something went wrong with accepting participation", stack: e.message})
         }
