@@ -350,9 +350,12 @@ const controller = {
                     content = content.replaceAll('{startTime}', `${shift.timestamps[0].startTime}`);
                     content = content.replaceAll('{functie}', `docent ${workshop.name}`);
                     content = content.replaceAll('{klant}', klant.name);
-                    content = content.replace('{Invitation_link}', `${process.env.API_URI}/api/workshop/shift/${shiftId}/accepted/${user.userId}/enroll/${token}/invitation`);
+                    content = content.replace('{Invitation_link}', `${req.hostname}/api/workshop/shift/${shiftId}/accepted/${user.userId}/enroll/${token}/invitation`);
                     //Sends mail
                     const result = await mailMethods.sendMail(title, content, user.emailAddress);
+                } else{
+                    //placeholder default, just in case
+                    await mailMethods.sendMail("Bevestig inschrijving", `<a href="${req.hostname}/api/workshop/shift/${shiftId}/accepted/${user.userId}/enroll/${token}/invitation">link</a>`, user.emailAddress);
                 }
             }
             return res.status(200).json();
