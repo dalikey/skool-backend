@@ -351,11 +351,12 @@ const controller = {
                     content = content.replaceAll('{functie}', `docent ${workshop.name}`);
                     content = content.replaceAll('{klant}', klant.name);
                     content = content.replace('{Invitation_link}', `${req.hostname}/api/workshop/shift/${shiftId}/accepted/${user.userId}/enroll/${token}/invitation`);
+                    content = content.replace('{Rejection_link}', `${req.hostname}/api/workshop/shift/${shiftId}/enroll/${user.userId}/reject/${token}/no`);
                     //Sends mail
                     const result = await mailMethods.sendMail(title, content, user.emailAddress);
                 } else{
                     //placeholder default, just in case
-                    await mailMethods.sendMail("Bevestig inschrijving", `<a href="${req.hostname}/api/workshop/shift/${shiftId}/accepted/${user.userId}/enroll/${token}/invitation">link</a>`, user.emailAddress);
+                    await mailMethods.sendMail("Bevestig inschrijving", `<a href="${req.hostname}/api/workshop/shift/${shiftId}/accepted/${user.userId}/enroll/${token}/invitation">Accepteer</a> <br/><br/><a href="${req.hostname}/api/workshop/shift/${shiftId}/enroll/${user.userId}/reject/${token}/no">Accepteer</a> `, user.emailAddress);
                 }
             }
             return res.status(200).json();
@@ -400,7 +401,7 @@ const controller = {
             let user = invitations[0];
             //Check if token is present. To prevent duplication
             assert(user.token == token);
-            res.status(200).json({message: "Invited user has rejected shift"});
+            res.status(301).redirect(process.env.FRONTEND_URI);
         } catch (e:any) {
             res.status(400).json({error: "acceptance_error", message: "something went wrong with accepting participation", stack: e.message});
         }
