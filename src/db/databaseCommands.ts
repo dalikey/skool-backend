@@ -545,6 +545,15 @@ export const queryCommands = {
            return null
        }
     },
+    async checkDuplicationInvitation(shiftId: string ,emailAddress:string){
+       try {
+           const query ={_id: new ObjectId(shiftId), "invitations.emailAddress": emailAddress};
+           const collect = await this.getShiftCollection();
+           return await collect.findOne(query);
+       }catch (e){
+           return e;
+       }
+    },
     //Workshops
     async createWorkshop(workshop:workshopInsert){
         const collection = await this.getWorkshopCollection();

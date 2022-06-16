@@ -68,11 +68,11 @@ enrollRoutes.put('/api/workshop/shift/:shiftId/enroll/invitation',
     enrollController.sendInvitationToUser);
 
 //Sends rejection from user to the api, it removes the invitation within the invitation array.
-enrollRoutes.delete('/api/workshop/shift/:shiftId/enroll/:userId/reject/:token/no',
+enrollRoutes.get('/api/workshop/shift/:shiftId/enroll/:userId/reject/:token/no',
     enrollController.rejectInvitation);
 
 //Sends puts invited to participation list.
-enrollRoutes.post('/api/workshop/shift/:shiftId/accepted/:userId/enroll/:token/invitation',
+enrollRoutes.get('/api/workshop/shift/:shiftId/accepted/:userId/enroll/:token/invitation',
 enrollController.acceptInvitation);
 
 export default enrollRoutes;

@@ -301,11 +301,16 @@ const controller = {
                 user.firstName = retrievedUser.firstName;
                 user.lastName = retrievedUser.lastName;
                 user.phoneNumber = retrievedUser.phoneNumber;
-                user.tarriff = retrievedUser.hourRate;
+                user.hourRate = retrievedUser.hourRate;
                 user.emailAddress = retrievedUser.emailAddress;
             } else {
                 //If it is unknown, it will
                 user.userId = new ObjectId();
+            }
+            //Check if duplication exist
+            let userExist = await queryCommands.checkDuplicationInvitation(shiftId, user.emailAddress);
+            if(userExist){
+                return res.status(400).json({error: "invitation_duplication", message: "user has already been invited"});
             }
             //Generate random token.
             // @ts-ignore
@@ -365,6 +370,7 @@ const controller = {
             await queryCommands.confirmParticipation(shiftId, user);
             await formatConfirmationMail(user.emailAddress, shiftId, user.firstName, user.lastName);
             res.status(200).json({message: "Invited user has accepted shift"});
+            res.redirect(process.env.FRONTEND_URI);
         }catch (e:any) {
             res.status(400).json({error: "acceptance_error", message: "something went wrong with accepting participation", stack: e.message})
         }
