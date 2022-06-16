@@ -1,6 +1,7 @@
 import  {emailRegex} from "../controller/registration.controller";
 import phoneUtil from "google-libphonenumber";
 import assert from "assert";
+import {ObjectID, ObjectId} from "mongodb";
 
 const postalCodeRegex = /[1-9]{4}[A-z]{2}/;
 
@@ -20,6 +21,7 @@ export type userBody = {
     role: "user" | "admin" | "owner" | undefined
     levelPreferences: string | undefined
     contractType: "freelancer" | "full-time" | undefined
+    hourRate: number | undefined
 
     location: locationBody | undefined
     paymentInfo: paymentBody | undefined
@@ -28,7 +30,7 @@ export type userBody = {
     kvkNumber: string | undefined
     vatID: string | undefined
 
-    workshopPreferences: Array<String> | undefined
+    workshopPreferences: Array<ObjectId> | undefined
     transport: transportBody | undefined
 
 }
@@ -40,6 +42,12 @@ export class User implements userBody {
             this.countryOfOrigin = body.countryOfOrigin;
         } catch (err) {
             this.rejected.push('countryOfOrigin')
+        }
+        try{
+            assert(body.hourRate);
+            this.hourRate = body.hourRate;
+        } catch (err) {
+            this.rejected.push('hourRate')
         }
         try {
             // @ts-ignore
@@ -115,9 +123,17 @@ export class User implements userBody {
         this.textCampaigns = body.textCampaigns;
         this.transport = body.transport;
         this.vatID = body.vatID;
-        this.workshopPreferences = body.workshopPreferences
+        try {
+            this.workshopPreferences = [];
+            body.workshopPreferences?.forEach((preference) => {
+                this.workshopPreferences?.push(new ObjectId(preference));
+            })
+        } catch (err) {
+            this.rejected.push('workshopPreferences')
+        }
         this.lastName = body.lastName
         this.firstName = body.firstName
+        //Iterates string workshopIds and converts to objectId
         this.levelPreferences = body.levelPreferences;
         try {
             // @ts-ignore
@@ -148,13 +164,14 @@ export class User implements userBody {
     textCampaigns: undefined | boolean;
     transport: transportBody | undefined;
     vatID: string | undefined;
-    workshopPreferences: Array<String> | undefined;
+    workshopPreferences: Array<ObjectId> | undefined;
     rejected: Array<string>;
     lastName: string | undefined;
     firstName: string | undefined;
     role: "user" | "owner" | "admin" | undefined
     levelPreferences: string | undefined
     contractType: "freelancer" | "full-time" | undefined
+    hourRate: number| undefined
 
 }
 

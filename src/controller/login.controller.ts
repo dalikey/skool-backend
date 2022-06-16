@@ -18,6 +18,8 @@ const transporter = mailer.createTransport({
 })
 
 import { ObjectId } from 'mongodb';
+import {mailMethods} from "./templateMessage.controller";
+import {triggerValues} from "../models/templateMessageBody";
 
 const loginController = {
 
@@ -80,19 +82,28 @@ const loginController = {
         let email = req.body.emailAddress;
         const user = await queryCommands.retrieveEmail(email);
         if(user){
-            //Generates token
+            //Generates random secret key
             const SECRET_KEY = authorizationMethods.generateRandomSecretKey();
             const generateToken = jwt.sign({pr_uid:user._id}, SECRET_KEY || "", {expiresIn: "600s"});
-            const storeData = await queryCommands.storeSecretKeyPR(req.body.emailAddress, generateToken, SECRET_KEY);
+            //Stores token and key to user.
+            await queryCommands.storeSecretKeyPR(req.body.emailAddress, generateToken, SECRET_KEY);
             //Link of password change page and sends token in the path parameter.
             const link = `${process.env.FRONTEND_URI}/vergeten_wachtwoord/${generateToken}`;
-            if(process.env.SMTP_SERVER){
-                const info = await transporter.sendMail({
-                    from: process.env.SMTP_USERNAME,
-                    to: user.emailAddress,
-                    subject: `Hier is uw wachtwoord reset link.`,
-                    text: `Hallo ${user.firstName} ${user.lastName},\n\nHier is uw wachtwoordherstel link.\nKlik de link hieronder om een nieuw wachtwoord in te voeren. \nLet op! De link is maar 10 minuten geldig\nLink: ${link}\n\nMet vriendelijke groet,\nSkool Workshops`
-                });
+            if(process.env.SMTP_PROVIDER && process.env.SMTP_USERNAME && process.env.SMTP_PASSWORD){
+                let template = await mailMethods.retrieveMailTemplate(triggerValues.passwordForgot);
+                //If template exists, it will assign the template variables to the title and content.
+                if(template){
+                    let content = template.content;
+                    let title = template.title;
+                    //Formats html string with custom values.
+                    content = content.replaceAll('{name}', `${user.firstName} ${user.lastName}`);
+                    content = content.replaceAll("{url}", link);
+                    await mailMethods.sendMail(title, content, user.emailAddress);
+                } else{
+                    let defaultTitle= `Hallo ${user.firstName} ${user.lastName},\n\nHier is uw wachtwoordherstel link.\nKlik de link hieronder om een nieuw wachtwoord in te voeren. \nLet op! De link is maar 10 minuten geldig\nLink: ${link}\n\nMet vriendelijke groet,\nSkool Workshops`;
+                    let defaultContent= `Hier is uw wachtwoord reset link.`;
+                    await mailMethods.sendMail(defaultTitle, defaultContent, user.emailAddress);
+                }
             }
             res.status(200).json({success: true});
         } else{
@@ -103,11 +114,11 @@ const loginController = {
     async changeForgottenPassword(req: any, res:any){
         let newPassword = req.body.password;
         let userID = res.locals.decodedToken.pr_uid;
-        newPassword = await authorizationMethods.hashNewPassword(newPassword);
         try {
+            newPassword = await authorizationMethods.hashNewPassword(newPassword);
             // @ts-ignore
-            const query = await queryCommands.updatePassword(userID, newPassword);
-            const removeTokenAndKey = await queryCommands.removeSecretKey(userID);
+            await queryCommands.updatePassword(userID, newPassword);
+            await queryCommands.removeSecretKey(userID);
             res.status(200).json({message: "Update succeeded"});
         } catch (error){
             res.status(404).json({error: "update failed", message: "Password update has failed"});

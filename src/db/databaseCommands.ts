@@ -9,6 +9,7 @@ import {CustomerBody} from "../models/customerBody";
 import {workshopInsert} from "../models/workshopBody";
 import {WorkshopShiftBody} from "../models/workshopShiftBody";
 import logger from "js-logger";
+import {insertTemplateMessage} from "../models/templateMessageBody";
 
 conf.config();
 
@@ -24,6 +25,7 @@ const user: string = "user";
 const shifts: string = "shift";
 const customer: string = "client";
 const workshop: string = "workshop";
+const templateMessage: string = "template_message"
 //Client
 const client = new MongoClient(mongoDBUrl);
 //Connection
@@ -56,6 +58,11 @@ export const queryCommands = {
     async getShiftCollection(){
        connection = await this.connectDB();
        return connection.db(skoolWorkshop).collection(shifts);
+    },
+    //Template message collection
+    async getTempMessageCollecton(){
+       connection = await this.connectDB();
+       return connection.db(skoolWorkshop).collection(templateMessage);
     }
     ,
     //Workshop collection
@@ -69,13 +76,26 @@ export const queryCommands = {
     //Database commands
     async getUser(id: ObjectId) {
         const projection = {password: 0};
-        Logger.info(projection);
-
+        const aggr = [
+            {
+                '$lookup':{
+                    'from': 'workshop',
+                    'localField': 'workshopPreferences',
+                    'foreignField': '_id',
+                    'as': 'workshopPreferences'
+                }
+            }, {
+                $project:projection
+            },
+            {
+                "$match": {
+                    "_id": id
+                }
+            }]
         try {
             const collection = await this.getUserCollection();
-            const queryResult =  await collection.findOne({_id: id}, {projection});
-            Logger.info(queryResult);
-            return queryResult;
+            const newQueryResult =await collection.aggregate(aggr).toArray();
+            return newQueryResult[0];
         } catch (err: any) {
             return {status: 500, error: err.message}
         }
@@ -188,10 +208,7 @@ export const queryCommands = {
         try {
             const query = await collection.deleteOne({"_id": userId});
             Logger.info(query)
-            if (query.deletedCount === 0) {
-                return false;
-            }
-            return true
+            return query.deletedCount !== 0;
         } catch (err) {
             return false;
         }
@@ -215,7 +232,6 @@ export const queryCommands = {
        }
     },
     async updateCustomer(customerId:string, customer: CustomerBody){
-
        try {
            const collection = await this.getCustomerCollection();
            const query = { _id: new ObjectId(customerId)};
@@ -251,8 +267,69 @@ export const queryCommands = {
         }
     },
     async getAllShifts(){
+        logger.info("Aggregation setup");
+        const agg = [
+            {
+                '$lookup': {
+                    'from': 'client',
+                    'localField': 'clientId',
+                    'foreignField': '_id',
+                    'as': 'client'
+                }
+            }, {
+                '$lookup': {
+                    'from': 'workshop',
+                    'localField': 'workshopId',
+                    'foreignField': '_id',
+                    'as': 'workshop'
+                }
+            }, {
+                '$lookup': {
+                    'from': 'user',
+                    'localField': 'participants.userId',
+                    'foreignField': '_id',
+                    'as': 'participantUsers'
+                }
+            },{
+                '$lookup': {
+                    'from': 'user',
+                    'localField': 'candidates.userId',
+                    'foreignField': '_id',
+                    'as': 'candidateUsers'
+                }
+            },
+            {
+                '$project': {
+                    'candidateUsers.password': 0,
+                    'candidateUsers.passwordResetToken': 0,
+                    'participantUsers.password': 0,
+                    'participantUsers.passwordResetToken': 0,
+                }
+            }
+        ];
+        logger.info("Aggregation setup completed");
+        try {
+            logger.info("Retrieval from database started");
+            const collection = await this.getShiftCollection();
+            logger.info("Aggregation setup");
+            return await collection.aggregate(agg).toArray();
+        }catch (e){
+            logger.info("Something went wrong with retrieval");
+            logger.info(e);
+            return null;
+        }
+    },
+    async getAllEnrolledShifts(user_id: ObjectId){
        logger.info("Aggregation setup");
        const agg = [
+            {
+                '$match': {
+                    "$or": [
+                        {"participants.userId": user_id},
+                        {"candidates.userId": user_id}
+                        ]
+                }
+            },
             {
                 '$lookup': {
                     'from': 'client',
@@ -304,12 +381,13 @@ export const queryCommands = {
        }
     },
     async getOneShift(shiftId: string){
-       const collection = await this.getShiftCollection();
+
        try {
+           const collection = await this.getShiftCollection();
            const filter = {_id: new ObjectId(shiftId)};
            return await collection.findOne(filter);
        }catch (e) {
-           return null;
+           return e;
        }
     },
     async updateShift(shiftId:string, shift:any){
@@ -332,11 +410,11 @@ export const queryCommands = {
     },
     async deleteShift(shiftId: string){
        const collection = await this.getShiftCollection();
-       const query = {_id:shiftId};
+       const query = {_id: new ObjectId(shiftId)};
        try {
            return await collection.deleteOne(query);
        } catch (e) {
-           return null;
+           return e;
        }
 
     },
@@ -352,19 +430,30 @@ export const queryCommands = {
             return null;
         }
     },
+    //Enrollments and participation
+    async changeStatusInParticipation(shiftId:string, userId:string, status: string){
+        try {
+            const collection = await this.getShiftCollection();
+            const changeStatusQuery = {$set: {"participants.$.status": status}};
+            const query = {_id: new ObjectId(shiftId),"participants.userId": new ObjectId(userId)};
+            return await collection.findOneAndUpdate(query, changeStatusQuery, { returnDocument: 'after' });
+        } catch (e){
+            return null;
+        }
+    },
     async enrollToShift(shiftId: string, enrollmentObject: any){
        try {
            const collection = await this.getShiftCollection();
            const pushQuery = {$push: {candidates: enrollmentObject}};
-           return await collection.updateOne({_id: new ObjectId(shiftId)}, pushQuery);
+           return await collection.findOneAndUpdate({_id: new ObjectId(shiftId)}, pushQuery, { returnDocument: 'after' });
        } catch (e){
            return null;
        }
     },
-    async confirmParticipation(shiftId: string, userId: string){
+    async confirmParticipation(shiftId: string, userCandidateObject: any){
         try {
             const collection = await this.getShiftCollection();
-            const pushQuery = {$push: {participants: new ObjectId(userId)}};
+            const pushQuery = {$push: {participants: userCandidateObject}};
             return await collection.findOneAndUpdate({_id: new ObjectId(shiftId)}, pushQuery, { returnDocument: 'after' });
         } catch (e){
             return null;
@@ -373,8 +462,8 @@ export const queryCommands = {
     async cancelParticipation(shiftId:string, userId:string){
       try {
           const collection = await this.getShiftCollection();
-          const deleteQuery = {$pull: {participants: { $in: [new ObjectId(userId)] } } };
-          return await collection.updateOne({_id: new ObjectId(shiftId)}, deleteQuery);
+          const deleteQuery = {$pull: {participants: { $in: [{ userId: new ObjectId(userId)}] } } };
+          return await collection.findOneAndUpdate({_id: new ObjectId(shiftId)}, deleteQuery, { returnDocument: 'after' });
       } catch (e) {
           return null;
       }
@@ -390,7 +479,9 @@ export const queryCommands = {
     async deleteUnknownParticipant(shiftId: string, ExternalStatus:string, ExternalUserBody: any){
         try {
             const collection = await this.getShiftCollection();
-            const deleteQuery = {$pull: {participants: { emailAddress: ExternalUserBody.emailAddress } } };
+            const newDelete = {$pull: {participants: {External_Status: ExternalStatus, emailAddress: ExternalUserBody.emailAddress} } } ;
+            const ll = { 'participants.emailAddress': ExternalUserBody.emailAddress };
+            const deleteQuery = {$pull: {participants: { emailAddress: ExternalUserBody.emailAddress }} };
             return await collection.updateOne({_id: new ObjectId(shiftId)}, deleteQuery);
         } catch (e) {
             return null;
@@ -399,8 +490,8 @@ export const queryCommands = {
     async checkParticipationOfUser(shiftId: string, userId:string){
         try {
             const collection = await this.getShiftCollection();
-            const filterEmbeddedObjectQuery = new ObjectId(userId);
-            return await collection.findOne({_id: new ObjectId(shiftId), participants: filterEmbeddedObjectQuery });
+            const filterEmbeddedObjectQuery = { userId: new ObjectId(userId)};
+            return await collection.findOne({_id: new ObjectId(shiftId), 'participants.userId': new ObjectId(userId)});
         } catch (e){
             logger.info(e);
             return null;
@@ -421,6 +512,46 @@ export const queryCommands = {
            return await collection.updateOne({_id: new ObjectId(shiftId)}, {$pull: {candidates: {userId: new ObjectId(userId)}}});
        }catch (e) {
            return null;
+       }
+    },
+    async getCandidatesList(shiftId: string){
+       try {
+           const col = await this.getShiftCollection();
+           const old = await col.findOne({_id: new ObjectId(shiftId)});
+           let obj = old.candidates;
+           return obj;
+       }catch (e) {
+            throw e;
+       }
+    },
+    async insertInvitationToRequestArray(shiftId: string,invitation: any){
+       const query = { $push : {invitations: invitation}};
+       const filter = { _id: new ObjectId(shiftId)};
+       const returnFilter = {}
+       try {
+         const collection = await this.getShiftCollection();
+         return await collection.findOneAndUpdate(filter, query, { returnDocument: 'after' });
+       } catch (e) {
+
+       }
+    },
+    async pullOutInvitation(shiftId: string, userId: string){
+       try {
+           const query = { $pull: {invitations: {userId: new ObjectId(userId)}}};
+           const filter = {_id: new ObjectId(shiftId)};
+           const collection = await queryCommands.getShiftCollection();
+           return await collection.findOneAndUpdate(filter, query);
+       }catch (e) {
+           return null
+       }
+    },
+    async checkDuplicationInvitation(shiftId: string ,emailAddress:string){
+       try {
+           const query ={_id: new ObjectId(shiftId), "invitations.emailAddress": emailAddress};
+           const collect = await this.getShiftCollection();
+           return await collect.findOne(query);
+       }catch (e){
+           return e;
        }
     },
     //Workshops
@@ -457,6 +588,57 @@ export const queryCommands = {
            return null;
        }
     },
+    async getOneWorkshop(workshopId:string){
+      try {
+          const collect = await this.getWorkshopCollection();
+          return await collect.findOne({_id: new ObjectId(workshopId)});
+      } catch (e) {
+          return e;
+      }
+    },
     async changeStatusWorkshop(workshopId:string, status:boolean){},
-
+    //Template message// Trigger values are unique
+    async insertTemplateMessage(templateMessage: insertTemplateMessage, triggerValue:string){
+       try {
+           const collection = await this.getTempMessageCollecton();
+           return await collection.replaceOne({trigger: triggerValue} ,templateMessage, {upsert: true} );
+       } catch (e) {
+           return e;
+       }
+    }
+    ,
+    async updateTemplate(newTemplateMessage: insertTemplateMessage, templateId: string){
+        try {
+            const collection = await this.getTempMessageCollecton();
+            return await collection.findOneAndReplace({_id: new ObjectId(templateId)} ,newTemplateMessage, { returnDocument: 'after' });
+        } catch (e) {
+            return null;
+        }
+    }
+    ,
+    async deleteTemplate(templateId:string){
+        try {
+            const collection = await this.getTempMessageCollecton();
+            return await collection.deleteOne({_id: new ObjectId(templateId)});
+        } catch (e) {
+            return e;
+        }
+    },
+    async getAllTemplates(){
+       try {
+           const collection = await this.getTempMessageCollecton();
+           return await collection.find({}).toArray();
+       }catch (e) {
+           return e;
+       }
+    }
+    ,
+    async getOneTemplate(triggerValue:string){
+       try {
+           const collect = await this.getTempMessageCollecton();
+           return await collect.findOne({trigger: triggerValue});
+       } catch (e) {
+           return e;
+       }
+    }
 }

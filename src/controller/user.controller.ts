@@ -9,6 +9,8 @@ import assert from "assert";
 import {authorizationMethods} from "./authorization.controller";
 import {capitalRegex, digitRegex} from "./registration.controller";
 import fileUpload from "express-fileupload";
+import {mailMethods} from "./templateMessage.controller";
+import {triggerValues} from "../models/templateMessageBody";
 
 
 let transporter: Transporter;
@@ -41,7 +43,6 @@ export async function getUser(req: Request, res: Response) {
         }
     } catch (err) {
         const user = await queryCommands.getUser(new ObjectId(res.locals.decodedToken.id));
-
         return res.send({result: user});
     }
 
@@ -107,17 +108,22 @@ export async function activateUser(req: Request, res: Response) {
     try {
         const result = await queryCommands.approveUser(new ObjectId(userId), true);
         if (result.modifiedCount == 1) {
-
-            const user = await queryCommands.getUser(new ObjectId(userId));
-            const name = `${user.firstName} ${user.lastName}`;
-            if (process.env.SMTP_SERVER) {
-                const info = await transporter.sendMail({
-                    from: process.env.SMTP_USERNAME,
-                    to: user.emailAddress,
-                    subject: `${name}, Uw Skool Werknemer account is geaccepteerd`,
-                    text: `Beste ${name},\n\nU kunt nu inloggen op de website door ${process.env.FRONTEND_URI}/sign-in te bezoeken.\n\nMet vriendelijke groet\n\nSkool Workshops`
-                })
-                Logger.info(info);
+            if (process.env.SMTP_PROVIDER && process.env.SMTP_USERNAME && process.env.SMTP_PASSWORD) {
+                const user = await queryCommands.getUser(new ObjectId(userId));
+                const name = `${user.firstName} ${user.lastName}`;
+                //Gets right mail.
+                let htmlContent = await mailMethods.retrieveMailTemplate(triggerValues.registrationAccept);
+                //if html is undefined, it fall back to the default mail.
+                if(!htmlContent){
+                    htmlContent.content = `Beste ${name},\n\nU kunt nu inloggen op de website door ${process.env.FRONTEND_URI}/sign-in te bezoeken.\n\nMet vriendelijke groet\n\nSkool Workshops`;
+                    htmlContent.title = `${name}, Uw Skool Werknemer account is geaccepteerd`
+                } else{
+                    //Format mail html with proper customization
+                    htmlContent.content = htmlContent.content.replace('{name}', name);
+                    htmlContent.content = htmlContent.content.replace('{url}', `${process.env.FRONTEND_URI}/sign-in`);
+                }
+                const sendMail = await mailMethods.sendMail(htmlContent.title, htmlContent.content,  user.emailAddress);
+                Logger.info(sendMail);
             }
 
             return res.send({success: true})
@@ -157,14 +163,12 @@ export async function editUser(req: Request, res: Response) {
     }
 
     const currentUser = await queryCommands.getUser(new ObjectId(req.params.userId));
-
     if (!currentUser) {
         return res.status(400).send({error: "not_found", message: "This user was not found!"})
     }
 
     if (req.headers["content-type"] === 'application/json') {
-
-        const ownerOnly = ["firstName", "lastName", "role"];
+        const ownerOnly = ["firstName", "lastName", "role", "hourRate"];
 
         const userEdit: userBody = new User(req.body);
 
@@ -258,7 +262,6 @@ export async function editUser(req: Request, res: Response) {
                 }
             }
             assert(req.files);
-
             let profileData;
             let VOGData;
             let legitimatieFrontData;
@@ -299,10 +302,8 @@ export async function editUser(req: Request, res: Response) {
                 // @ts-ignore
                 queryData['legitimatieBack'] = legitimatieBackData;
             }
-
-            await queryCommands.updateUser(new ObjectId(req.params.userId), queryData)
-            const updatedUser = await queryCommands.getUser(new ObjectId(req.params.userId));
-            res.send({result: updatedUser})
+            const updateduser = await queryCommands.updateUser(new ObjectId(req.params.userId), queryData)
+            res.send({result: updateduser})
         } catch (err) {
             Logger.error(err);
             res.status(400).send({error: "no_files", message: "Please provide files for uploading!"})

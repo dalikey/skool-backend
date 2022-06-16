@@ -184,15 +184,14 @@ const workshopsShift = {
     targetAudience: "WO",
     level: "WO",
     location:{
-        address: "teststraat 1",
+        address: "teststraat CAVIA",
         postalCode: "3000VN",
         city: "Haarlem",
         country: "Nederland"
     },
     date: dateDummy,
     availableUntil: availableD,
-    startTime: "18:00",
-    endTime: "22:00",
+    timestamps: [{startTime: "19:29", endTime: "23:31"}],
     hourRate: 35.50,
     dayRate: undefined,
     breakTime: 0
@@ -206,25 +205,114 @@ const workshopsShift2 = {
     targetAudience: "WO",
     level: "WO",
     location:{
-        address: "teststraat 1",
+        address: "teststraat CLOWN",
         postalCode: "3000VN",
         city: "Haarlem",
         country: "Nederland"
     },
     date: DateTime.now().plus({day:2}),
     availableUntil: DateTime.now().plus({day:5}),
-    startTime: "18:00",
-    endTime: "22:00",
+    timestamps: [{startTime: "19:29", endTime: "23:31"}],
     hourRate: 35.50,
     dayRate: undefined,
-    breakTime: 0
+    breakTime: 0,
+    participants: [{userId: new ObjectId("62972c50be7383812e25e9af"), status: "Current"}]
 }
+const full3Shift = {
+    "_id":new ObjectId("62a711a8f84510074750e6af"),
+    "clientId":"62a393e1f4b0c7d992b9a4fb",
+    "workshopId":"62a0b328073fb0335c7ca166",
+    "maximumParticipants":3,
+    "extraInfo":"",
+    "location":{
+        "address":"6 Langstraat",
+        "city":"Halsteren",
+        "postalCode":"4661 SE",
+        "country":"Nederland"},
+    "targetAudience":"School",
+    "level":"VWO","date":"2022-06-21T10:29:16.000Z",
+    "availableUntil":"2022-06-21T10:29:16.000Z",
+    "hourRate":0,
+    "dayRate":12,
+    "timestamps":[
+        {"startTime":"9:00","endTime":"10:40"},
+        {"startTime":"10:50","endTime":"12:30"},
+        {"startTime":"13:00","endTime":"14:40"}]};
 
-const user = {_id: new ObjectId("62a39fa5dfb7a383d6edce09"), name: "TestBob", availableUntil: DateTime.now(), workshopPreferences: []};
+const full2Shift = {
+    "_id":new ObjectId("62a711a8f84510074750e6af"),
+    "clientId":"62a393e1f4b0c7d992b9a4fb",
+    "workshopId":"62a0b328073fb0335c7ca166",
+    "maximumParticipants":2,
+    "extraInfo":"",
+    "location":{
+        "address":"6 Langstraat",
+        "city":"Halsteren",
+        "postalCode":"4661 SE",
+        "country":"Nederland"},
+    "targetAudience":"School",
+    "level":"VWO","date":"2022-06-21T10:29:16.000Z",
+    "availableUntil":"2022-06-21T10:29:16.000Z",
+    "hourRate":0,
+    "dayRate":12,
+    "timestamps":[
+        {"startTime":"9:00","endTime":"10:40"},
+        {"startTime":"10:50","endTime":"12:30"},
+        {"startTime":"13:00","endTime":"14:40"}]};
+const full55Shift = {
+    "_id":new ObjectId("62ab5d2074a16856c895fb30"),
+    "clientId": new ObjectId("62a393e1f4b0c7d992b9a4fb"),
+    "workshopId": new ObjectId("62a0b328073fb0335c7ca166"),
+    "maximumParticipants":2,
+    "extraInfo":"",
+    "location":{
+        "address":"6 Langstraat",
+        "city":"Halsteren",
+        "postalCode":"4661 SE",
+        "country":"Nederland"},
+    "targetAudience":"School",
+    "level":"VWO","date":"2022-06-21T10:29:16.000Z",
+    "availableUntil":"2022-06-21T10:29:16.000Z",
+    "hourRate":0,
+    "dayRate":12,
+    "timestamps":[
+        {"startTime":"9:00","endTime":"10:40"},
+        {"startTime":"10:50","endTime":"12:30"},
+        {"startTime":"13:00","endTime":"14:40"}]};
+
+const full66Shift = {
+    "_id":new ObjectId("62ab5dc6442b3ed36dd57faf"),
+    "clientId": new ObjectId("62a393e1f4b0c7d992b9a4fb"),
+    "workshopId": new ObjectId("62a0b328073fb0335c7ca166"),
+    "participants": [{userId: new ObjectId("62ab5ec69699801d8676280c"), status: "Current"}],
+    "candidates": []};
+
+const full77Shift = {
+    "_id":new ObjectId("62ab5e0a90a7bc271f9fac21"),
+    "clientId": new ObjectId("62a393e1f4b0c7d992b9a4fb"),
+    "workshopId": new ObjectId("62a0b328073fb0335c7ca166"),
+    "participants": [],
+    "candidates": []};
+const user66 = {
+    _id: new ObjectId("62ab5ec69699801d8676280c"),
+    firstName: "Testia",
+    lastName: "Example"
+}
+const client55 = {
+    _id: new ObjectId("62a393e1f4b0c7d992b9a4fb"),
+    name: "Test"
+}
+const workShop55 = {
+    _id: new ObjectId("62a0b328073fb0335c7ca166"),
+    name: "TestShop"
+}
+const user = {_id: new ObjectId("62a39fa5dfb7a383d6edce09"), name: "TestBob", availableUntil: DateTime.now(), workshopPreferences: [], hourRate: 12.1};
 describe('Retrieve workshops', ()=>{
     before(async ()=>{
         const col = await queryCommands.getShiftCollection();
         const col2 = await queryCommands.getUserCollection();
+        await col.deleteMany({_id: {$in: [new ObjectId("62a24334ede1fac86edd1701"), new ObjectId("62a242ff67ffdef340ff0c95")]}});
+        await col2.deleteOne({_id: new ObjectId("62a39fa5dfb7a383d6edce09")});
         await col.insertMany([workshopsShift2, workshopsShift]);
         await col2.insertOne(user);
     })
@@ -276,15 +364,19 @@ describe('Retrieve workshops', ()=>{
                 targetAudience: "WO",
                 level: "WO",
                 location:{
-                    address: "teststraat 1",
+                    address: "teststraat CAVIA",
                     postalCode: "3000VN",
                     city: "Haarlem",
                     country: "Nederland"
                 },
                 date: dateDummy,
                 availableUntil: availableD,
-                startTime: "18:00",
-                endTime: "22:00",
+                "timestamps": [
+                    {
+                        "endTime": "23:31",
+                        "startTime": "19:29"
+                    }
+                ],
                 hourRate: 35.50,
                 dayRate: null,
                 breakTime: 0
@@ -294,17 +386,152 @@ describe('Retrieve workshops', ()=>{
     })
 })
 
+describe('Update shift', ()=>{
+    before(async ()=>{
+        const col = await queryCommands.getShiftCollection();
+        await col.insertOne(full2Shift);
+    })
+
+    after(async ()=>{
+        const col = await queryCommands.getShiftCollection();
+        await col.deleteOne({_id: new ObjectId("62a711a8f84510074750e6af")});
+    })
+
+    it('Successful update', (done)=>{
+        const authToken = jwt.sign({role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+        chai.request(server).put('/api/workshop/shift/62a711a8f84510074750e6af/update')
+            .set({authorization:authToken})
+            .send(full3Shift)
+            .end((err, res)=>{
+                let{message} = res.body;
+                message.should.be.equal("Update successfull");
+                done();
+        })
+    })
+})
+
+
 describe('Delete workshopshifts', ()=>{
-    // before(async ()=>{
-    //     // const collection = await queryCommands.getShiftCollection();
-    //     // await collection.insertMany([workshopsShift, workshopsShift2]);
-    // })
+    before(async ()=>{
+        const collection = await queryCommands.getShiftCollection();
+        const client = await queryCommands.getCustomerCollection();
+        const workshop = await queryCommands.getWorkshopCollection();
+        await collection.insertOne(full55Shift);
+        await client.insertOne(client55);
+        await workshop.insertOne(workShop55);
+    })
+    after(async ()=>{
+        const collection = await queryCommands.getShiftCollection();
+        const client = await queryCommands.getCustomerCollection();
+        const workshop = await queryCommands.getWorkshopCollection();
+        await collection.deleteOne(full55Shift);
+        await client.deleteOne(client55);
+        await workshop.deleteOne(workShop55);
+    })
 
     it('No token', (done)=>{
         chai.request(server).delete('/api/workshop/shift/nr4/delete').end((err, res)=>{
             let {error, message} = res.body;
             error.should.be.equal("unauthorized");
             message.should.be.equal('You need to provide authorization for this endpoint!');
+            done();
+        })
+    })
+
+    it('Not the rights', (done)=>{
+        const authToken = jwt.sign({role: "user"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+        chai.request(server).delete('/api/workshop/shift/62ab5d2074a16856c895fb30/delete')
+            .set({authorization:authToken})
+            .end((err, res)=>{
+            let {error, message} = res.body;
+            error.should.be.equal("unauthorized");
+            message.should.be.equal('You do not have the right authority.');
+            done();
+        })
+    })
+
+    it('Successfull delete of shift', (done)=>{
+        const authToken = jwt.sign({id: "62ab5ec69699801d8676280c", role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+        chai.request(server).delete('/api/workshop/shift/62ab5d2074a16856c895fb30/delete')
+            .set({authorization:authToken})
+            .end((err, res)=>{
+            let {error, message} = res.body;
+            message.should.be.equal("Successful deletion");
+            done();
+        })
+    })
+})
+
+describe('Get own enrolled shifts', ()=>{
+    before(async ()=>{
+        const collection = await queryCommands.getShiftCollection();
+        const client = await queryCommands.getCustomerCollection();
+        const workshop = await queryCommands.getWorkshopCollection();
+        const user =await queryCommands.getUserCollection();
+        await user.insertOne(user66);
+        await collection.insertOne(full66Shift);
+        await collection.insertOne(full77Shift);
+        await client.insertOne(client55);
+        await workshop.insertOne(workShop55);
+    })
+    after(async ()=>{
+        const collection = await queryCommands.getShiftCollection();
+        const client = await queryCommands.getCustomerCollection();
+        const workshop = await queryCommands.getWorkshopCollection();
+        const user =await queryCommands.getUserCollection();
+        await user.deleteOne(user66);
+        await collection.deleteOne(full66Shift);
+        await collection.deleteOne(full77Shift);
+        await client.deleteOne(client55);
+        await workshop.deleteOne(workShop55);
+    })
+
+    it('No token', (done)=>{
+        const authToken = jwt.sign({id: "62ab5ec69699801d8676280c", role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+        chai.request(server).get('/api/workshop/shift/@me').end((err, res)=>{
+            let {error, message} = res.body;
+            error.should.be.equal("unauthorized");
+            message.should.be.equal('You need to provide authorization for this endpoint!');
+            done();
+        })
+    })
+
+    it('No shifts', (done)=>{
+        const authToken = jwt.sign({id: "62ab6175ccb88444dd0bad8d", role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+        chai.request(server).get('/api/workshop/shift/@me')
+            .set({authorization: authToken})
+            .end((err, res)=>{
+            let {result} = res.body;
+            done();
+        })
+    })
+
+    it('Gets enrolled shifts', (done)=>{
+        const authToken = jwt.sign({id: "62ab5ec69699801d8676280c", role: "owner"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
+        chai.request(server).get('/api/workshop/shift/@me')
+            .set({authorization: authToken})
+            .end((err, res)=>{
+            let {result} = res.body;
+            let shift = result[0];
+            assert.deepEqual(shift, {
+                "_id":"62ab5dc6442b3ed36dd57faf",
+                "client": {
+                    "_id": "62a393e1f4b0c7d992b9a4fb",
+                    "name": "Test"
+                },
+                "workshop": {
+                    "_id": "62a0b328073fb0335c7ca166",
+                    "name": "TestShop"
+                },
+                "participants": [{userId: "62ab5ec69699801d8676280c", status: "Current"}],
+                "candidates": [],
+                "candidateUsers": [],
+                "participantUsers": [{
+                    _id: "62ab5ec69699801d8676280c",
+                    firstName: "Testia",
+                    lastName: "Example"
+                }]
+            })
             done();
         })
     })

@@ -85,15 +85,21 @@ export async function deleteWorkshop(req: Request, res: Response) {
 export async function updateWorkshop(req: Request, res: Response) {
     const workshopId = req.params.workshopId;
     const newWorkshop = req.body;
-
-    const update = await queryCommands.updateWorkshop(workshopId, newWorkshop);
-    if (update) {
-        res.status(200).json({ message: 'Update successfull' });
-    } else {
-        res.status(400).json({
-            error: 'update_failure',
-            message: 'Update failed',
-        });
+    const workshop: workshopInsert = {
+        name: newWorkshop.name,
+        content: newWorkshop.content,
+        materials: newWorkshop.materials,
+        isActive: newWorkshop.isActive
+    }
+    try {
+        const update = await queryCommands.updateWorkshop(workshopId, workshop);
+        if (update) {
+            res.status(200).json({ message: 'Update successfull' });
+        } else {
+            res.status(400).json({error: 'update_failure', message: 'Update failed',});
+        }
+    }catch (e:any) {
+        res.status(400).json({error: 'update_failure', message: e.message});
     }
 }
 

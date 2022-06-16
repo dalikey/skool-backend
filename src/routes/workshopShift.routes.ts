@@ -10,9 +10,8 @@ ShiftRoutes.post('/api/workshop/shift',
     ShiftController.validateWorkshopShiftInput,
     ShiftController.insertShift)
 
-//TODO Tests need to be written
 //Update shift
-ShiftRoutes.get('/api/workshop/shift/:shiftId/update',
+ShiftRoutes.put('/api/workshop/shift/:shiftId/update',
     controller.validateToken,
     controller.validateAdminRole,
     ShiftController.validateWorkshopShiftInput,
@@ -40,5 +39,10 @@ ShiftRoutes.get('/api/workshop/shift/admin',
 ShiftRoutes.get('/api/workshop/shift/:shiftId/single',
     controller.validateToken,
     ShiftController.getOneShift);
+
+ShiftRoutes.get('/api/workshop/shift/@me',
+    controller.validateToken,
+    ShiftController.getEnrolledShifts
+    )
 
 export default  ShiftRoutes;

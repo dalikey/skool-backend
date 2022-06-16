@@ -1,5 +1,6 @@
 import express from "express";
 import userController from "../controller/user.controller";
+import {authorizationMethods, controller} from "../controller/authorization.controller";
 const userRouter  = express.Router();
 
 userRouter.get('/api/user/@me',

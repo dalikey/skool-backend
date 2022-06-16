@@ -29,7 +29,7 @@ workshopRouter.post(
 
 //Update workshop - need to be tested.
 workshopRouter.put(
-    '/api/workshop/:workshopId',
+    '/api/workshop/:workshopId/update',
     controller.validateToken,
     workshopController.updateWorkshop
 );

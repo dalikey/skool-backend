@@ -20,9 +20,9 @@ const user: string = "user"
 const client = new MongoClient(mongoDBUrl);
 //Connection
 
-const testUser = {_id: new ObjectId("6295e96d7f984a246108b36d") , "emailAddress": "test@example.com", "firstName": "Joe", "lastName": "Mama", role: "user", password: "$2b$06$dG/o1w4WMptTFrWlOpF.8ebOEJzZeonEPDP7g.TEZaUd.7n3ViVcW"}
+const testUser = {_id: new ObjectId("6295e96d7f984a246108b36d") , "emailAddress": "test@example.com", "firstName": "Joe", "lastName": "Mama", role: "user", password: "$2b$06$dG/o1w4WMptTFrWlOpF.8ebOEJzZeonEPDP7g.TEZaUd.7n3ViVcW", workshopPreferences: ["Hello"]}
 
-const adminUser = {_id: new ObjectId("6295e96d7f984a246108b36f"), "emailAddress": "admin@example.com", "firstName": "Admin", "lastName": "Mama", isActive: true, role: "owner", password: "$2b$06$dG/o1w4WMptTFrWlOpF.8ebOEJzZeonEPDP7g.TEZaUd.7n3ViVcW"}
+const adminUser = {_id: new ObjectId("6295e96d7f984a246108b36f"), "emailAddress": "admin@example.com", "firstName": "Admin", "lastName": "Mama", isActive: true, role: "owner", password: "$2b$06$dG/o1w4WMptTFrWlOpF.8ebOEJzZeonEPDP7g.TEZaUd.7n3ViVcW", workshopPreferences: ["Hello"]}
 
 
 describe('An owner can authorize approve or deny a new user registration.', ()=>{
