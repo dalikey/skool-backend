@@ -462,7 +462,7 @@ export const queryCommands = {
     async cancelParticipation(shiftId:string, userId:string){
       try {
           const collection = await this.getShiftCollection();
-          const deleteQuery = {$pull: {participants: { $in: { userId: [new ObjectId(userId)]} } } };
+          const deleteQuery = {$pull: {participants: { $in: [{ userId: new ObjectId(userId)}] } } };
           return await collection.findOneAndUpdate({_id: new ObjectId(shiftId)}, deleteQuery, { returnDocument: 'after' });
       } catch (e) {
           return null;

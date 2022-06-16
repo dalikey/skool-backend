@@ -17,13 +17,13 @@ const emptyShift = {_id: new ObjectId("62a4607c4540f4612588a42f"), maximumPartic
     ]};
 const fullShift = {_id: new ObjectId("62a4626bd8951db31e6ca14d"), maximumParticipants: 1, participants: [new ObjectId("62a4617f33427f5d3fe48f55")],
     candidates: [{userId: new ObjectId("62a4617f33427f5d3fe48f55"), shiftId: new ObjectId("62a4626bd8951db31e6ca14d"), status: "Current"},  {userId: new ObjectId("62a464ceafbae637a6aad1f4"), shiftId: new ObjectId("62a4626bd8951db31e6ca14d"), status: "Pending"}]};
-const shiftWithDuplication= {_id: new ObjectId("62a465586e5066876d3155fc"), maximumParticipants: 2, participants: [{userId: new ObjectId("62a4617f33427f5d3fe48f55")}],
+const shiftWithDuplication= {_id: new ObjectId("62a465586e5066876d3155fc"), workshopId: new ObjectId("62ab3ee3ee5e71caad734a60"), clientId: new ObjectId("62ab3f3cbdaa045ce90eff67"), maximumParticipants: 2, participants: [{userId: new ObjectId("62a4617f33427f5d3fe48f55")}],
     candidates: [
         {userId: new ObjectId("62a4617f33427f5d3fe48f55"), shiftId: new ObjectId("62a465586e5066876d3155fc"), status: "Current"},
         {userId: new ObjectId("62a464ceafbae637a6aad1f4"), shiftId: new ObjectId("62a465586e5066876d3155fc"), status: "Pending"}
     ]};
 
-const shiftWithRightTime = {_id: new ObjectId("62a79511aa3c79aec3e0ac7f"), maximumParticipants: 2,date: DateTime.now().plus({hour:50}), participants: [{userId: new ObjectId("62a4617f33427f5d3fe48f55")}],
+const shiftWithRightTime = {_id: new ObjectId("62a79511aa3c79aec3e0ac7f"), workshopId: new ObjectId("62ab3ee3ee5e71caad734a60"), clientId: new ObjectId("62ab3f3cbdaa045ce90eff67"), maximumParticipants: 2,date: DateTime.now().plus({hour:50}), participants: [{userId: new ObjectId("62a4617f33427f5d3fe48f55")}],
     candidates: [
         {userId: new ObjectId("62a4617f33427f5d3fe48f55"), shiftId: new ObjectId("62a465586e5066876d3155fc"), status: "Current"},
         {userId: new ObjectId("62a464ceafbae637a6aad1f4"), shiftId: new ObjectId("62a465586e5066876d3155fc"), status: "Pending"}
@@ -44,7 +44,11 @@ describe('Enroll to workshop', ()=>{
         const collection = await queryCommands.getShiftCollection();
         const user =await  queryCommands.getUserCollection();
         const pushQuery = {$push: {candidates: {userId: new ObjectId("6299f064aa4cd598e78e59bb"), shiftId: new ObjectId("62a20e41bce044ece60a1e3f")}}};
-        await collection.insertOne({_id: new ObjectId("62a20e41bce044ece60a1e3f"), participants: [], maximumParticipants: 1, availableUntil: DateTime.now().plus({day: 1})});
+        const workshopCollect = await queryCommands.getWorkshopCollection();
+        const client = await  queryCommands.getCustomerCollection();
+        await client.insertOne({_id: new ObjectId("62ab3f3cbdaa045ce90eff67"), name: "Ariane"});
+        await workshopCollect.insertOne({_id: new ObjectId("62ab3ee3ee5e71caad734a60"), name: "Vlogger"});
+        await collection.insertOne({_id: new ObjectId("62a20e41bce044ece60a1e3f"), workshopId: new ObjectId("62ab3ee3ee5e71caad734a60"), clientId: new ObjectId("62ab3f3cbdaa045ce90eff67"), participants: [], maximumParticipants: 1, availableUntil: DateTime.now().plus({day: 1})});
         await collection.insertOne({_id: new ObjectId("62a213d47782483d77ab0dc5"), participants: [], maximumParticipants: 1, availableUntil: DateTime.now().minus({day: 1})});
         await user.insertOne(user14);
         await collection.updateOne({_id: new ObjectId("62a20e41bce044ece60a1e3f")}, pushQuery);
@@ -137,6 +141,10 @@ describe('Enroll to workshop', ()=>{
     after(async ()=>{
         const collection = await queryCommands.getShiftCollection();
         const user = await  queryCommands.getUserCollection();
+        const workshopCollect = await queryCommands.getWorkshopCollection();
+        const client = await  queryCommands.getCustomerCollection();
+        await workshopCollect.deleteOne({_id: new ObjectId("62ab3ee3ee5e71caad734a60")});
+        await client.deleteOne({_id: new ObjectId("62ab3f3cbdaa045ce90eff67")});
         const query = { $pull: { candidates: { userId: new ObjectId("6295e96d7f984a246108b36e") } } };
         await collection.updateMany({_id: new ObjectId("62a1cd10eef1665408244fe9")}, query);
         await collection.deleteMany({_id: new ObjectId("62a20e41bce044ece60a1e3f")});
@@ -227,17 +235,23 @@ describe('Cancel user participation to shift', ()=>{
     before(async ()=>{
         const collection = await queryCommands.getShiftCollection();
         const userCollect = await queryCommands.getUserCollection();
+        const workshopCollect = await queryCommands.getWorkshopCollection();
+        const client = await  queryCommands.getCustomerCollection();
+        await client.insertOne({_id: new ObjectId("62ab3f3cbdaa045ce90eff67"), name: "Ariane"});
+        await workshopCollect.insertOne({_id: new ObjectId("62ab3ee3ee5e71caad734a60"), name: "Vlogger"});
         await collection.insertMany([emptyShift, fullShift, shiftWithDuplication, shiftWithRightTime, shiftExpireTime])
         await userCollect.insertOne(user13);
     })
     after(async ()=>{
         const collection = await queryCommands.getShiftCollection();
         const userCollect = await queryCommands.getUserCollection();
-        await collection.deleteOne({_id: new ObjectId("62a4607c4540f4612588a42f")});
-        await collection.deleteOne({_id: new ObjectId("62a4626bd8951db31e6ca14d")});
-        await collection.deleteOne({_id: new ObjectId("62a465586e5066876d3155fc")});
-        await collection.deleteOne({_id: new ObjectId("62a79511aa3c79aec3e0ac7f")});
-        await collection.deleteOne({_id: new ObjectId("62a795186fc817c048e11d4d")});
+        const workshopCollect = await queryCommands.getWorkshopCollection();
+        const client = await  queryCommands.getCustomerCollection();
+        await workshopCollect.deleteOne({_id: new ObjectId("62ab3ee3ee5e71caad734a60")});
+        await client.deleteOne({_id: new ObjectId("62ab3f3cbdaa045ce90eff67")});
+        await collection.deleteMany({_id: {$in: [new ObjectId("62a795186fc817c048e11d4d"), new ObjectId("62a79511aa3c79aec3e0ac7f"), new ObjectId("62a465586e5066876d3155fc"), new ObjectId("62a4626bd8951db31e6ca14d"), new ObjectId("62a4607c4540f4612588a42f")]}})
+        await workshopCollect.deleteOne({_id: new ObjectId("62ab3ee3ee5e71caad734a60")});
+
         await userCollect.deleteOne(user13);
     })
 
@@ -357,10 +371,18 @@ describe('Reject user enrollment to shift', ()=>{
 describe('Enroll unknown user to shift.', ()=>{
     before(async ()=>{
         const collection = await queryCommands.getShiftCollection();
-        await collection.insertOne({_id: new ObjectId("62a213d47782483d77ab0dc5"), participants: [unknownUser], maximumParticipants: 2, availableUntil: DateTime.now().minus({day: 1})});
+        const workshopCollect = await queryCommands.getWorkshopCollection();
+        const client = await  queryCommands.getCustomerCollection();
+        await client.insertOne({_id: new ObjectId("62ab3f3cbdaa045ce90eff67"), name: "Ariane"});
+        await workshopCollect.insertOne({_id: new ObjectId("62ab3ee3ee5e71caad734a60"), name: "Vlogger"});
+        await collection.insertOne({_id: new ObjectId("62a213d47782483d77ab0dc5"), participants: [unknownUser],workshopId: new ObjectId("62ab3ee3ee5e71caad734a60"), clientId: new ObjectId("62ab3f3cbdaa045ce90eff67"), maximumParticipants: 2, availableUntil: DateTime.now().minus({day: 1})});
     })
     after(async ()=>{
         const collection = await queryCommands.getShiftCollection();
+        const workshopCollect = await queryCommands.getWorkshopCollection();
+        const client = await  queryCommands.getCustomerCollection();
+        await workshopCollect.deleteOne({_id: new ObjectId("62ab3ee3ee5e71caad734a60")});
+        await client.deleteOne({_id: new ObjectId("62ab3f3cbdaa045ce90eff67")});
         await collection.deleteOne({_id: new ObjectId("62a213d47782483d77ab0dc5")});
     })
     describe('Enrollment of unknown user', ()=>{

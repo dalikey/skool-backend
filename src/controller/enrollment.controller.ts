@@ -133,27 +133,33 @@ const controller = {
             //Delete userId from participationlist.
             const shift = await queryCommands.cancelParticipation(shiftId, userId);
             const template = await mailMethods.retrieveMailTemplate(triggerValues.shiftCancellation);
-            const unknownEmail = req.body.emailAddress;
+            const registration = await queryCommands.getUser(new ObjectId(userId));
+            let emailAddress = req.body.emailAddress || registration.emailAddress;
             // Sends confirmation mail.
             if (process.env.SMTP_PROVIDER && process.env.SMTP_USERNAME && process.env.SMTP_PASSWORD && template) {
                 //Retrieve template
                 if(template){
-                    const registration = await queryCommands.getUser(new ObjectId(userId));
                     let workshop = await queryCommands.getOneWorkshop(shift.value.workshopId);
                     let client = await queryCommands.getOneCustomer(shift.value.clientId);
                     let title = template.title;
                     let content = template.content;
                     //Format
-                    title = title.replaceAll('{name}', `${registration.firstName} ${registration.lastName}`);
+                    if(registration){
+                        title = title.replaceAll('{name}', `${registration.firstName} ${registration.lastName}`);
+                        emailAddress = registration.emailAddress;
+                    } else{
+                        title = title.replaceAll('{name}', `Workshop docent`);
+                    }
                     content = content.replaceAll('{functie}', `Workshop docent ${workshop.name}`);
                     content = content.replaceAll('{klant}', client.name);
                     content = content.replaceAll('{date}', shift.value.date);
-                    await mailMethods.sendMail(title, content, registration.emailAddress);
-                } else if(unknownEmail){
+
+                    await mailMethods.sendMail(title, content, emailAddress);
+                } else {
                     let defaultTitle = `De inschrijving geannuleerd`;
                     let defaultContent = `U bent officieel verwijdert voor deze workshop.\n
                      Wij hopen u spoedig te zien in de toekomst.`
-                    await mailMethods.sendMail(defaultTitle, defaultContent, req.body.emailAddress);
+                    await mailMethods.sendMail(defaultTitle, defaultContent, emailAddress);
                 }
             }
 
