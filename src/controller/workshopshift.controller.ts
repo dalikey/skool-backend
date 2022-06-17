@@ -11,29 +11,29 @@ let controller = {
     validateWorkshopShiftInput:(req:any, res:any, next:any)=>{
         const workshopShift = req.body;
         //Set up dates.
-        let shiftDate = DateTime.fromISO(workshopShift.date);
-        let availableDate = DateTime.fromISO(workshopShift.availableUntil);
-        let difference = differenceDateInDays(shiftDate, availableDate);
         try {
-            assert(workshopShift);
-            assert(workshopShift.workshopId);
-            assert(workshopShift.clientId);
+            let shiftDate = DateTime.fromISO(workshopShift.date);
+            let availableDate = DateTime.fromISO(workshopShift.availableUntil);
+            let difference = differenceDateInDays(shiftDate, availableDate);
+            assert(workshopShift ,"ShiftObject does not exist");
+            assert(workshopShift.workshopId,"workshopID does not exist");
+            assert(workshopShift.clientId,"ClientId does not exist");
             //Locatie van de workshopshift is optioneel.
-            assert(typeof workshopShift.workshopId == 'string');
-            assert(typeof workshopShift.maximumParticipants == "number");
-            assert(typeof workshopShift.targetAudience == 'string');
-            assert(typeof workshopShift.level == 'string');
-            assert(workshopShift.location);
-            assert(workshopShift.date);
-            assert(workshopShift.availableUntil);
-            assert(shiftDate > availableDate);
+            assert(typeof workshopShift.workshopId == 'string',"WORKSHOPID is not a string");
+            assert(typeof workshopShift.maximumParticipants == "number","maximumparticipants is not a string");
+            assert(typeof workshopShift.targetAudience == 'string',"targetAudience is not a string");
+            assert(typeof workshopShift.level == 'string',"level does not exist");
+            assert(workshopShift.location,"location does not exist");
+            assert(workshopShift.date,"date does not exist");
+            assert(workshopShift.availableUntil,"availableDate does not exist");
+            assert(shiftDate > availableDate,"shiftDate is not later than availableDate");
             // @ts-ignore
-            assert(difference.days >= 2);
+            assert(difference.days >= 2,"Difference between shiftDate and availableDate is not more than 2 days");
             //Shift time and breaks
-            assert(workshopShift.timestamps.length > 0);
+            assert(workshopShift.timestamps.length > 0,"No timestamps filled in");
             next();
         }catch (e:any){
-            return res.status(400).json({error: "input_error", message: "Input is wrong", err: e});
+            return res.status(400).json({error: "input_error", message: "Input is wrong", catchError: e});
         }
     }
     ,
