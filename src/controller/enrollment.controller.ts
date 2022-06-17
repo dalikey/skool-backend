@@ -345,8 +345,8 @@ const controller = {
                     //format mail. Make mail
                     title = title.replaceAll('{functie}', `${workshop.name}`);
                     content = content.replaceAll('{name}', `${user.firstName} ${user.lastName}`);
-                    content = content.replaceAll('{date}', `${DateTime.fromISO(shift.date).toFormat("D").toString()}`);
-                    content = content.replaceAll('{arrivalDate}', `${DateTime.fromISO(shift.timestamps[0].startTime).minus({minute: 30}).toFormat("D").toString()}`);
+                    content = content.replaceAll('{date}', DateTime.fromJSDate(shift.date).toFormat("D"));
+                    content = content.replaceAll('{arrivalTime}', DateTime.fromISO(shift.timestamps[0].startTime).minus({minute: 30}).toFormat("T").toString());
                     content = content.replaceAll('{tarrif}', `${shift.tarriff}`);
                     content = content.replaceAll('{startTime}', `${shift.timestamps[0].startTime}`);
                     content = content.replaceAll('{functie}', `docent ${workshop.name}`);
@@ -424,8 +424,8 @@ export async function formatConfirmationMail(emailAddress:string, shiftId:string
             content = content.replaceAll("{name}", `${firstName} ${lastName}`);
             content = content.replaceAll("{functie}", `Workshop ${workshop.name}`);
             content = content.replaceAll('{klant}', client.name);
-            content = content.replaceAll('{date}', `${DateTime.fromISO(shift.date).toFormat("D")}`);
-            content = content.replaceAll('{arrivalTime}', `${DateTime.fromISO(shift.timestamps[0].startTime).minus({minute: 30}).toFormat("TT")}`);
+            content = content.replaceAll('{date}', `${DateTime.fromJSDate(shift.date).toFormat("D")}`);
+            content = content.replaceAll('{arrivalTime}', `${DateTime.fromISO(shift.timestamps[0].startTime).minus({minute: 30}).toFormat("T")}`);
             content = content.replaceAll('{startTime}', `${shift.timestamps[0].startTime}`);
             content = content.replaceAll('{endTime}', `${shift.timestamps[shift.timestamps.length - 1].endTime}`)
             content = content.replaceAll('{tarrif}', `${shift.total_Amount}`);
@@ -472,26 +472,4 @@ export async function formatRejectionEnrollment(shiftId:string, emailAddress:str
 
 }
 
-export async function acceptedMail(shiftId:string, emailAddress:string, firstName:string, lastName:string) {
-
-}
-
-export async function cancelMail(shiftId:string, emailAddress:string, firstName:string, lastName:string){
-
-}
-
-export async function enrollMentRequest(shiftId:string, emailAddress:string, firstName:string, lastName:string) {
-
-}
-export async function passwordForgot(emailAddress:string){
-
-}
-
-export async function registerReject() {
-
-}
-
-export async function registerAccepted(){
-
-}
 export default controller;
