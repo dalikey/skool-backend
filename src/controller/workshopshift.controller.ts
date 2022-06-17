@@ -32,8 +32,8 @@ let controller = {
             //Shift time and breaks
             assert(workshopShift.timestamps.length > 0);
             next();
-        }catch (e){
-            return res.status(400).json({error: "input_error", message: "Input is wrong"});
+        }catch (e:any){
+            return res.status(400).json({error: "input_error", message: "Input is wrong", err: e.message});
         }
     }
     ,
