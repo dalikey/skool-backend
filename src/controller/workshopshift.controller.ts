@@ -33,7 +33,7 @@ let controller = {
             assert(workshopShift.timestamps.length > 0);
             next();
         }catch (e:any){
-            return res.status(400).json({error: "input_error", message: "Input is wrong", err: e.message});
+            return res.status(400).json({error: "input_error", message: "Input is wrong", err: e});
         }
     }
     ,
