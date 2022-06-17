@@ -345,8 +345,8 @@ const controller = {
                     //format mail. Make mail
                     title = title.replaceAll('{functie}', `${workshop.name}`);
                     content = content.replaceAll('{name}', `${user.firstName} ${user.lastName}`);
-                    content = content.replaceAll('{date}', `${DateTime.fromISO(shift.date).toFormat("D")}`);
-                    content = content.replaceAll('{arrivalDate}', `${DateTime.fromISO(shift.timestamps[0].startTime).minus({minute: 30}).toFormat("D")}`);
+                    content = content.replaceAll('{date}', `${DateTime.fromISO(shift.date).toFormat("D").toString()}`);
+                    content = content.replaceAll('{arrivalDate}', `${DateTime.fromISO(shift.timestamps[0].startTime).minus({minute: 30}).toFormat("D").toString()}`);
                     content = content.replaceAll('{tarrif}', `${shift.tarriff}`);
                     content = content.replaceAll('{startTime}', `${shift.timestamps[0].startTime}`);
                     content = content.replaceAll('{functie}', `docent ${workshop.name}`);
@@ -361,8 +361,8 @@ const controller = {
                 }
             }
             return res.status(200).json();
-        }catch (e) {
-            res.status(400).json({error: "invitation has failed", message: e})
+        }catch (e:any) {
+            res.status(400).json({error: "invitation has failed", message: e.message})
         }
 
     }
