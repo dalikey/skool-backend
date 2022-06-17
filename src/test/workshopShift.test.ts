@@ -178,7 +178,7 @@ const dateDummy = DateTime.now().minus({day:3}).toISODate();
 const availableD = DateTime.now().minus({day:1}).toISODate();
 const workshopsShift = {
     _id: new ObjectId("62a242ff67ffdef340ff0c95"),
-    workshopId: new ObjectId("62a242e04cf01cbac99d7d0f"),
+    workshopId: new ObjectId("62a0b328073fb0335c7ca166"),
     clientId: new ObjectId("62a242f5fa1b3d40ef808468"),
     maximumParticipants: 6,
     targetAudience: "WO",
@@ -199,7 +199,7 @@ const workshopsShift = {
 
 const workshopsShift2 = {
     _id: new ObjectId("62a24334ede1fac86edd1701"),
-    workshopId: new ObjectId("62a2434060f613b82112c12d"),
+    workshopId: new ObjectId("62a0b328073fb0335c7ca166"),
     clientId: new ObjectId("62a24347ec4ee19b0cb1d73b"),
     maximumParticipants: 6,
     targetAudience: "WO",
@@ -306,19 +306,21 @@ const workShop55 = {
     _id: new ObjectId("62a0b328073fb0335c7ca166"),
     name: "TestShop"
 }
-const user = {_id: new ObjectId("62a39fa5dfb7a383d6edce09"), name: "TestBob", availableUntil: DateTime.now(), workshopPreferences: [], hourRate: 12.1};
+const user = {_id: new ObjectId("62a39fa5dfb7a383d6edce09"), name: "TestBob", availableUntil: DateTime.now(), workshopPreferences: [new ObjectId("62a0b328073fb0335c7ca166")], hourRate: 12.1};
 describe('Retrieve workshops', ()=>{
     before(async ()=>{
         const col = await queryCommands.getShiftCollection();
         const col2 = await queryCommands.getUserCollection();
-        await col.deleteMany({_id: {$in: [new ObjectId("62a24334ede1fac86edd1701"), new ObjectId("62a242ff67ffdef340ff0c95")]}});
-        await col2.deleteOne({_id: new ObjectId("62a39fa5dfb7a383d6edce09")});
+        const workshop = await queryCommands.getWorkshopCollection();
+        await workshop.insertOne(workShop55);
         await col.insertMany([workshopsShift2, workshopsShift]);
         await col2.insertOne(user);
     })
     after(async ()=>{
         const col = await queryCommands.getShiftCollection();
         const col2 = await queryCommands.getUserCollection();
+        const workshop = await queryCommands.getWorkshopCollection();
+        await workshop.deleteOne(workShop55);
         await col.deleteMany({_id: {$in: [new ObjectId("62a24334ede1fac86edd1701"), new ObjectId("62a242ff67ffdef340ff0c95")]}});
         await col2.deleteOne(user);
     })
@@ -350,6 +352,8 @@ describe('Retrieve workshops', ()=>{
         })
     })
 
+
+
     it('Gets one workshop', (done)=>{
         const authToken = jwt.sign({id: "6295e96d7f984a246108b36e", role: "user"}, process.env.APP_SECRET || "", {expiresIn: "1d"});
         const shiftId = "62a242ff67ffdef340ff0c95";
@@ -358,7 +362,7 @@ describe('Retrieve workshops', ()=>{
             .end((err, res)=>{
             let {result} = res.body;
             assert.deepEqual(result, {_id: "62a242ff67ffdef340ff0c95",
-                workshopId: "62a242e04cf01cbac99d7d0f",
+                workshopId: "62a0b328073fb0335c7ca166",
                 clientId: "62a242f5fa1b3d40ef808468",
                 maximumParticipants: 6,
                 targetAudience: "WO",

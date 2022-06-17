@@ -78,13 +78,17 @@ let controller = {
             // @ts-ignore
             shifts = shifts.filter(shift => shift.maximumParticipants > shift.participants.length);
 
+            //Map queryPreferences
+            // @ts-ignore
+            const reformedArray = queryFilters.map(({_id})=>(_id.toString()));
             const shiftList = [];
             //Filter through preferences
             for (let i = 0; i < shifts.length; i++) {
                 //Puts workshop
-                const workshop = shifts[i].workshop[0];
+                const currentShift = shifts[i];
+                const workshop = currentShift.workshop[0];
                 //Checks if workshop is included in the queryFilters
-                if(queryFilters.includes(workshop) || queryFilters.length == 0){
+                if(reformedArray.includes(workshop._id.toString()) || queryFilters.length == 0){
                     //Puts candidatesprofile in candidate of the corresponding shift
                     const userList = shifts[i].candidateUsers;
                     for (let j = 0; j < userList.length; j++) {
