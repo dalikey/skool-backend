@@ -149,8 +149,8 @@ describe('Failed workshopShift insert', ()=>{
                         city: "Haarlem",
                         country: "Nederland"
                     },
-                    date: "2022-09-21",
-                    availableUntil: "2022-09-01",
+                    date: DateTime.now().plus({day: 9}).toJSDate(),
+                    availableUntil: DateTime.now().plus({day: 3}).toJSDate(),
                     extraInfo: "Nothing@@@",
                     timestamps: [{startTime: "11:00", endTime: "13:00"}, {startTime: "14:00", endTime: "16:00"}],
                     hourRate: 45.00,
@@ -230,8 +230,9 @@ const full3Shift = {
         "postalCode":"4661 SE",
         "country":"Nederland"},
     "targetAudience":"School",
-    "level":"VWO","date":"2022-06-21T10:29:16.000Z",
-    "availableUntil":"2022-06-21T10:29:16.000Z",
+    "level":"VWO",
+    "date":"2023-06-21T10:29:16.000Z",
+    "availableUntil":"2023-06-19T10:29:16.000Z",
     "hourRate":0,
     "dayRate":12,
     "timestamps":[

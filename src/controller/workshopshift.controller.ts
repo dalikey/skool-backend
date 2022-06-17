@@ -4,13 +4,16 @@ import {WorkshopShiftBody} from "../models/workshopShiftBody";
 import {ObjectId} from "mongodb";
 import {DateTime} from 'luxon';
 import logger from 'js-logger'
+import Logger from 'js-logger'
 import {Request, Response} from "express";
-import Logger from "js-logger";
 
 let controller = {
     validateWorkshopShiftInput:(req:any, res:any, next:any)=>{
         const workshopShift = req.body;
-        let breakT = 0;
+        //Set up dates.
+        let shiftDate = DateTime.fromISO(workshopShift.date);
+        let availableDate = DateTime.fromISO(workshopShift.availableUntil);
+        let difference = differenceDateInDays(shiftDate, availableDate);
         try {
             assert(workshopShift);
             assert(workshopShift.workshopId);
@@ -23,6 +26,9 @@ let controller = {
             assert(workshopShift.location);
             assert(workshopShift.date);
             assert(workshopShift.availableUntil);
+            assert(shiftDate > availableDate);
+            // @ts-ignore
+            assert(difference.days >= 2);
             //Shift time and breaks
             assert(workshopShift.timestamps.length > 0);
             next();
@@ -58,6 +64,7 @@ let controller = {
         try {
             const userId = res.locals.decodedToken;
             let queryFilters = [];
+            let levelFilter = [];
             logger.info("User retrieval for getAllShifts has started");
             //Gets user
             const user = await queryCommands.getUser(new ObjectId(userId.id));
@@ -65,6 +72,10 @@ let controller = {
             //Converts each workshop objectId-string to objectId
             if(user.workshopPreferences){
                 queryFilters = user.workshopPreferences;
+            }
+
+            if(user.levelPreferences){
+                levelFilter = user.levelPreferences;
             }
 
             //Database command
@@ -88,7 +99,7 @@ let controller = {
                 const currentShift = shifts[i];
                 const workshop = currentShift.workshop[0];
                 //Checks if workshop is included in the queryFilters
-                if(reformedArray.includes(workshop._id.toString()) || queryFilters.length == 0){
+                if((reformedArray.includes(workshop._id.toString()) || queryFilters.length == 0) && (levelFilter.includes(currentShift.level) || levelFilter.length == 0)){
                     //Puts candidatesprofile in candidate of the corresponding shift
                     const userList = shifts[i].candidateUsers;
                     for (let j = 0; j < userList.length; j++) {
@@ -219,6 +230,9 @@ function decideFormOfRate(hourRate: number) {
 
 }
 
+function differenceDateInDays(shiftDate: any, availableEnrollDate:any){
+    return shiftDate.diff(availableEnrollDate, "day").toObject();
+}
 export function getHoursFromTimeStampList(timeStampsList: any){
     let hours = 0;
     for (const timeObject of timeStampsList) {
