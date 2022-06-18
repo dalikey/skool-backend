@@ -204,6 +204,7 @@ export const templateFormat = {
                             }
                             table{
                                 border: grey 1px solid;
+                                margin: 15px;
                             }
                             th{
                                 background-color: orange;
