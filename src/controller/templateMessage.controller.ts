@@ -202,6 +202,20 @@ export const templateFormat = {
                                 background-color: white;
                                 margin: 50px;
                             }
+                            table{
+                                border: grey 1px solid;
+                            }
+                            th{
+                                background-color: orange;
+                                color: white;
+                                padding: 15px;
+                                margin: 15px;
+                            }
+                            td{
+                                background-color: white;
+                                padding: 15px;
+                                margin: 15px;
+                            }
                         </style>
                     </head>`
         return css;
@@ -212,31 +226,31 @@ export const templateFormat = {
                         <table>
                             <tr>
                                 <th>Klant</th>
-                                <td col="2"></td>
+                                <td col="2">${klant}</td>
                             </tr>
                             <tr>
                                 <th>Datum en tijd</th>
-                                <td col="2"></td>
+                                <td col="2">${datum}<br/>${tijd}</td>
                             </tr>
                             <tr>
                                 <th>Naam uitgenodigde</th>
-                                <td col="2"></td>
+                                <td col="2">${naam}</td>
                             </tr>
                             <tr>
                                 <th>Functie</th>
-                                <td col="2"></td>
+                                <td col="2">${functie}</td>
                             </tr>
                             <tr>
                                 <th>Inschrijving</th>
                                 <td>
-                                    <form action="${hostname}/api/workshop/shift/${shiftId}/accepted/${userId}/enroll/${token}/invitation">
-                                        <button type="submit">Accepteren</button>
-                                    </form>
+                                    <a href="${hostname}/api/workshop/shift/${shiftId}/accepted/${userId}/enroll/${token}/invitation">
+                                        ${hostname}/api/workshop/shift/${shiftId}/accepted/${userId}/enroll/${token}/invitation
+                                    </a>
                                 </td>
                                 <td>
-                                    <form action="${hostname}/api/workshop/shift/${shiftId}/enroll/${userId}/reject/${token}/no">
-                                        <button type="submit">Weigeren</button>
-                                    </form>
+                                    <a href="${hostname}/api/workshop/shift/${shiftId}/enroll/${userId}/reject/${token}/no">
+                                        ${hostname}/api/workshop/shift/${shiftId}/enroll/${userId}/reject/${token}/no
+                                    </a>
                                 </td>
                             </tr>
                         </table>
