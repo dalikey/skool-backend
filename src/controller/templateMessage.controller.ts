@@ -243,13 +243,13 @@ export const templateFormat = {
                             <tr>
                                 <th>Inschrijving</th>
                                 <td>
-                                    <a href="${hostname}/api/workshop/shift/${shiftId}/accepted/${userId}/enroll/${token}/invitation">
-                                        ${hostname}/api/workshop/shift/${shiftId}/accepted/${userId}/enroll/${token}/invitation
+                                    <a href="http://${hostname}/api/workshop/shift/${shiftId}/accepted/${userId}/enroll/${token}/invitation">
+                                        Accepteren
                                     </a>
                                 </td>
                                 <td>
-                                    <a href="${hostname}/api/workshop/shift/${shiftId}/enroll/${userId}/reject/${token}/no">
-                                        ${hostname}/api/workshop/shift/${shiftId}/enroll/${userId}/reject/${token}/no
+                                    <a href="http://${hostname}/api/workshop/shift/${shiftId}/enroll/${userId}/reject/${token}/no">
+                                        Weigeren
                                     </a>
                                 </td>
                             </tr>
