@@ -5,7 +5,7 @@ import {ObjectId} from "mongodb";
 import time, {DateTime, Duration} from 'luxon';
 import nodemailer, {Transporter} from "nodemailer";
 import dotEnv from 'dotenv'
-import {mailMethods} from "./templateMessage.controller";
+import {mailMethods, templateFormat} from "./templateMessage.controller";
 import {triggerValues} from "../models/templateMessageBody";
 import {getHoursFromTimeStampList} from "./workshopshift.controller";
 import jwt from "jsonwebtoken";
@@ -353,6 +353,17 @@ const controller = {
                     content = content.replaceAll('{klant}', klant.name);
                     content = content.replace('{Invitation_link}', `${req.hostname}/api/workshop/shift/${shiftId}/accepted/${user.userId}/enroll/${token}/invitation`);
                     content = content.replace('{Rejection_link}', `${req.hostname}/api/workshop/shift/${shiftId}/enroll/${user.userId}/reject/${token}/no`);
+                    content = content.replaceAll('{tabelShift}', templateFormat
+                        .getTableOfShiftInfo(
+                            klant.name,
+                            DateTime.fromJSDate(shift.date).toFormat("D"),
+                            shift.timestamps[0].startTime,
+                            `${user.firstName} ${user.lastName}`,
+                        `docent ${workshop.name}`,
+                            shiftId,
+                            req.hostname,
+                            user.userId,
+                            token));
                     //Sends mail
                     const result = await mailMethods.sendMail(title, content, user.emailAddress);
                 } else{
@@ -431,7 +442,6 @@ export async function formatConfirmationMail(emailAddress:string, shiftId:string
             content = content.replaceAll('{tarrif}', `${shift.total_Amount}`);
             content = content.replaceAll('{targetAudience}', `${shift.targetAudience}`);
             content = content.replaceAll('{workshopInfo}', workshop.description);
-
             mailMethods.sendMail(title, content, emailAddress);
         } else{
             let content  = `Beste ${firstName} ${lastName},\nU bent officieel ingeschreven voor de workshop.\n

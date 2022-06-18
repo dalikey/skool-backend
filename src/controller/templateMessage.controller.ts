@@ -205,6 +205,43 @@ export const templateFormat = {
                         </style>
                     </head>`
         return css;
+    },
+
+    getTableOfShiftInfo(klant:string, datum:string, tijd:string, naam:string, functie:string, shiftId:string, hostname:string, userId:string, token:string){
+        let table = `<div>
+                        <table>
+                            <tr>
+                                <th>Klant</th>
+                                <td col="2"></td>
+                            </tr>
+                            <tr>
+                                <th>Datum en tijd</th>
+                                <td col="2"></td>
+                            </tr>
+                            <tr>
+                                <th>Naam uitgenodigde</th>
+                                <td col="2"></td>
+                            </tr>
+                            <tr>
+                                <th>Functie</th>
+                                <td col="2"></td>
+                            </tr>
+                            <tr>
+                                <th>Inschrijving</th>
+                                <td>
+                                    <form action="${hostname}/api/workshop/shift/${shiftId}/accepted/${userId}/enroll/${token}/invitation">
+                                        <button type="submit">Accepteren</button>
+                                    </form>
+                                </td>
+                                <td>
+                                    <form action="${hostname}/api/workshop/shift/${shiftId}/enroll/${userId}/reject/${token}/no">
+                                        <button type="submit">Weigeren</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>`;
+        return table;
     }
 
 }
