@@ -66,7 +66,7 @@ enrollRoutes.put('/api/workshop/shift/:shiftId/enroll/invitation',
     controller.validateOwnerRole,
     enrollController.inputValidateInviteAction,
     enrollController.sendInvitationToUser);
-
+//
 //Sends rejection from user to the api, it removes the invitation within the invitation array.
 enrollRoutes.get('/api/workshop/shift/:shiftId/enroll/:userId/reject/:token/no',
     enrollController.rejectInvitation);
