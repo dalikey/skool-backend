@@ -365,7 +365,7 @@ const controller = {
                             user.userId,
                             token));
                     //Sends mail
-                    const result = await mailMethods.sendMail(title, content, user.emailAddress);
+                   await mailMethods.sendMail(title, content, user.emailAddress);
                 } else{
                     //placeholder default, just in case
                     await mailMethods.sendMail("Bevestig inschrijving", `<a href="${req.hostname}/api/workshop/shift/${shiftId}/accepted/${user.userId}/enroll/${token}/invitation">Accepteer</a> <br/><br/><a href="${req.hostname}/api/workshop/shift/${shiftId}/enroll/${user.userId}/reject/${token}/no">Accepteer</a> `, user.emailAddress);
