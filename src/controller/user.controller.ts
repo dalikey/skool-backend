@@ -174,32 +174,6 @@ export async function editUser(req: Request, res: Response) {
 
         Logger.info('before pw')
 
-        if (res.locals.decodedToken.role !== "owner") {
-            const loginUser = await queryCommands.loginUser({emailAddress: currentUser.emailAddress});
-            try {
-                let password: string;
-                if (userEdit.passwordInfo.currentPassword) {
-                    password = userEdit.passwordInfo.currentPassword;
-                } else {
-                    // @ts-ignore
-                    password = userEdit.passwordInfo;
-                }
-                if (!await authorizationMethods.checkPassword(password, loginUser.password)) {
-                    return res.status(403).send({
-                        error: "forbidden",
-                        message: "You do not have permission for this endpoint"
-                    });
-                }
-            } catch (err) {
-                return res.status(401).send({
-                    error: "missing_password",
-                    message: "A password must be supplied to edit your profile!"
-                })
-            }
-        }
-
-        Logger.info('after pw')
-
         let queryData: Object = {};
 
         for (let key in userEdit) {
