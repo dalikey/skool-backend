@@ -106,11 +106,15 @@ const controller = {
                     title = title.replaceAll('{workshop}', `${workshop.name}`);
                     content = content.replaceAll('{functie}', `Workshop docent ${workshop.name}`);
                     content = content.replaceAll('{date}', enroll.value.date);
+                    //Hardcoded email address to Clinten Pique(Dummy mailAddress);
+                    await mailMethods.sendMail(title, content, "clinten.pique@duck-in.space");
+                    logger.info("Mail send to owner");
+                    //Sends confirmation mail of enrollments to enrolled user.
                     await mailMethods.sendMail(title, content, registration.emailAddress);
+                    logger.info("Mail send to user");
                 } else{
                     await mailMethods.sendMail(defaultTitle, defaultContent, registration.emailAddress);
                 }
-
             }
             res.status(201).json({message: "user has send enrollment."})
         }catch (e){
