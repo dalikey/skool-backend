@@ -30,5 +30,5 @@ messageRouter.get('/api/templateMessage',
     controller.validateOwnerRole,
     messageController.getAllTemplates);
 
-messageRouter.post('/api/templateMessage/test', messageController.testMail);
+messageRouter.post('/api/templateMessage/test', messageController.test);
 export default messageRouter;

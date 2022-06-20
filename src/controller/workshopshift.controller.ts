@@ -4,30 +4,36 @@ import {WorkshopShiftBody} from "../models/workshopShiftBody";
 import {ObjectId} from "mongodb";
 import {DateTime} from 'luxon';
 import logger from 'js-logger'
+import Logger from 'js-logger'
 import {Request, Response} from "express";
-import Logger from "js-logger";
 
 let controller = {
     validateWorkshopShiftInput:(req:any, res:any, next:any)=>{
         const workshopShift = req.body;
-        let breakT = 0;
+        //Set up dates.
         try {
-            assert(workshopShift);
-            assert(workshopShift.workshopId);
-            assert(workshopShift.clientId);
+            let shiftDate = DateTime.fromISO(workshopShift.date);
+            let availableDate = DateTime.fromISO(workshopShift.availableUntil);
+            let difference = differenceDateInDays(shiftDate, availableDate);
+            assert(workshopShift ,"ShiftObject does not exist");
+            assert(workshopShift.workshopId,"workshopID does not exist");
+            assert(workshopShift.clientId,"ClientId does not exist");
             //Locatie van de workshopshift is optioneel.
-            assert(typeof workshopShift.workshopId == 'string');
-            assert(typeof workshopShift.maximumParticipants == "number");
-            assert(typeof workshopShift.targetAudience == 'string');
-            assert(typeof workshopShift.level == 'string');
-            assert(workshopShift.location);
-            assert(workshopShift.date);
-            assert(workshopShift.availableUntil);
+            assert(typeof workshopShift.workshopId == 'string',"WORKSHOPID is not a string");
+            assert(typeof workshopShift.maximumParticipants == "number","maximumparticipants is not a string");
+            assert(typeof workshopShift.targetAudience == 'string',"targetAudience is not a string");
+            assert(typeof workshopShift.level == 'string',"level does not exist");
+            assert(workshopShift.location,"location does not exist");
+            assert(workshopShift.date,"date does not exist");
+            assert(workshopShift.availableUntil,"availableDate does not exist");
+            assert(shiftDate > availableDate,"shiftDate is not later than availableDate");
+            // @ts-ignore
+            assert(difference.days >= 2,"Difference between shiftDate and availableDate is not more than 2 days");
             //Shift time and breaks
-            assert(workshopShift.timestamps.length > 0);
+            assert(workshopShift.timestamps.length > 0,"No timestamps filled in");
             next();
-        }catch (e){
-            return res.status(400).json({error: "input_error", message: "Input is wrong"});
+        }catch (e:any){
+            return res.status(400).json({error: "input_error", message: "Input is wrong", catchError: e});
         }
     }
     ,
@@ -58,6 +64,7 @@ let controller = {
         try {
             const userId = res.locals.decodedToken;
             let queryFilters = [];
+            let levelFilter = [];
             logger.info("User retrieval for getAllShifts has started");
             //Gets user
             const user = await queryCommands.getUser(new ObjectId(userId.id));
@@ -65,6 +72,10 @@ let controller = {
             //Converts each workshop objectId-string to objectId
             if(user.workshopPreferences){
                 queryFilters = user.workshopPreferences;
+            }
+
+            if(user.levelPreferences){
+                levelFilter = user.levelPreferences;
             }
 
             //Database command
@@ -78,13 +89,17 @@ let controller = {
             // @ts-ignore
             shifts = shifts.filter(shift => shift.maximumParticipants > shift.participants.length);
 
+            //Map queryPreferences
+            // @ts-ignore
+            const reformedArray = queryFilters.map(({_id})=>(_id.toString()));
             const shiftList = [];
             //Filter through preferences
             for (let i = 0; i < shifts.length; i++) {
                 //Puts workshop
-                const workshop = shifts[i].workshop[0];
+                const currentShift = shifts[i];
+                const workshop = currentShift.workshop[0];
                 //Checks if workshop is included in the queryFilters
-                if(queryFilters.includes(workshop) || queryFilters.length == 0){
+                if((reformedArray.includes(workshop._id.toString()) || queryFilters.length == 0) && (levelFilter.includes(currentShift.level) || levelFilter.length == 0)){
                     //Puts candidatesprofile in candidate of the corresponding shift
                     const userList = shifts[i].candidateUsers;
                     for (let j = 0; j < userList.length; j++) {
@@ -215,6 +230,9 @@ function decideFormOfRate(hourRate: number) {
 
 }
 
+function differenceDateInDays(shiftDate: any, availableEnrollDate:any){
+    return shiftDate.diff(availableEnrollDate, "day").toObject();
+}
 export function getHoursFromTimeStampList(timeStampsList: any){
     let hours = 0;
     for (const timeObject of timeStampsList) {

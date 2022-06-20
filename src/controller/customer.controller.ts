@@ -8,15 +8,19 @@ const emailRegex = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}
 const phoneRegex = /(06)(\s|\-|)\d{8}|31(\s6|\-6|6)\d{8}/;
 
 const customerController = {
-    test:(req:any, res:any)=>{
+    async test(req:any, res:any){
         try {
-            const start = "2022-06-10T11:17:00";
-            const end = "2022-06-10T11:17:00";
-            let stTime = DateTime.fromISO(start);
-            let endT = DateTime.fromISO(end);
-            let result = stTime < endT;
-            let i = 0 /60;
-            return res.status(400).json({message: DateTime.now()});
+            const shift = await queryCommands.getOneShift("62a23b5363b3acca6c779e0b");
+            console.log("Date");
+            console.log(shift.date.toString());
+            console.log(DateTime.fromISO(shift.date).toFormat("D").toString());
+            console.log("Time");
+            console.log(shift.timestamps[0].startTime);
+            console.log(DateTime.fromISO(shift.timestamps[0].startTime).minus({minute: 30}).toFormat("D").toString());
+            let dateA = shift.date;
+            let stTime = DateTime.fromISO(shift.timestamps[0].startTime).minus({minute: 30}).toFormat("T").toString();
+            let stTime2 = DateTime.fromJSDate(shift.date).toFormat("D");
+            return res.status(200).json({message: stTime, date: DateTime.fromJSDate(shift.date).toFormat("D")});
         }catch (e) {
             return res.status(400).json({error: "file_upload_failure", message: "Wrong file insert"});
         }

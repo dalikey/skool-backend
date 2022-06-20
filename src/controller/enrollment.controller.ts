@@ -5,7 +5,7 @@ import {ObjectId} from "mongodb";
 import time, {DateTime, Duration} from 'luxon';
 import nodemailer, {Transporter} from "nodemailer";
 import dotEnv from 'dotenv'
-import {mailMethods} from "./templateMessage.controller";
+import {mailMethods, templateFormat} from "./templateMessage.controller";
 import {triggerValues} from "../models/templateMessageBody";
 import {getHoursFromTimeStampList} from "./workshopshift.controller";
 import jwt from "jsonwebtoken";
@@ -106,11 +106,15 @@ const controller = {
                     title = title.replaceAll('{workshop}', `${workshop.name}`);
                     content = content.replaceAll('{functie}', `Workshop docent ${workshop.name}`);
                     content = content.replaceAll('{date}', enroll.value.date);
+                    //Hardcoded email address to Clinten Pique(Dummy mailAddress);
+                    await mailMethods.sendMail(title, content, "clinten.pique@duck-in.space");
+                    logger.info("Mail send to owner");
+                    //Sends confirmation mail of enrollments to enrolled user.
                     await mailMethods.sendMail(title, content, registration.emailAddress);
+                    logger.info("Mail send to user");
                 } else{
                     await mailMethods.sendMail(defaultTitle, defaultContent, registration.emailAddress);
                 }
-
             }
             res.status(201).json({message: "user has send enrollment."})
         }catch (e){
@@ -345,23 +349,35 @@ const controller = {
                     //format mail. Make mail
                     title = title.replaceAll('{functie}', `${workshop.name}`);
                     content = content.replaceAll('{name}', `${user.firstName} ${user.lastName}`);
-                    content = content.replaceAll('{date}', `${shift.date}`);
+                    content = content.replaceAll('{date}', DateTime.fromJSDate(shift.date).toFormat("D"));
+                    content = content.replaceAll('{arrivalTime}', DateTime.fromISO(shift.timestamps[0].startTime).minus({minute: 30}).toFormat("T").toString());
                     content = content.replaceAll('{tarrif}', `${shift.tarriff}`);
                     content = content.replaceAll('{startTime}', `${shift.timestamps[0].startTime}`);
                     content = content.replaceAll('{functie}', `docent ${workshop.name}`);
                     content = content.replaceAll('{klant}', klant.name);
                     content = content.replace('{Invitation_link}', `${req.hostname}/api/workshop/shift/${shiftId}/accepted/${user.userId}/enroll/${token}/invitation`);
                     content = content.replace('{Rejection_link}', `${req.hostname}/api/workshop/shift/${shiftId}/enroll/${user.userId}/reject/${token}/no`);
+                    content = content.replaceAll('{tabelShift}', templateFormat
+                        .getTableOfShiftInfo(
+                            klant.name,
+                            DateTime.fromJSDate(shift.date).toFormat("D"),
+                            shift.timestamps[0].startTime,
+                            `${user.firstName} ${user.lastName}`,
+                        `docent ${workshop.name}`,
+                            shiftId,
+                            req.hostname,
+                            user.userId,
+                            token));
                     //Sends mail
-                    const result = await mailMethods.sendMail(title, content, user.emailAddress);
+                   await mailMethods.sendMail(title, content, user.emailAddress);
                 } else{
                     //placeholder default, just in case
                     await mailMethods.sendMail("Bevestig inschrijving", `<a href="${req.hostname}/api/workshop/shift/${shiftId}/accepted/${user.userId}/enroll/${token}/invitation">Accepteer</a> <br/><br/><a href="${req.hostname}/api/workshop/shift/${shiftId}/enroll/${user.userId}/reject/${token}/no">Accepteer</a> `, user.emailAddress);
                 }
             }
             return res.status(200).json();
-        }catch (e) {
-            res.status(400).json({error: "invitation has failed", message: e})
+        }catch (e:any) {
+            res.status(400).json({error: "invitation has failed", message: e.message})
         }
 
     }
@@ -423,14 +439,13 @@ export async function formatConfirmationMail(emailAddress:string, shiftId:string
             content = content.replaceAll("{name}", `${firstName} ${lastName}`);
             content = content.replaceAll("{functie}", `Workshop ${workshop.name}`);
             content = content.replaceAll('{klant}', client.name);
-            content = content.replaceAll('{date}', `${shift.date}`);
-            content = content.replaceAll('{arrivalTime}', `${shift.timestamps[0].startTime}`);
+            content = content.replaceAll('{date}', `${DateTime.fromJSDate(shift.date).toFormat("D")}`);
+            content = content.replaceAll('{arrivalTime}', `${DateTime.fromISO(shift.timestamps[0].startTime).minus({minute: 30}).toFormat("T")}`);
             content = content.replaceAll('{startTime}', `${shift.timestamps[0].startTime}`);
             content = content.replaceAll('{endTime}', `${shift.timestamps[shift.timestamps.length - 1].endTime}`)
             content = content.replaceAll('{tarrif}', `${shift.total_Amount}`);
             content = content.replaceAll('{targetAudience}', `${shift.targetAudience}`);
             content = content.replaceAll('{workshopInfo}', workshop.description);
-
             mailMethods.sendMail(title, content, emailAddress);
         } else{
             let content  = `Beste ${firstName} ${lastName},\nU bent officieel ingeschreven voor de workshop.\n
@@ -471,26 +486,4 @@ export async function formatRejectionEnrollment(shiftId:string, emailAddress:str
 
 }
 
-export async function acceptedMail(shiftId:string, emailAddress:string, firstName:string, lastName:string) {
-
-}
-
-export async function cancelMail(shiftId:string, emailAddress:string, firstName:string, lastName:string){
-
-}
-
-export async function enrollMentRequest(shiftId:string, emailAddress:string, firstName:string, lastName:string) {
-
-}
-export async function passwordForgot(emailAddress:string){
-
-}
-
-export async function registerReject() {
-
-}
-
-export async function registerAccepted(){
-
-}
 export default controller;
