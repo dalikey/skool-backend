@@ -145,7 +145,9 @@ export const templateFormat = {
         let body = `<body> 
                         <div class="innerBody">
                             ${this.getLogo()}
-                            ${content}
+                            <div>
+                                ${content}
+                            </div>
                             ${this.getContactData()}
                         </div>
                     </body>`;
