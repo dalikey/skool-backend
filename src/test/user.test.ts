@@ -150,26 +150,6 @@ describe('An owner can authorize approve or deny a new user registration.', ()=>
                 done();
             })
         })
-        it('User is not supplying current password when editing', (done)=>{
-            const authToken = jwt.sign({id: "6295e96d7f984a246108b36d", role: "user"}, process.env.APP_SECRET || "", {expiresIn: "1d"})
-
-            chai.request(server).put('/api/user/6295e96d7f984a246108b36d').set({authorization: authToken}).send({nationality: "nl"
-            }).end((err, res)=>{
-                let { error } = res.body;
-                res.status.should.equal(401);
-                done();
-            })
-        })
-        it('User is not supplying correct password when editing', (done)=>{
-            const authToken = jwt.sign({id: "6295e96d7f984a246108b36d", role: "user"}, process.env.APP_SECRET || "", {expiresIn: "1d"})
-
-            chai.request(server).put('/api/user/6295e96d7f984a246108b36d').set({authorization: authToken}).send({nationality: "nl", passwordInfo: {currentPassword: "Morbius13"}
-            }).end((err, res)=>{
-                let { error } = res.body;
-                res.status.should.equal(403);
-                done();
-            })
-        })
         it('User cannot affect restricted fields when editing', (done)=>{
             const authToken = jwt.sign({id: "6295e96d7f984a246108b36d", role: "user"}, process.env.APP_SECRET || "", {expiresIn: "1d"})
 
