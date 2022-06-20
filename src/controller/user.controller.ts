@@ -219,22 +219,6 @@ export async function editUser(req: Request, res: Response) {
 
     } else if (req.headers["content-type"]?.startsWith('multipart/form-data')) {
         try {
-            if (res.locals.decodedToken.role !== "owner") {
-                const loginUser = await queryCommands.loginUser({emailAddress: currentUser.emailAddress});
-                try {
-                    if (!await authorizationMethods.checkPassword(req.body.currentPassword, loginUser.password)) {
-                        return res.status(403).send({
-                            error: "forbidden",
-                            message: "You do not have permission for this endpoint"
-                        });
-                    }
-                } catch (err) {
-                    return res.status(401).send({
-                        error: "missing_password",
-                        message: "A password must be supplied to edit your profile!"
-                    })
-                }
-            }
             assert(req.files);
             let profileData;
             let VOGData;
