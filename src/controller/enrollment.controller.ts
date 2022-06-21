@@ -94,6 +94,7 @@ const controller = {
             if(process.env.SMTP_PROVIDER && process.env.SMTP_USERNAME && process.env.SMTP_PASSWORD){
                 const template = await mailMethods.retrieveMailTemplate(triggerValues.shiftEnrollRequest);
                 const registration = await queryCommands.getUser(new ObjectId(userId));
+
                 let defaultTitle = `Gebruiker ${registration.firstName} ${registration.lastName}, Inschrijving ontvangen.`;
                 let defaultContent = `Beste ${registration.firstName} ${registration.lastName},\nU heeft uzelf laten inschrijven voor deze workshop.\n
                      Wij hopen u spoedig te zien in de toekomst.`
@@ -104,10 +105,13 @@ const controller = {
                     //Format
                     title = title.replaceAll('{name}', `${registration.firstName} ${registration.lastName}`);
                     title = title.replaceAll('{workshop}', `${workshop.name}`);
-                    content = content.replaceAll('{functie}', `Workshop docent ${workshop.name}`);
+                    title = title.replaceAll('{functie}', `workshop docent ${workshop.name}`);
+
+                    content = content.replaceAll('{name}', `${registration.firstName} ${registration.lastName}`);
+                    content = content.replaceAll('{functie}', `workshop docent ${workshop.name}`);
                     content = content.replaceAll('{date}', enroll.value.date);
                     //Hardcoded email address to Clinten Pique(Dummy mailAddress);
-                    await mailMethods.sendMail(title, content, "clinten.pique@duck-in.space");
+                    await mailMethods.sendMail(title, content, process.env.SMTP_USERNAME);
                     logger.info("Mail send to owner");
                     //Sends confirmation mail of enrollments to enrolled user.
                     await mailMethods.sendMail(title, content, registration.emailAddress);
@@ -159,6 +163,7 @@ const controller = {
                     } else{
                         title = title.replaceAll('{name}', `Workshop docent`);
                     }
+                    title = title.replaceAll('{functie}', `Workshop docent ${workshop.name}`)
                     content = content.replaceAll('{functie}', `Workshop docent ${workshop.name}`);
                     content = content.replaceAll('{klant}', client.name);
                     content = content.replaceAll('{date}', shift.value.date);
@@ -434,9 +439,9 @@ export async function formatConfirmationMail(emailAddress:string, shiftId:string
             let title = template.title;
             let content = template.content;
 
-            title = title.replaceAll("{name}", `${firstName} ${lastName}`);
-
-            content = content.replaceAll("{name}", `${firstName} ${lastName}`);
+            title = title.replaceAll('{name}', `${firstName} ${lastName}`);
+            content = content.replaceAll('{workshop}', workshop.name);
+            content = content.replaceAll('{name}', `${firstName} ${lastName}`);
             content = content.replaceAll("{functie}", `Workshop ${workshop.name}`);
             content = content.replaceAll('{klant}', client.name);
             content = content.replaceAll('{date}', `${DateTime.fromJSDate(shift.date).toFormat("D")}`);
@@ -470,6 +475,8 @@ export async function formatRejectionEnrollment(shiftId:string, emailAddress:str
             let content = template.content;
             //Format
             title = title.replaceAll('{name}', `${firstName} ${lastName}`);
+            title = title.replaceAll('{functie}', `Workshop docent ${workshop.name}`);
+
             content = content.replaceAll('{functie}', `Workshop docent ${workshop.name}`);
             content = content.replaceAll('{klant}', client.name);
             content = content.replaceAll('{date}', shift.date);
