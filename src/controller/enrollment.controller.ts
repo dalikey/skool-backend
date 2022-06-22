@@ -163,7 +163,8 @@ const controller = {
                     } else{
                         title = title.replaceAll('{name}', `Workshop docent`);
                     }
-                    title = title.replaceAll('{functie}', `Workshop docent ${workshop.name}`)
+                    title = title.replaceAll('{functie}', `Workshop docent ${workshop.name}`);
+                    content = content.replaceAll('{name}', `${registration.firstName} ${registration.lastName}`);
                     content = content.replaceAll('{functie}', `Workshop docent ${workshop.name}`);
                     content = content.replaceAll('{klant}', client.name);
                     content = content.replaceAll('{date}', shift.value.date);
@@ -353,6 +354,7 @@ const controller = {
                     let klant = await queryCommands.getOneCustomer(shift.clientId);
                     //format mail. Make mail
                     title = title.replaceAll('{functie}', `${workshop.name}`);
+                    title = title.replaceAll('{name}', `${user.firstName} ${user.lastName}`);
                     content = content.replaceAll('{name}', `${user.firstName} ${user.lastName}`);
                     content = content.replaceAll('{date}', DateTime.fromJSDate(shift.date).toFormat("D"));
                     content = content.replaceAll('{arrivalTime}', DateTime.fromISO(shift.timestamps[0].startTime).minus({minute: 30}).toFormat("T").toString());
@@ -440,9 +442,10 @@ export async function formatConfirmationMail(emailAddress:string, shiftId:string
             let content = template.content;
 
             title = title.replaceAll('{name}', `${firstName} ${lastName}`);
+            title = title.replaceAll('{functie}', `Workshop ${workshop.name}`);
             content = content.replaceAll('{workshop}', workshop.name);
             content = content.replaceAll('{name}', `${firstName} ${lastName}`);
-            content = content.replaceAll("{functie}", `Workshop ${workshop.name}`);
+            content = content.replaceAll('{functie}', `Workshop ${workshop.name}`);
             content = content.replaceAll('{klant}', client.name);
             content = content.replaceAll('{date}', `${DateTime.fromJSDate(shift.date).toFormat("D")}`);
             content = content.replaceAll('{arrivalTime}', `${DateTime.fromISO(shift.timestamps[0].startTime).minus({minute: 30}).toFormat("T")}`);

@@ -22,57 +22,6 @@ if (process.env.SMTP_SERVER) {
 }
 let messageController = {
 
-    async test(req:any, res:any){
-        try {
-            let firstName = "Xin";
-            let lastName = "Wang";
-            let emailAddress = "NxGnaw@outlook.com";
-            const template = await queryCommands.getOneTemplate(triggerValues.shiftConfirmation);
-            const shift = await queryCommands.getOneShift("62ab981f6cfd9578704ff287");
-            const workshop = await queryCommands.getOneWorkshop(shift.workshopId);
-            const client =await queryCommands.getOneCustomer(shift.clientId);
-            if(template){
-                let title = template.title;
-                let content = template.content;
-
-                title = title.replaceAll("{name}", `${firstName} ${lastName}`);
-
-                content = content.replaceAll("{name}", `${firstName} ${lastName}`);
-                content = content.replaceAll("{functie}", `Workshop ${workshop.name}`);
-                content = content.replaceAll('{klant}', client.name);
-                content = content.replaceAll('{date}', `${DateTime.fromJSDate(shift.date).toFormat("D")}`);
-                content = content.replaceAll('{arrivalTime}', `${DateTime.fromISO(shift.timestamps[0].startTime).minus({minute: 30}).toFormat("T")}`);
-                content = content.replaceAll('{startTime}', `${shift.timestamps[0].startTime}`);
-                content = content.replaceAll('{endTime}', `${shift.timestamps[shift.timestamps.length - 1].endTime}`)
-                content = content.replaceAll('{tarrif}', `${shift.total_Amount}`);
-                content = content.replaceAll('{targetAudience}', `${shift.targetAudience}`);
-                content = content.replaceAll('{workshopInfo}', workshop.description);
-                mailMethods.sendMail(title, content, emailAddress);
-            } else{
-                let content  = `Beste ${firstName} ${lastName},\nU bent officieel ingeschreven voor de workshop.\n
-                     Wij hopen u spoedig te zien op uw dienst.`;
-                let title = `Gebruiker ${firstName} ${lastName} is definitief ingeschreven.`;
-                await mailMethods.sendMail(title, content, emailAddress);
-            }
-            await mailMethods.sendMail("Test bericht met css", templateFormat.formatMail(`<div><p>Test deze mail</p></div>`), "Xin20Wang@outlook.com");
-            return res.status(200).json({message: "Hekko"});
-        }catch (e) {
-            return res.status(400).json({error: "file_upload_failure", message: "Wrong file insert"});
-        }
-    },
-    async testMail(req: any, res: any){
-        const template = await mailMethods.retrieveMailTemplate(triggerValues.registrationAccept);
-        console.log(template);
-        if (template) {
-            let  html = template.content;
-            const result = await mailMethods.sendMail("No step back", html, "Xin20Wang@outlook.com");
-            console.log(result);
-            res.status(200).json({result: html});
-        } else{
-            res.status(400).json({error: "Error"});
-        }
-    },
-
     inputValidation: (req: any, res: any, next:any)=>{
         const template = req.body;
         const triggerList = triggers;
