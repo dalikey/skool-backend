@@ -73,7 +73,7 @@ export async function registerUser(req: Request, res: Response, next: any) {
 
             await mailMethods.sendMail(title, content, registration.emailAddress);
             // @ts-ignore
-            await mailMethods.sendMail(`Gebruiker ${registration.firstName} ${registration.lastName} geregistreerd.`, `${registration.firstName} ${registration.lastName} Goedgekeurd moeten worden door de het management team van Skool`, process.env.SMTP_USERNAME);
+            await mailMethods.sendMail(`<p>${registration.firstName} ${registration.lastName} heeft zich geregistreerd.`, `${registration.firstName} ${registration.lastName} Goedgekeurd moeten worden door de het management team van Skool</p>`, process.env.SMTP_USERNAME);
         } else {
             // @ts-ignore
             await mailMethods.sendMail(`Gebruiker ${registration.firstName} ${registration.lastName} geregistreerd.`, `${registration.firstName} ${registration.lastName} Goedgekeurd moeten worden door de het management team van Skool`, process.env.SMTP_USERNAME);
